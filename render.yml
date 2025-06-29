@@ -1,8 +1,7 @@
 services:
   - type: web
-    name: social-organizer
+    name: socialiser
     env: node
-    rootDir: socialiser     ← This tells Render where your app is
     buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npm start
     envVars:
