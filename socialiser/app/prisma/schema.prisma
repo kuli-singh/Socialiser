@@ -1,0 +1,145 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/social_organizer_prototype/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(cuid())
+  name       String
+  email      String    @unique
+  password   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  // Profile information
+  profilePicture String?
+  timezone       String?
+  preferences    Json?
+  
+  // Relationships
+  friends        Friend[]
+  coreValues     CoreValue[]
+  activities     Activity[]
+  activityInstances ActivityInstance[]
+  participations Participation[]
+  
+  @@index([email])
+}
+
+model Friend {
+  id           String        @id @default(cuid())
+  userId       String
+  name         String
+  phone        String
+  group        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relationships
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participations Participation[]
+  
+  @@index([userId])
+}
+
+model CoreValue {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relationships
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities  ActivityValue[]
+  
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relationships
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  values      ActivityValue[]
+  instances   ActivityInstance[]
+  
+  @@index([userId])
+}
+
+model ActivityValue {
+  id         String    @id @default(cuid())
+  activityId String
+  valueId    String
+  
+  activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  value      CoreValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+  
+  @@unique([activityId, valueId])
+  @@index([activityId])
+  @@index([valueId])
+}
+
+model ActivityInstance {
+  id         String    @id @default(cuid())
+  userId     String
+  datetime   DateTime
+  location   String?
+  activityId String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  // Rich instance fields
+  customTitle        String?    // Custom event title (e.g., "Thai Cooking Lesson at Cordon Bleu")
+  venue              String?    // Specific venue name
+  address            String?    // Full street address
+  city               String?    // City
+  state              String?    // State/Province
+  zipCode            String?    // Postal/ZIP code
+  detailedDescription String?   // Rich description with specifics
+  requirements       String?    // What participants need to bring/know
+  contactInfo        String?    // Venue contact information
+  venueType          String?    // "indoor", "outdoor", "online", "hybrid"
+  priceInfo          String?    // Pricing details if applicable
+  capacity           Int?       // Maximum participants
+  
+  // Relationships
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity      Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  participations Participation[]
+  
+  @@index([userId])
+  @@index([activityId])
+  @@index([datetime])
+}
+
+model Participation {
+  id                 String          @id @default(cuid())
+  userId             String
+  friendId           String
+  activityInstanceId String
+  createdAt          DateTime        @default(now())
+  
+  // Relationships
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  friend           Friend          @relation(fields: [friendId], references: [id], onDelete: Cascade)
+  activityInstance ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
+  
+  @@unique([friendId, activityInstanceId])
+  @@index([userId])
+  @@index([friendId])
+  @@index([activityInstanceId])
+}
