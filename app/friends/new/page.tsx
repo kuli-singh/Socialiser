@@ -15,7 +15,6 @@ export default function NewFriendPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
     group: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,16 +81,6 @@ export default function NewFriendPage() {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="Enter their full name"
-                required
-              />
-            </FormField>
-
-            <FormField label="Phone Number" required error={errors.phone}>
-              <Input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+1-555-0123"
                 required
               />
             </FormField>

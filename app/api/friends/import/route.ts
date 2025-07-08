@@ -9,7 +9,6 @@ export const dynamic = "force-dynamic";
 
 interface CSVRow {
   name: string;
-  phone: string;
   group?: string;
 }
 
@@ -29,7 +28,6 @@ interface ImportResult {
   }>;
   importedFriends: Array<{
     name: string;
-    phone: string;
     group: string | null;
   }>;
 }
@@ -47,21 +45,10 @@ function validateRow(row: any, rowIndex: number): { isValid: boolean; error?: st
     return { isValid: false, error: 'Name is required and cannot be empty' };
   }
 
-  if (!row.phone || typeof row.phone !== 'string' || row.phone.trim() === '') {
-    return { isValid: false, error: 'Phone is required and cannot be empty' };
-  }
-
-  // Basic phone validation - remove all non-digit characters and check length
-  const cleanPhone = row.phone.replace(/\D/g, '');
-  if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-    return { isValid: false, error: 'Phone number must be between 10-15 digits' };
-  }
-
   return {
     isValid: true,
     data: {
       name: row.name.trim(),
-      phone: row.phone.trim(),
       group: row.group && typeof row.group === 'string' && row.group.trim() !== '' 
         ? row.group.trim() 
         : undefined
@@ -125,13 +112,11 @@ export async function POST(request: NextRequest) {
     // Get existing friends for duplicate checking
     const existingFriends = await prisma.friend.findMany({
       where: { userId: user.id },
-      select: { name: true, phone: true }
+      select: { name: true }
     });
 
     const existingNamesSet = new Set(existingFriends.map(f => f.name.toLowerCase()));
-    const existingPhonesSet = new Set(existingFriends.map(f => f.phone.replace(/\D/g, '')));
     const currentImportNames = new Set<string>();
-    const currentImportPhones = new Set<string>();
 
     const validRows: Array<{ data: CSVRow; originalIndex: number }> = [];
 
@@ -150,7 +135,6 @@ export async function POST(request: NextRequest) {
 
       const validData = validation.data!;
       const normalizedName = validData.name.toLowerCase();
-      const normalizedPhone = validData.phone.replace(/\D/g, '');
 
       // Check for duplicates with existing data
       if (existingNamesSet.has(normalizedName)) {
@@ -158,15 +142,6 @@ export async function POST(request: NextRequest) {
           row: index + 1,
           name: validData.name,
           reason: 'Friend with this name already exists'
-        });
-        return;
-      }
-
-      if (existingPhonesSet.has(normalizedPhone)) {
-        result.duplicates.push({
-          row: index + 1,
-          name: validData.name,
-          reason: 'Friend with this phone number already exists'
         });
         return;
       }
@@ -181,18 +156,8 @@ export async function POST(request: NextRequest) {
         return;
       }
 
-      if (currentImportPhones.has(normalizedPhone)) {
-        result.duplicates.push({
-          row: index + 1,
-          name: validData.name,
-          reason: 'Duplicate phone number within import file'
-        });
-        return;
-      }
-
       // Add to tracking sets and valid rows
       currentImportNames.add(normalizedName);
-      currentImportPhones.add(normalizedPhone);
       validRows.push({ data: validData, originalIndex: index + 1 });
     });
 
@@ -200,7 +165,7 @@ export async function POST(request: NextRequest) {
     if (validRows.length > 0) {
       const importData = validRows.map(({ data }) => ({
         name: data.name,
-        phone: data.phone,
+        phone: "000", // Always set dummy phone value for imports
         group: data.group || null,
         userId: user.id
       }));
@@ -210,7 +175,7 @@ export async function POST(request: NextRequest) {
       });
 
       result.successfulImports = importedFriends.count;
-      result.importedFriends = importData.map(({ name, phone, group }) => ({ name, phone, group }));
+      result.importedFriends = importData.map(({ name, group }) => ({ name, group }));
     }
 
     result.success = result.successfulImports > 0;

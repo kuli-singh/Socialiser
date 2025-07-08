@@ -38,7 +38,6 @@ interface ImportResult {
   }>;
   importedFriends: Array<{
     name: string;
-    phone: string;
     group: string | null;
   }>;
 }
@@ -197,13 +196,12 @@ export default function ImportFriendsPage() {
               Your CSV file should contain the following columns:
             </p>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <code className="text-sm">name,phone,group</code>
+              <code className="text-sm">name,group</code>
             </div>
             <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-              <li><strong>name</strong> and <strong>phone</strong> are required fields</li>
+              <li><strong>name</strong> is required</li>
               <li><strong>group</strong> is optional - leave empty if no group</li>
-              <li>Phone numbers can be in any format (will be validated)</li>
-              <li>Duplicates will be detected and skipped</li>
+              <li>Duplicates will be detected by name and skipped</li>
               <li>Maximum file size: 2MB</li>
             </ul>
           </div>
@@ -396,7 +394,6 @@ export default function ImportFriendsPage() {
                     <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded">
                       <div>
                         <span className="font-medium">{friend.name}</span>
-                        <span className="text-gray-600 ml-2">{friend.phone}</span>
                       </div>
                       {friend.group && (
                         <Badge variant="secondary">{friend.group}</Badge>

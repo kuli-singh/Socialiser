@@ -74,13 +74,13 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, phone, group } = body;
+    const { name, group } = body;
 
     const friend = await prisma.friend.update({
       where: { id: params.id },
       data: {
         name,
-        phone,
+        phone: "000", // Always maintain dummy phone value
         group
       }
     });

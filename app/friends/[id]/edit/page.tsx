@@ -15,7 +15,6 @@ import Link from 'next/link';
 interface Friend {
   id: string;
   name: string;
-  phone: string;
   group: string | null;
 }
 
@@ -27,7 +26,6 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
     group: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -45,7 +43,6 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
       setFriend(data);
       setFormData({
         name: data.name,
-        phone: data.phone,
         group: data.group || '',
       });
     } catch (err) {
@@ -121,16 +118,6 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="Enter their full name"
-                required
-              />
-            </FormField>
-
-            <FormField label="Phone Number" required error={errors.phone}>
-              <Input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+1-555-0123"
                 required
               />
             </FormField>

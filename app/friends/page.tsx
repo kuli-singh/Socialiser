@@ -8,12 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { Users, Plus, Edit, Trash2, Phone, Upload } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Upload } from 'lucide-react';
 
 interface Friend {
   id: string;
   name: string;
-  phone: string;
   group: string | null;
   createdAt: string;
 }
@@ -154,7 +153,6 @@ export default function FriendsPage() {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Phone</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Added</th>
                         <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
                       </tr>
@@ -164,12 +162,6 @@ export default function FriendsPage() {
                         <tr key={friend.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4">
                             <div className="font-medium text-gray-900">{friend.name}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center text-gray-700">
-                              <Phone className="h-4 w-4 mr-2" />
-                              {friend.phone}
-                            </div>
                           </td>
                           <td className="py-3 px-4 text-gray-600">
                             {new Date(friend.createdAt).toLocaleDateString()}
