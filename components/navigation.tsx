@@ -63,10 +63,10 @@ export function Navigation() {
   };
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-40">
+    <nav className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-lg z-40">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
           <h1 className="text-xl font-bold text-gray-900">Social Organizer</h1>
           <p className="text-sm text-gray-600 mt-1">Plan amazing activities</p>
         </div>
@@ -82,13 +82,13 @@ export function Navigation() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                       active
-                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200 shadow-sm'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:text-gray-900 hover:shadow-sm'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 ${active ? 'text-indigo-500' : 'text-gray-400'}`} />
+                    <Icon className={`h-5 w-5 transition-colors ${active ? 'text-indigo-500' : 'text-gray-400'}`} />
                     {item.label}
                   </Link>
                 </li>

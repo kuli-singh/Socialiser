@@ -28,8 +28,10 @@ export default async function RootLayout({
         <Providers session={session}>
           <div className="min-h-screen bg-gray-50">
             {session && <Navigation />}
-            <main className={session ? 'ml-64' : ''}>
-              {children}
+            <main className={session ? 'ml-64 p-6' : 'p-6'}>
+              <div className="max-w-7xl mx-auto">
+                {children}
+              </div>
             </main>
           </div>
           <Toaster />

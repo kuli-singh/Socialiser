@@ -97,16 +97,16 @@ export default function ActivityTemplatesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 flex items-center">
             <Layers className="h-8 w-8 text-slate-600 mr-3" />
             Activity Templates
           </h1>
-          <p className="text-gray-600 mt-1">Reusable blueprints for creating specific events with AI assistance</p>
+          <p className="text-gray-600 mt-2 text-lg">Reusable blueprints for creating specific events with AI assistance</p>
         </div>
         <Link href="/activities/new">
-          <Button size="lg">
+          <Button size="lg" className="shadow-lg">
             <Plus className="h-4 w-4 mr-2" />
             Create Template
           </Button>

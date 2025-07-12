@@ -180,16 +180,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 flex items-center">
             <Sparkles className="h-8 w-8 text-yellow-500 mr-3" />
             Welcome back{session?.user?.name ? `, ${session.user.name}` : ''}!
           </h1>
-          <p className="text-gray-600 mt-1">Transform templates into memorable experiences</p>
+          <p className="text-gray-600 mt-2 text-lg">Transform templates into memorable experiences</p>
         </div>
         <Link href="/schedule">
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
             <Plus className="h-4 w-4 mr-2" />
             Create Event
           </Button>
