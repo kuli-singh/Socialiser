@@ -136,6 +136,12 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
     const text = messageText || inputMessage.trim();
     if (!text) return;
 
+    console.log('[AI-CHAT FRONTEND] Sending message:', { 
+      message: text, 
+      location, 
+      historyLength: messages.length 
+    });
+
     // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -149,39 +155,82 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
     setIsTyping(true);
 
     try {
+      const requestBody = {
+        message: text,
+        conversationHistory: messages.slice(-10), // Send last 10 messages for context
+        location,
+        context: initialContext
+      };
+
+      console.log('[AI-CHAT FRONTEND] Request body:', requestBody);
+
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message: text,
-          conversationHistory: messages.slice(-10), // Send last 10 messages for context
-          location,
-          context: initialContext
-        }),
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('[AI-CHAT FRONTEND] Response received:', { 
+        status: response.status, 
+        statusText: response.statusText, 
+        ok: response.ok 
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get AI response');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[AI-CHAT FRONTEND] API error:', errorData);
+        
+        let errorMessage = "Sorry, I encountered an error. Please try again! 😅";
+        if (errorData.debug) {
+          errorMessage += `\n\nDebug info: ${errorData.debug}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('[AI-CHAT FRONTEND] Response data:', data);
+
+      // Validate response structure
+      if (!data.response) {
+        console.error('[AI-CHAT FRONTEND] Invalid response structure:', data);
+        throw new Error('Invalid response format from AI service');
+      }
       
       // Simulate typing delay
       setTimeout(() => {
         setIsTyping(false);
         addAssistantMessage(
-          data.response.message,
-          data.response.searchResults,
-          data.response.suggestedEvents
+          data.response.message || 'I received your message but had trouble generating a response.',
+          data.response.searchResults || [],
+          data.response.suggestedEvents || []
         );
       }, 1000);
 
     } catch (error) {
+      console.error('[AI-CHAT FRONTEND] Chat error:', error);
       setIsTyping(false);
-      addAssistantMessage("Sorry, I encountered an error. Please try again! 😅");
-      console.error('Chat error:', error);
+      
+      let errorMessage = "Sorry, I encountered an error. Please try again! 😅";
+      
+      if (error instanceof Error) {
+        // Show more specific error messages
+        if (error.message.includes('API key')) {
+          errorMessage = "🔑 AI service configuration issue. Please contact support.";
+        } else if (error.message.includes('Unauthorized')) {
+          errorMessage = "🔒 Please log in to use the AI feature.";
+        } else if (error.message.includes('500')) {
+          errorMessage = "🔧 AI service is temporarily unavailable. Please try again in a moment.";
+        } else if (error.message.includes('fetch')) {
+          errorMessage = "🌐 Network error. Please check your connection and try again.";
+        } else if (error.message.includes('Debug info:')) {
+          errorMessage = error.message; // Show debug info if available
+        }
+      }
+      
+      addAssistantMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }

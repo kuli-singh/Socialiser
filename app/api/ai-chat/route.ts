@@ -6,6 +6,15 @@ import { prisma } from '@/lib/db';
 
 export const dynamic = "force-dynamic";
 
+// Enhanced logging function for debugging
+function debugLog(message: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[AI-CHAT DEBUG ${timestamp}] ${message}`);
+  if (data) {
+    console.log(`[AI-CHAT DEBUG ${timestamp}] Data:`, JSON.stringify(data, null, 2));
+  }
+}
+
 async function getAuthenticatedUser() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -51,42 +60,90 @@ function mockWebSearch(query: string, location?: string) {
 }
 
 export async function POST(request: NextRequest) {
+  debugLog("=== AI CHAT REQUEST STARTED ===");
+  
   try {
+    // 1. Authentication check
+    debugLog("Step 1: Checking authentication");
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      debugLog("Authentication failed - no user found");
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        debug: 'No authenticated user found'
+      }, { status: 401 });
     }
+    debugLog("Authentication successful", { userId: user.id, email: user.email });
 
-    const body = await request.json();
-    const { message, location } = body;
+    // 2. Parse request body
+    debugLog("Step 2: Parsing request body");
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      debugLog("Failed to parse request body", parseError);
+      return NextResponse.json({
+        error: 'Invalid request body',
+        debug: 'Failed to parse JSON'
+      }, { status: 400 });
+    }
+    
+    const { message, location, conversationHistory, context } = body;
+    debugLog("Request body parsed", { 
+      message: message?.substring(0, 100) + (message?.length > 100 ? '...' : ''),
+      hasLocation: !!location,
+      historyLength: conversationHistory?.length || 0,
+      hasContext: !!context
+    });
 
+    // 3. Validate required fields
+    debugLog("Step 3: Validating required fields");
     if (!message) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
+      debugLog("Validation failed - no message provided");
+      return NextResponse.json({
+        error: 'Message is required',
+        debug: 'Message field is empty or missing'
+      }, { status: 400 });
     }
 
-    // Get user's activities and values for context
-    const userActivities = await prisma.activity.findMany({
-      where: { userId: user.id },
-      include: {
-        values: {
-          include: {
-            value: true
+    // 4. Get user's activities and values for context
+    debugLog("Step 4: Fetching user context from database");
+    let userActivities: any[] = [];
+    let userValues: any[] = [];
+    try {
+      userActivities = await prisma.activity.findMany({
+        where: { userId: user.id },
+        include: {
+          values: {
+            include: {
+              value: true
+            }
           }
         }
-      }
-    });
+      });
 
-    const userValues = await prisma.coreValue.findMany({
-      where: { userId: user.id }
-    });
+      userValues = await prisma.coreValue.findMany({
+        where: { userId: user.id }
+      });
+      
+      debugLog("Database queries successful", {
+        activitiesCount: userActivities.length,
+        valuesCount: userValues.length
+      });
+    } catch (dbError) {
+      debugLog("Database query failed", dbError);
+      // Continue with empty arrays if DB fails
+      userActivities = [];
+      userValues = [];
+    }
 
-    // Mock web search based on the message
+    // 5. Mock web search based on the message
+    debugLog("Step 5: Performing mock web search");
     const searchResults = mockWebSearch(message, location);
+    debugLog("Mock search completed", searchResults);
 
-    // Enhanced system prompt for rich suggestions
+    // 6. Build system prompt
+    debugLog("Step 6: Building system prompt");
     const systemPrompt = `You are an AI assistant helping users plan detailed social activities. You have access to the user's existing activities and values.
 
 User's Activities: ${userActivities.map(a => `${a.name} (${a.description || 'No description'})`).join(', ') || 'None yet'}
@@ -107,37 +164,90 @@ Make suggestions that align with their existing values and interests. Be creativ
 
 Search Results Context: Found venue "${searchResults.venue}" at ${searchResults.address}, ${searchResults.city}, ${searchResults.state} ${searchResults.zipCode}`;
 
-    // Call the LLM API
+    debugLog("System prompt built", { promptLength: systemPrompt.length });
+
+    // 7. Check API key availability
+    debugLog("Step 7: Checking API key");
+    const apiKey = process.env.ABACUSAI_API_KEY;
+    if (!apiKey) {
+      debugLog("CRITICAL ERROR: API key is missing");
+      return NextResponse.json({
+        error: 'AI service configuration error',
+        debug: 'ABACUSAI_API_KEY environment variable is not set'
+      }, { status: 500 });
+    }
+    debugLog("API key found", { 
+      keyExists: true, 
+      keyPrefix: apiKey.substring(0, 8) + '...',
+      keyLength: apiKey.length 
+    });
+
+    // 8. Call the LLM API
+    debugLog("Step 8: Calling LLM API");
+    const requestBody = {
+      model: 'gpt-4.1-mini',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    };
+    
+    debugLog("LLM request prepared", { 
+      model: requestBody.model,
+      messagesCount: requestBody.messages.length,
+      temperature: requestBody.temperature,
+      maxTokens: requestBody.max_tokens
+    });
+
     try {
+      debugLog("Making fetch request to LLM API");
       const response = await fetch('https://apps.abacus.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.ABACUSAI_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          model: 'gpt-4.1-mini',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: message
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000,
-        }),
+        body: JSON.stringify(requestBody),
+      });
+
+      debugLog("LLM API response received", { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       if (!response.ok) {
-        throw new Error(`LLM API error: ${response.status}`);
+        const errorText = await response.text();
+        debugLog("LLM API error response", { 
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText
+        });
+        throw new Error(`LLM API error: ${response.status} - ${response.statusText}. Body: ${errorText}`);
       }
 
+      debugLog("Parsing LLM API response");
       const aiResponse = await response.json();
+      debugLog("LLM API response parsed", { 
+        hasChoices: !!aiResponse.choices,
+        choicesLength: aiResponse.choices?.length || 0,
+        firstChoiceContent: aiResponse.choices?.[0]?.message?.content?.substring(0, 200) || null
+      });
+
       const aiMessage = aiResponse.choices?.[0]?.message?.content || 'I apologize, but I encountered an issue generating a response. Please try again.';
+      debugLog("AI message extracted", { 
+        messageLength: aiMessage.length,
+        messagePreview: aiMessage.substring(0, 100) + (aiMessage.length > 100 ? '...' : '')
+      });
 
       // Try to extract structured data for quick scheduling
       let suggestion = null;
@@ -187,9 +297,13 @@ Search Results Context: Found venue "${searchResults.venue}" at ${searchResults.
       });
 
     } catch (aiError) {
-      console.error('AI API Error:', aiError);
+      debugLog("AI API call failed", {
+        error: aiError instanceof Error ? aiError.message : String(aiError),
+        stack: aiError instanceof Error ? aiError.stack : undefined
+      });
       
       // Fallback response with basic suggestion in correct format
+      debugLog("Step 9: Creating fallback response due to AI API failure");
       const fallbackEvent = {
         name: `${message} Activity`,
         description: `AI-suggested activity: ${message}. This sounds like a great way to connect with friends and explore new experiences together.`,
@@ -203,20 +317,32 @@ Search Results Context: Found venue "${searchResults.venue}" at ${searchResults.
         reasoning: `Based on your request for "${message}", this venue offers the perfect setting for your activity.`
       };
 
-      return NextResponse.json({
+      const fallbackResponse = {
         response: {
           message: `I'd be happy to help you plan "${message}"! Based on your request, I found some great options in your area. This activity could be a wonderful way to spend time with friends and create lasting memories.`,
           searchResults: [],
           suggestedEvents: [fallbackEvent]
         }
-      });
+      };
+
+      debugLog("Fallback response created", fallbackResponse);
+      debugLog("=== AI CHAT REQUEST COMPLETED (WITH FALLBACK) ===");
+      
+      return NextResponse.json(fallbackResponse);
     }
 
   } catch (error) {
-    console.error('Error in AI chat:', error);
-    return NextResponse.json(
-      { error: 'Failed to process AI chat request' },
-      { status: 500 }
-    );
+    debugLog("CRITICAL ERROR in AI chat request", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+    debugLog("=== AI CHAT REQUEST FAILED ===");
+    
+    return NextResponse.json({
+      error: 'Failed to process AI chat request',
+      debug: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
