@@ -81,7 +81,24 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
   };
 
   const formatDateTime = (datetime: string) => {
+    // Handle invalid or missing datetime
+    if (!datetime) {
+      return {
+        date: 'Invalid Date',
+        time: 'Invalid Time'
+      };
+    }
+
     const date = new Date(datetime);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return {
+        date: 'Invalid Date',
+        time: 'Invalid Time'
+      };
+    }
+
     return {
       date: date.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -98,8 +115,18 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
   };
 
   const getEventStatus = (datetime: string) => {
+    // Handle invalid or missing datetime
+    if (!datetime) {
+      return { status: 'unknown', label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+    }
+
     const now = new Date();
     const eventDate = new Date(datetime);
+    
+    // Check if the date is valid
+    if (isNaN(eventDate.getTime())) {
+      return { status: 'unknown', label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+    }
     
     if (eventDate < now) {
       return { status: 'completed', label: 'Completed', color: 'bg-green-100 text-green-800' };
@@ -118,8 +145,16 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
   if (error) return <ErrorMessage message={error} />;
   if (!template) return <ErrorMessage message="Activity template not found" />;
 
-  const upcomingEvents = template.instances.filter(instance => new Date(instance.datetime) > new Date());
-  const pastEvents = template.instances.filter(instance => new Date(instance.datetime) <= new Date());
+  const upcomingEvents = template.instances.filter(instance => {
+    if (!instance.datetime) return false;
+    const eventDate = new Date(instance.datetime);
+    return !isNaN(eventDate.getTime()) && eventDate > new Date();
+  });
+  const pastEvents = template.instances.filter(instance => {
+    if (!instance.datetime) return false;
+    const eventDate = new Date(instance.datetime);
+    return !isNaN(eventDate.getTime()) && eventDate <= new Date();
+  });
 
   return (
     <div className="space-y-6">

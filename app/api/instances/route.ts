@@ -59,7 +59,20 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(instances);
+    // Convert Date objects to ISO strings to prevent serialization issues
+    const serializedInstances = instances.map(instance => ({
+      ...instance,
+      datetime: instance.datetime?.toISOString() ?? null,
+      createdAt: instance.createdAt?.toISOString() ?? null,
+      updatedAt: instance.updatedAt?.toISOString() ?? null,
+      activity: {
+        ...instance.activity,
+        createdAt: instance.activity?.createdAt?.toISOString() ?? null,
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+      }
+    }));
+
+    return NextResponse.json(serializedInstances);
   } catch (error) {
     console.error('Error fetching instances:', error);
     return NextResponse.json(
@@ -103,6 +116,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate datetime
+    const parsedDateTime = new Date(datetime);
+    if (isNaN(parsedDateTime.getTime())) {
+      return NextResponse.json(
+        { error: 'Invalid datetime format' },
+        { status: 400 }
+      );
+    }
+
     // Verify that the activity belongs to the user
     const activity = await prisma.activity.findFirst({
       where: {
@@ -135,7 +157,7 @@ export async function POST(request: NextRequest) {
     const instance = await prisma.activityInstance.create({
       data: {
         activityId,
-        datetime: new Date(datetime),
+        datetime: parsedDateTime,
         location,
         userId: user.id,
         customTitle,
@@ -167,7 +189,20 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(instance, { status: 201 });
+    // Serialize the response to prevent Date object issues
+    const serializedInstance = {
+      ...instance,
+      datetime: instance.datetime?.toISOString() ?? null,
+      createdAt: instance.createdAt?.toISOString() ?? null,
+      updatedAt: instance.updatedAt?.toISOString() ?? null,
+      activity: {
+        ...instance.activity,
+        createdAt: instance.activity?.createdAt?.toISOString() ?? null,
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+      }
+    };
+
+    return NextResponse.json(serializedInstance, { status: 201 });
   } catch (error) {
     console.error('Error creating instance:', error);
     return NextResponse.json(

@@ -42,7 +42,22 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(activities);
+    // Serialize dates to prevent JSON serialization issues
+    const serializedActivities = activities.map(activity => ({
+      ...activity,
+      createdAt: activity.createdAt?.toISOString() ?? null,
+      updatedAt: activity.updatedAt?.toISOString() ?? null,
+      values: activity.values?.map(v => ({
+        ...v,
+        value: {
+          ...v.value,
+          createdAt: v.value?.createdAt?.toISOString() ?? null,
+          updatedAt: v.value?.updatedAt?.toISOString() ?? null
+        }
+      })) ?? []
+    }));
+
+    return NextResponse.json(serializedActivities);
   } catch (error) {
     console.error('Error fetching activities:', error);
     return NextResponse.json(
@@ -106,7 +121,22 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(activity, { status: 201 });
+    // Serialize dates to prevent JSON serialization issues
+    const serializedActivity = {
+      ...activity,
+      createdAt: activity.createdAt?.toISOString() ?? null,
+      updatedAt: activity.updatedAt?.toISOString() ?? null,
+      values: activity.values?.map(v => ({
+        ...v,
+        value: {
+          ...v.value,
+          createdAt: v.value?.createdAt?.toISOString() ?? null,
+          updatedAt: v.value?.updatedAt?.toISOString() ?? null
+        }
+      })) ?? []
+    };
+
+    return NextResponse.json(serializedActivity, { status: 201 });
   } catch (error) {
     console.error('Error creating activity:', error);
     return NextResponse.json(

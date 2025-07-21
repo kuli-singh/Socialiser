@@ -22,6 +22,7 @@ import {
   Bot,
   Sparkles
 } from 'lucide-react';
+import { safeParseDate } from '@/lib/utils';
 
 interface ActivityTemplate {
   id: string;
@@ -193,7 +194,10 @@ export default function ActivityTemplatesPage() {
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>Created {new Date(template.createdAt).toLocaleDateString()}</span>
+                      <span>Created {(() => {
+                        const date = safeParseDate(template.createdAt);
+                        return date ? date.toLocaleDateString() : 'Date unknown';
+                      })()}</span>
                       {(template._count?.instances || 0) > 0 && (
                         <Badge variant="outline" className="text-xs">
                           <Calendar className="h-3 w-3 mr-1" />

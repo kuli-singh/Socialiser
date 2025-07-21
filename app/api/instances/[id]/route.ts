@@ -56,7 +56,20 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(instance);
+    // Serialize the response to prevent Date object issues
+    const serializedInstance = {
+      ...instance,
+      datetime: instance.datetime?.toISOString() ?? null,
+      createdAt: instance.createdAt?.toISOString() ?? null,
+      updatedAt: instance.updatedAt?.toISOString() ?? null,
+      activity: {
+        ...instance.activity,
+        createdAt: instance.activity?.createdAt?.toISOString() ?? null,
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+      }
+    };
+
+    return NextResponse.json(serializedInstance);
   } catch (error) {
     console.error('Error fetching instance:', error);
     return NextResponse.json(
@@ -100,6 +113,18 @@ export async function PUT(
       capacity
     } = body;
 
+    // Validate datetime if provided
+    let parsedDateTime: Date | undefined;
+    if (datetime) {
+      parsedDateTime = new Date(datetime);
+      if (isNaN(parsedDateTime.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid datetime format' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Verify that all friendIds belong to the user
     if (friendIds && friendIds.length > 0) {
       const userFriends = await prisma.friend.findMany({
@@ -128,7 +153,7 @@ export async function PUT(
     const instance = await prisma.activityInstance.update({
       where: { id: params.id },
       data: {
-        datetime: datetime ? new Date(datetime) : undefined,
+        datetime: parsedDateTime,
         location,
         customTitle,
         venue,
@@ -159,7 +184,20 @@ export async function PUT(
       }
     });
 
-    return NextResponse.json(instance);
+    // Serialize the response to prevent Date object issues
+    const serializedInstance = {
+      ...instance,
+      datetime: instance.datetime?.toISOString() ?? null,
+      createdAt: instance.createdAt?.toISOString() ?? null,
+      updatedAt: instance.updatedAt?.toISOString() ?? null,
+      activity: {
+        ...instance.activity,
+        createdAt: instance.activity?.createdAt?.toISOString() ?? null,
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+      }
+    };
+
+    return NextResponse.json(serializedInstance);
   } catch (error) {
     console.error('Error updating instance:', error);
     return NextResponse.json(

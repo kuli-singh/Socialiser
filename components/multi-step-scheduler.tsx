@@ -28,6 +28,7 @@ import {
   DollarSign,
   UserCheck
 } from 'lucide-react';
+import { getMinDateTime } from '@/lib/utils';
 
 interface Activity {
   id: string;
@@ -290,9 +291,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     handleChange('friendIds', updatedFriendIds);
   };
 
-  // Get minimum datetime (now)
-  const now = new Date();
-  const minDateTime = now.toISOString().slice(0, 16);
+  // Get minimum datetime (now) with safe fallback
+  const minDateTime = getMinDateTime();
 
   if (loading) return <LoadingSpinner />;
 

@@ -29,6 +29,7 @@ import {
   UserPlus,
   Target
 } from 'lucide-react';
+import { formatDateTime, getTimeUntil, safeParseDate } from '@/lib/utils';
 
 interface ActivityInstance {
   id: string;
@@ -107,11 +108,12 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error('Failed to fetch scheduled events');
       
       const data = await response.json();
-      // Filter for upcoming instances only
+      // Filter for upcoming instances only with safe date parsing
       const now = new Date();
-      const upcoming = data.filter((instance: ActivityInstance) => 
-        new Date(instance.datetime) > now
-      );
+      const upcoming = data.filter((instance: ActivityInstance) => {
+        const eventDate = safeParseDate(instance.datetime);
+        return eventDate && eventDate > now;
+      });
       setInstances(upcoming);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -132,34 +134,7 @@ export default function DashboardPage() {
     }
   };
 
-  const formatDateTime = (datetime: string) => {
-    const date = new Date(datetime);
-    return {
-      date: date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
-      }),
-      time: date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      })
-    };
-  };
 
-  const getTimeUntil = (datetime: string) => {
-    const now = new Date();
-    const eventDate = new Date(datetime);
-    const diffMs = eventDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays < 7) return `In ${diffDays} days`;
-    if (diffDays < 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
-    return `In ${Math.ceil(diffDays / 30)} months`;
-  };
 
   // Show loading while checking authentication or fetching data
   if (status === 'loading' || loading) {
