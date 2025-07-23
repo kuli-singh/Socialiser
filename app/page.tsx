@@ -108,15 +108,18 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error('Failed to fetch scheduled events');
       
       const data = await response.json();
-      // Filter for upcoming instances only with safe date parsing
+      // Ensure data is an array and filter for upcoming instances only with safe date parsing
+      const safeData = Array.isArray(data) ? data : [];
       const now = new Date();
-      const upcoming = data.filter((instance: ActivityInstance) => {
-        const eventDate = safeParseDate(instance.datetime);
+      const upcoming = safeData.filter((instance: ActivityInstance) => {
+        if (!instance) return false;
+        const eventDate = safeParseDate(instance?.datetime);
         return eventDate && eventDate > now;
       });
-      setInstances(upcoming);
+      setInstances(upcoming ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setInstances([]); // Ensure instances is always an array even on error
     }
   };
 
@@ -126,9 +129,12 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error('Failed to fetch activity templates');
       
       const data = await response.json();
-      setTemplates(data.slice(0, 6)); // Show first 6 templates on dashboard
+      // Ensure data is an array and safely slice it
+      const safeData = Array.isArray(data) ? data : [];
+      setTemplates(safeData.slice(0, 6) ?? []); // Show first 6 templates on dashboard
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setTemplates([]); // Ensure templates is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -225,7 +231,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{instances.length}</div>
+            <div className="text-3xl font-bold text-blue-600">{instances?.length ?? 0}</div>
             <p className="text-gray-600 text-sm">Scheduled events ready to go</p>
           </CardContent>
         </Card>
@@ -238,7 +244,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-600">{templates.length}</div>
+            <div className="text-3xl font-bold text-slate-600">{templates?.length ?? 0}</div>
             <p className="text-gray-600 text-sm">Templates ready for events</p>
           </CardContent>
         </Card>
@@ -252,7 +258,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              {new Set(instances.flatMap(i => i.participations.map(p => p.friend.name))).size}
+              {new Set(instances?.flatMap?.(i => i?.participations?.map?.(p => p?.friend?.name).filter(Boolean) ?? []) ?? []).size}
             </div>
             <p className="text-gray-600 text-sm">Friends participating</p>
           </CardContent>
@@ -269,7 +275,7 @@ export default function DashboardPage() {
               Scheduled Instances
             </Badge>
           </div>
-          {instances.length > 0 && (
+          {(instances?.length ?? 0) > 0 && (
             <Link href="/schedule">
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -279,7 +285,7 @@ export default function DashboardPage() {
           )}
         </div>
         
-        {instances.length === 0 ? (
+        {(instances?.length ?? 0) === 0 ? (
           <Card className="border-2 border-dashed border-blue-200 bg-blue-50">
             <CardContent className="text-center py-12">
               <CalendarCheck className="h-12 w-12 text-blue-400 mx-auto mb-4" />
@@ -295,7 +301,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {instances.map((instance) => {
+            {(instances ?? []).map((instance) => {
               const { date, time } = formatDateTime(instance.datetime);
               const fullAddress = [
                 instance.address,
@@ -383,21 +389,21 @@ export default function DashboardPage() {
                     {/* Participants */}
                     <div className="flex items-center text-sm text-gray-700">
                       <Users className="h-4 w-4 mr-2 text-purple-600" />
-                      <span>{instance.participations.length} participants</span>
+                      <span>{instance?.participations?.length ?? 0} participants</span>
                     </div>
 
                     {/* Values */}
-                    {instance.activity.values.length > 0 && (
+                    {(instance?.activity?.values?.length ?? 0) > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {instance.activity.values.slice(0, 2).map((av, index) => (
+                        {instance?.activity?.values?.slice?.(0, 2)?.map?.((av, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             <Heart className="h-3 w-3 mr-1" />
-                            {av.value.name}
+                            {av?.value?.name}
                           </Badge>
-                        ))}
-                        {instance.activity.values.length > 2 && (
+                        )) ?? []}
+                        {(instance?.activity?.values?.length ?? 0) > 2 && (
                           <Badge variant="outline" className="text-xs">
-                            +{instance.activity.values.length - 2} more
+                            +{(instance?.activity?.values?.length ?? 0) - 2} more
                           </Badge>
                         )}
                       </div>
@@ -432,7 +438,7 @@ export default function DashboardPage() {
             </Badge>
           </div>
           <div className="flex space-x-2">
-            {templates.length > 0 && (
+            {(templates?.length ?? 0) > 0 && (
               <Link href="/activities">
                 <Button variant="outline" size="sm">
                   View All Templates
@@ -448,7 +454,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {templates.length === 0 ? (
+        {(templates?.length ?? 0) === 0 ? (
           <Card className="border-2 border-dashed border-slate-200 bg-slate-50">
             <CardContent className="text-center py-12">
               <Layers className="h-12 w-12 text-slate-400 mx-auto mb-4" />
@@ -464,7 +470,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map((template) => (
+            {(templates ?? []).map((template) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-slate-500 bg-slate-50">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -494,17 +500,17 @@ export default function DashboardPage() {
                   )}
 
                   {/* Values */}
-                  {template.values.length > 0 && (
+                  {(template?.values?.length ?? 0) > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {template.values.slice(0, 3).map((av) => (
-                        <Badge key={av.value.id} variant="outline" className="text-xs">
+                      {template?.values?.slice?.(0, 3)?.map?.((av) => (
+                        <Badge key={av?.value?.id} variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1" />
-                          {av.value.name}
+                          {av?.value?.name}
                         </Badge>
-                      ))}
-                      {template.values.length > 3 && (
+                      )) ?? []}
+                      {(template?.values?.length ?? 0) > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{template.values.length - 3} more
+                          +{(template?.values?.length ?? 0) - 3} more
                         </Badge>
                       )}
                     </div>
@@ -532,7 +538,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions for First Time Users */}
-      {instances.length === 0 && templates.length === 0 && (
+      {(instances?.length ?? 0) === 0 && (templates?.length ?? 0) === 0 && (
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <CardContent className="text-center py-8">
             <Sparkles className="h-12 w-12 text-blue-600 mx-auto mb-4" />
