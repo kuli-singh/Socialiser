@@ -244,10 +244,19 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
   };
 
   const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    if (!timestamp || isNaN(timestamp)) return '--:--';
+    
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return '--:--';
+      
+      return date.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } catch {
+      return '--:--';
+    }
   };
 
   return (

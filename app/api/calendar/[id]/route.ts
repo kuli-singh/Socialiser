@@ -51,7 +51,16 @@ export async function GET(
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     };
 
+    // Validate and create start date
+    if (!instance.datetime) {
+      return NextResponse.json({ error: 'Invalid event datetime' }, { status: 400 });
+    }
+    
     const startDate = new Date(instance.datetime);
+    if (isNaN(startDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid event datetime format' }, { status: 400 });
+    }
+    
     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
 
     const eventTitle = instance.customTitle || instance.activity.name;

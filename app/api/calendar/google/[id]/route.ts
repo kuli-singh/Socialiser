@@ -15,7 +15,16 @@ async function getAuthenticatedUser() {
 }
 
 function generateGoogleCalendarUrl(instance: any) {
+  // Validate datetime before creating Date object
+  if (!instance.datetime) {
+    throw new Error('Invalid event datetime');
+  }
+  
   const startDate = new Date(instance.datetime);
+  if (isNaN(startDate.getTime())) {
+    throw new Error('Invalid event datetime format');
+  }
+  
   const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
 
   const formatGoogleDate = (date: Date) => {

@@ -18,9 +18,7 @@ import {
   Calendar, 
   Eye,
   BarChart3,
-  ArrowRight,
-  Bot,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import { safeParseDate } from '@/lib/utils';
 
@@ -56,12 +54,9 @@ export default function ActivityTemplatesPage() {
       if (!response.ok) throw new Error('Failed to fetch activity templates');
       
       const data = await response.json();
-      // Ensure data is an array before setting it
-      const safeData = Array.isArray(data) ? data : [];
-      setTemplates(safeData);
+      setTemplates(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      setTemplates([]); // Ensure templates is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -77,24 +72,13 @@ export default function ActivityTemplatesPage() {
 
       if (!response.ok) throw new Error('Failed to delete activity template');
       
-      // Safe filter operation with fallback
-      setTemplates((prevTemplates) => (prevTemplates ?? []).filter(template => template.id !== id));
+      setTemplates(templates.filter(template => template.id !== id));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete activity template');
     }
   };
 
-  const createEventFromTemplate = (templateId: string) => {
-    router.push(`/schedule?template=${templateId}`);
-  };
 
-  const discoverWithAI = (template: ActivityTemplate) => {
-    const searchParams = new URLSearchParams({
-      templateId: template.id,
-      templateName: template.name
-    });
-    router.push(`/ai-discovery?${searchParams.toString()}`);
-  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
@@ -144,24 +128,24 @@ export default function ActivityTemplatesPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-2xl font-bold text-slate-600">{templates?.length ?? 0}</div>
+              <div className="text-2xl font-bold text-slate-600">{templates.length}</div>
               <p className="text-gray-600 text-sm">Total Templates</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {(templates ?? []).reduce((sum, t) => sum + (t?._count?.instances || 0), 0)}
+                {templates.reduce((sum, t) => sum + (t._count?.instances || 0), 0)}
               </div>
               <p className="text-gray-600 text-sm">Events Created</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">
-                {(templates ?? []).filter(t => t?.values?.length > 0).length}
+                {templates.filter(t => t.values.length > 0).length}
               </div>
               <p className="text-gray-600 text-sm">With Values</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">
-                {new Set((templates ?? []).flatMap(t => t?.values?.map?.(v => v?.value?.id).filter(Boolean) ?? [])).size}
+                {new Set(templates.flatMap(t => t.values.map(v => v.value.id))).size}
               </div>
               <p className="text-gray-600 text-sm">Unique Values</p>
             </div>
@@ -170,7 +154,7 @@ export default function ActivityTemplatesPage() {
       </Card>
 
       {/* Templates List */}
-      {(templates?.length ?? 0) === 0 ? (
+      {templates.length === 0 ? (
         <Card className="border-2 border-dashed border-slate-200 bg-slate-50">
           <CardContent className="text-center py-12">
             <Layers className="h-12 w-12 text-slate-400 mx-auto mb-4" />
@@ -186,7 +170,7 @@ export default function ActivityTemplatesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(templates ?? []).map((template) => (
+          {templates.map((template) => (
             <Card key={template.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-slate-500">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -199,8 +183,13 @@ export default function ActivityTemplatesPage() {
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span>Created {(() => {
-                        const date = safeParseDate(template.createdAt);
-                        return date ? date.toLocaleDateString() : 'Date unknown';
+                        const parsed = safeParseDate(template.createdAt);
+                        if (!parsed) return 'Date unknown';
+                        try {
+                          return parsed.toLocaleDateString();
+                        } catch {
+                          return 'Date unknown';
+                        }
                       })()}</span>
                       {(template._count?.instances || 0) > 0 && (
                         <Badge variant="outline" className="text-xs">
@@ -234,21 +223,21 @@ export default function ActivityTemplatesPage() {
                 )}
 
                 {/* Values */}
-                {(template?.values?.length ?? 0) > 0 ? (
+                {template.values.length > 0 ? (
                   <div>
                     <div className="flex items-center text-sm text-gray-600 mb-2">
                       <Heart className="h-4 w-4 mr-1" />
                       Associated Values
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {template?.values?.slice?.(0, 3)?.map?.((av) => (
-                        <Badge key={av?.value?.id} variant="outline" className="text-xs">
-                          {av?.value?.name}
+                      {template.values.slice(0, 3).map((av) => (
+                        <Badge key={av.value.id} variant="outline" className="text-xs">
+                          {av.value.name}
                         </Badge>
-                      )) ?? []}
-                      {(template?.values?.length ?? 0) > 3 && (
+                      ))}
+                      {template.values.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{(template?.values?.length ?? 0) - 3} more
+                          +{template.values.length - 3} more
                         </Badge>
                       )}
                     </div>
@@ -259,27 +248,17 @@ export default function ActivityTemplatesPage() {
 
                 {/* Action Buttons */}
                 <div className="space-y-2 pt-2">
-                  {/* AI Discovery Button - Primary */}
-                  <Button 
-                    size="sm" 
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                    onClick={() => discoverWithAI(template)}
-                  >
-                    <Bot className="h-4 w-4 mr-1" />
-                    Schedule with AI
-                    <Sparkles className="h-3 w-3 ml-1" />
-                  </Button>
-
-                  {/* Traditional Template Button - Secondary */}
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => createEventFromTemplate(template.id)}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Use Template Directly
-                  </Button>
+                  {/* Use Template Button - Primary */}
+                  <Link href={`/templates/${template.id}`} className="w-full">
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Use Template
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </Link>
                   
                   <div className="flex space-x-2">
                     {(template._count?.instances || 0) > 0 && (
@@ -305,7 +284,7 @@ export default function ActivityTemplatesPage() {
       )}
 
       {/* Call to Action */}
-      {(templates?.length ?? 0) > 0 && (
+      {templates.length > 0 && (
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <CardContent className="text-center py-8">
             <div className="flex items-center justify-center mb-4">

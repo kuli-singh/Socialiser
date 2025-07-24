@@ -164,7 +164,14 @@ export default function FriendsPage() {
                             <div className="font-medium text-gray-900">{friend.name}</div>
                           </td>
                           <td className="py-3 px-4 text-gray-600">
-                            {new Date(friend.createdAt).toLocaleDateString()}
+                            {(() => {
+                              try {
+                                const date = friend?.createdAt ? new Date(friend.createdAt) : null;
+                                return date && !isNaN(date.getTime()) ? date.toLocaleDateString() : 'Date unknown';
+                              } catch {
+                                return 'Date unknown';
+                              }
+                            })()}
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end space-x-2">

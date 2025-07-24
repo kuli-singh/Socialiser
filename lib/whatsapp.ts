@@ -15,18 +15,28 @@ type ActivityInstanceWithDetails = ActivityInstance & {
 export function generateWhatsAppMessage(activityInstance: ActivityInstanceWithDetails): string {
   const { activity, datetime, location, participations } = activityInstance;
   
-  const formattedDate = datetime.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  // Safe date formatting with error handling
+  let formattedDate = 'Date TBD';
+  let formattedTime = 'Time TBD';
   
-  const formattedTime = datetime.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
+  try {
+    if (datetime && !isNaN(datetime.getTime())) {
+      formattedDate = datetime.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      formattedTime = datetime.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  } catch {
+    // Keep default values if date formatting fails
+  }
 
   const participantNames = participations.map(p => p.friend.name).join(', ');
   const values = activity.values.map(av => av.value.name).join(', ');

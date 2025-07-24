@@ -108,20 +108,41 @@ export default function InvitePage({ params }: { params: { id: string } }) {
   };
 
   const formatDateTime = (datetime: string) => {
-    const date = new Date(datetime);
-    return {
-      date: date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
-      time: date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      })
-    };
+    if (!datetime) {
+      return {
+        date: 'Invalid Date',
+        time: 'Invalid Time'
+      };
+    }
+
+    try {
+      const date = new Date(datetime);
+      if (isNaN(date.getTime())) {
+        return {
+          date: 'Invalid Date',
+          time: 'Invalid Time'
+        };
+      }
+
+      return {
+        date: date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: date.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        })
+      };
+    } catch {
+      return {
+        date: 'Invalid Date',
+        time: 'Invalid Time'
+      };
+    }
   };
 
   if (loading) return <LoadingSpinner />;

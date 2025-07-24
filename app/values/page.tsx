@@ -125,7 +125,14 @@ export default function ValuesPage() {
                       {value.name}
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                      Added {new Date(value.createdAt).toLocaleDateString()}
+                      Added {(() => {
+                        try {
+                          const date = value?.createdAt ? new Date(value.createdAt) : null;
+                          return date && !isNaN(date.getTime()) ? date.toLocaleDateString() : 'Date unknown';
+                        } catch {
+                          return 'Date unknown';
+                        }
+                      })()}
                     </p>
                   </div>
                   <div className="flex space-x-1">
