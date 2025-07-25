@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 interface CSVRow {
   name: string;
+  email?: string;
   group?: string;
 }
 
@@ -28,6 +29,7 @@ interface ImportResult {
   }>;
   importedFriends: Array<{
     name: string;
+    email: string | null;
     group: string | null;
   }>;
 }
@@ -49,6 +51,9 @@ function validateRow(row: any, rowIndex: number): { isValid: boolean; error?: st
     isValid: true,
     data: {
       name: row.name.trim(),
+      email: row.email && typeof row.email === 'string' && row.email.trim() !== '' 
+        ? row.email.trim() 
+        : undefined,
       group: row.group && typeof row.group === 'string' && row.group.trim() !== '' 
         ? row.group.trim() 
         : undefined
@@ -165,6 +170,7 @@ export async function POST(request: NextRequest) {
     if (validRows.length > 0) {
       const importData = validRows.map(({ data }) => ({
         name: data.name,
+        email: data.email || null, // Optional email field
         phone: "000", // Always set dummy phone value for imports
         group: data.group || null,
         userId: user.id
@@ -175,7 +181,7 @@ export async function POST(request: NextRequest) {
       });
 
       result.successfulImports = importedFriends.count;
-      result.importedFriends = importData.map(({ name, group }) => ({ name, group }));
+      result.importedFriends = importData.map(({ name, email, group }) => ({ name, email, group }));
     }
 
     result.success = result.successfulImports > 0;

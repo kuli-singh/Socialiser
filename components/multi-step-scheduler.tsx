@@ -1,8 +1,10 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { FormField } from '@/components/form-field';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { AIActivityDiscovery } from '@/components/ai-activity-discovery';
+import { CalendarIntegration } from '@/components/calendar-integration';
+import { DateRangePicker } from '@/components/date-range-picker';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -26,7 +30,8 @@ import {
   Info,
   Phone,
   DollarSign,
-  UserCheck
+  UserCheck,
+  Plus
 } from 'lucide-react';
 import { getMinDateTime } from '@/lib/utils';
 
@@ -82,18 +87,28 @@ interface MultiStepSchedulerProps {
 
 export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }: MultiStepSchedulerProps) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState<Step>(
-    aiSuggestion ? 'event-details' : (preselectedTemplate ? 'ai-discovery' : 'activity-selection')
-  );
+  const searchParams = useSearchParams();
+  const isManualMode = searchParams.get('mode') === 'manual';
+  
+  const [currentStep, setCurrentStep] = useState<Step>(() => {
+    if (aiSuggestion) return 'event-details';
+    if (preselectedTemplate && isManualMode) return 'event-details';
+    if (preselectedTemplate) return 'ai-discovery';
+    return 'activity-selection';
+  });
+  
   const [activities, setActivities] = useState<Activity[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [createdInstanceId, setCreatedInstanceId] = useState<string | null>(null);
   
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(preselectedTemplate || null);
   const [selectedOption, setSelectedOption] = useState<DiscoveredOption | null>(null);
   const [formData, setFormData] = useState({
     datetime: '',
+    endDate: '',
+    isAllDay: false,
     location: '',
     friendIds: [] as string[],
     // Rich instance fields
@@ -164,10 +179,11 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       const response = await fetch('/api/activities');
       if (response.ok) {
         const data = await response.json();
-        setActivities(data);
+        setActivities(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to fetch activities:', err);
+      setActivities([]); // Ensure activities is always an array even on error
     }
   };
 
@@ -176,10 +192,11 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       const response = await fetch('/api/friends');
       if (response.ok) {
         const data = await response.json();
-        setFriends(data);
+        setFriends(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to fetch friends:', err);
+      setFriends([]); // Ensure friends is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -198,78 +215,77 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       customTitle: option.name,
       detailedDescription: option.description,
       location: option.suggestedLocation,
-      // Parse venue from suggestedLocation if it contains a comma
-      venue: option.suggestedLocation.includes(',') 
-        ? option.suggestedLocation.split(',')[0].trim()
-        : '',
-      address: option.suggestedLocation.includes(',') 
-        ? option.suggestedLocation.split(',').slice(1).join(',').trim()
-        : option.suggestedLocation,
     }));
     setCurrentStep('event-details');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setErrors({});
+  const handleSkipAI = () => {
+    setCurrentStep('event-details');
+  };
 
-    // Validation
-    if (!selectedActivity) {
-      setErrors({ activity: 'Please select an activity template' });
-      setSubmitting(false);
-      return;
+  const handleChange = (field: string, value: string | string[] | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
 
     if (!formData.datetime) {
-      setErrors({ datetime: 'Please select a date and time' });
-      setSubmitting(false);
-      return;
+      newErrors.datetime = 'Date and time are required';
     }
 
-    if (formData.friendIds.length === 0) {
-      setErrors({ friendIds: 'Please select at least one friend' });
-      setSubmitting(false);
-      return;
+    if (!formData.location && !formData.venue && !formData.address) {
+      newErrors.location = 'Please provide either a general location, venue name, or address';
     }
 
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm() || !selectedActivity) return;
+
+    setSubmitting(true);
     try {
-      // Create activity instance with rich details
-      const instanceData = {
-        activityId: selectedActivity.id,
-        datetime: formData.datetime,
-        location: formData.location || null,
-        friendIds: formData.friendIds,
-        // Rich instance fields
-        customTitle: formData.customTitle || null,
-        venue: formData.venue || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        zipCode: formData.zipCode || null,
-        detailedDescription: formData.detailedDescription || null,
-        requirements: formData.requirements || null,
-        contactInfo: formData.contactInfo || null,
-        venueType: formData.venueType || null,
-        priceInfo: formData.priceInfo || null,
-        capacity: formData.capacity ? parseInt(formData.capacity) : null,
-      };
-
       const response = await fetch('/api/instances', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(instanceData),
+        body: JSON.stringify({
+          activityId: selectedActivity.id,
+          datetime: formData.datetime,
+          endDate: formData.endDate || null,
+          isAllDay: formData.isAllDay,
+          location: formData.location,
+          friendIds: formData.friendIds,
+          // Rich fields
+          customTitle: formData.customTitle || null,
+          venue: formData.venue || null,
+          address: formData.address || null,
+          city: formData.city || null,
+          state: formData.state || null,
+          zipCode: formData.zipCode || null,
+          detailedDescription: formData.detailedDescription || null,
+          requirements: formData.requirements || null,
+          contactInfo: formData.contactInfo || null,
+          venueType: formData.venueType || null,
+          priceInfo: formData.priceInfo || null,
+          capacity: formData.capacity ? parseInt(formData.capacity) : null,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to schedule activity');
+        throw new Error(errorData.error || 'Failed to create event');
       }
 
       const instance = await response.json();
-      router.push(`/invite/${instance.id}`);
+      setCreatedInstanceId(instance.id);
+      setCurrentStep('finalize');
     } catch (err) {
       setErrors({ submit: err instanceof Error ? err.message : 'An error occurred' });
     } finally {
@@ -277,27 +293,10 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     }
   };
 
-  const handleChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const toggleFriend = (friendId: string) => {
-    const updatedFriendIds = formData.friendIds.includes(friendId)
-      ? formData.friendIds.filter(id => id !== friendId)
-      : [...formData.friendIds, friendId];
-    handleChange('friendIds', updatedFriendIds);
-  };
-
-  // Get minimum datetime (now) with safe fallback
-  const minDateTime = getMinDateTime();
-
   if (loading) return <LoadingSpinner />;
 
-  // Step 1: Activity Selection (skipped if template is preselected)
-  if (currentStep === 'activity-selection' && !preselectedTemplate) {
+  // Step: Activity Selection
+  if (currentStep === 'activity-selection') {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
@@ -306,8 +305,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Choose Activity Template</h1>
-            <p className="text-gray-600 mt-1">Select a template to create a specific event with AI assistance</p>
+            <h2 className="text-2xl font-bold text-gray-900">Select Activity Template</h2>
+            <p className="text-gray-600">Choose from your activity templates</p>
           </div>
         </div>
 
@@ -315,69 +314,50 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
           <Card className="border-2 border-dashed border-slate-200 bg-slate-50">
             <CardContent className="text-center py-12">
               <Layers className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No activity templates available</h3>
-              <p className="text-gray-600 mb-4">You need to create at least one activity template first.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No activity templates yet</h3>
+              <p className="text-gray-600 mb-4">Create your first template to start organizing events</p>
               <Button onClick={() => router.push('/activities/new')}>
-                Create Your First Template
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Template
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activities.map((activity) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(activities ?? []).map((activity) => (
               <Card 
-                key={activity.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300 border-l-4 border-l-slate-500"
+                key={activity.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300"
                 onClick={() => handleActivitySelect(activity)}
               >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center">
-                        {activity.name}
-                        <Badge variant="secondary" className="ml-2 bg-slate-200 text-slate-800 text-xs">
-                          Template
-                        </Badge>
-                      </CardTitle>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-blue-600" />
-                  </div>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center">
+                    <Layers className="h-5 w-5 text-slate-600 mr-2" />
+                    {activity.name}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {activity.description && (
                     <p className="text-sm text-gray-700">{activity.description}</p>
                   )}
-                  
-                  {activity.values.length > 0 && (
-                    <div>
-                      <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <Heart className="h-3 w-3 mr-1" />
-                        Values:
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {activity.values.slice(0, 3).map((av, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {av.value.name}
-                          </Badge>
-                        ))}
-                        {activity.values.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{activity.values.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
+                  {(activity?.values?.length ?? 0) > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {(activity?.values ?? []).slice(0, 2).map((av, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          <Heart className="h-3 w-3 mr-1" />
+                          {av?.value?.name}
+                        </Badge>
+                      ))}
+                      {(activity?.values?.length ?? 0) > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{(activity?.values?.length ?? 0) - 2} more
+                        </Badge>
+                      )}
                     </div>
                   )}
-
-                  <Button 
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleActivitySelect(activity);
-                    }}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Get AI Suggestions
+                  <Button className="w-full">
+                    Select Template
+                    <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
@@ -388,128 +368,182 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     );
   }
 
-  // Step 2: AI Discovery
-  if (currentStep === 'ai-discovery' && selectedActivity) {
-    return (
-      <AIActivityDiscovery
-        selectedActivity={selectedActivity}
-        onOptionSelected={handleOptionSelected}
-        onBack={preselectedTemplate ? onBack : () => setCurrentStep('activity-selection')}
-      />
-    );
-  }
-
-  // Step 3: Event Details
-  if (currentStep === 'event-details' && selectedActivity) {
+  // Step: AI Discovery
+  if (currentStep === 'ai-discovery') {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={() => setCurrentStep('ai-discovery')}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (preselectedTemplate) {
+              onBack();
+            } else {
+              setCurrentStep('activity-selection');
+            }
+          }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {preselectedTemplate ? 'Back' : 'Select Template'}
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Event Details</h1>
-            <p className="text-gray-600 mt-1">Customize your event with specific details</p>
+            <h2 className="text-2xl font-bold text-gray-900">Discover Options with AI</h2>
+            <p className="text-gray-600">Get AI-powered suggestions for your {selectedActivity?.name} event</p>
           </div>
         </div>
 
-        {/* Template Context */}
-        <Card className="bg-slate-50 border-slate-200">
+        {/* Skip AI Option */}
+        <Card className="bg-blue-50 border-blue-200">
           <CardContent className="py-4">
-            <div className="flex items-center space-x-3">
-              <Layers className="h-5 w-5 text-slate-600" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Creating event from template:</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-slate-900">{selectedActivity.name}</span>
-                  <Badge variant="secondary" className="bg-slate-200 text-slate-800 text-xs">
-                    Template
-                  </Badge>
-                </div>
+                <h4 className="font-medium text-blue-900 mb-1">Want to skip AI suggestions?</h4>
+                <p className="text-sm text-blue-800">Create your event manually with full control over all details</p>
               </div>
+              <Button variant="outline" onClick={handleSkipAI}>
+                Skip AI & Create Manually
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* AI Selection Summary */}
+        <AIActivityDiscovery
+          selectedActivity={selectedActivity!}
+          onOptionSelected={handleOptionSelected}
+          onBack={() => setCurrentStep('activity-selection')}
+        />
+      </div>
+    );
+  }
+
+  // Step: Event Details
+  if (currentStep === 'event-details') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="sm" onClick={() => {
+            if (preselectedTemplate && !selectedOption) {
+              onBack();
+            } else if (selectedOption) {
+              setCurrentStep('ai-discovery');
+            } else {
+              setCurrentStep('activity-selection');
+            }
+          }}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+            <p className="text-gray-600">Complete the details for your {selectedActivity?.name} event</p>
+          </div>
+        </div>
+
+        {/* AI Suggestion Context */}
         {selectedOption && (
-          <Card className="border-green-200 bg-green-50">
+          <Card className="bg-purple-50 border-purple-200">
             <CardHeader>
-              <CardTitle className="flex items-center text-green-800">
-                <CheckCircle className="h-5 w-5 mr-2" />
+              <CardTitle className="flex items-center text-purple-900">
+                <Sparkles className="h-5 w-5 mr-2" />
                 AI Suggestion Applied
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-green-800">
-                AI has pre-filled the details below. You can customize them as needed.
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-purple-800">
+                  <strong>{selectedOption.name}</strong> - {selectedOption.description}
+                </p>
+                <p className="text-xs text-purple-700">
+                  {selectedOption.reasoning}
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        <form className="space-y-6">
-          {/* Event Title & Basic Info */}
+        <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+          {/* Basic Event Info */}
           <Card>
             <CardHeader>
-              <div className="flex items-center">
-                <Info className="h-5 w-5 text-blue-600 mr-2" />
-                <CardTitle>Event Title & Type</CardTitle>
-              </div>
+              <CardTitle className="flex items-center">
+                <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                Basic Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Custom Event Title" required error={errors.customTitle}>
+              <FormField label="Event Title (Optional)" error={errors.customTitle}>
                 <Input
                   value={formData.customTitle}
                   onChange={(e) => handleChange('customTitle', e.target.value)}
-                  placeholder={`e.g., "Thai Cooking Lesson at Cordon Bleu"`}
+                  placeholder={`e.g., Weekend ${selectedActivity?.name || 'Event'}`}
                 />
               </FormField>
 
-              <FormField label="Event Type" error={errors.venueType}>
-                <Select value={formData.venueType} onValueChange={(value) => handleChange('venueType', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select event type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="indoor">Indoor</SelectItem>
-                    <SelectItem value="outdoor">Outdoor</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
+              <FormField label="Event Date & Time" required error={errors.datetime}>
+                <DateRangePicker
+                  startDate={formData.datetime}
+                  endDate={formData.endDate}
+                  isAllDay={formData.isAllDay}
+                  onStartDateChange={(date) => handleChange('datetime', date)}
+                  onEndDateChange={(date) => handleChange('endDate', date)}
+                  onIsAllDayChange={(isAllDay) => handleChange('isAllDay', isAllDay)}
+                  error={errors.datetime}
+                />
+              </FormField>
+
+              <FormField label="General Location" error={errors.location}>
+                <Input
+                  value={formData.location}
+                  onChange={(e) => handleChange('location', e.target.value)}
+                  placeholder="e.g., Downtown, Central Park, My place"
+                />
+              </FormField>
+
+              <FormField label="Detailed Description">
+                <Textarea
+                  value={formData.detailedDescription}
+                  onChange={(e) => handleChange('detailedDescription', e.target.value)}
+                  placeholder="Additional details about the event..."
+                  rows={3}
+                />
               </FormField>
             </CardContent>
           </Card>
 
-          {/* Venue & Location */}
+          {/* Venue Details */}
           <Card>
             <CardHeader>
-              <div className="flex items-center">
+              <CardTitle className="flex items-center">
                 <Building className="h-5 w-5 text-green-600 mr-2" />
-                <CardTitle>Venue & Location</CardTitle>
-              </div>
+                Venue Details (Optional)
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Venue Name" error={errors.venue}>
-                <Input
-                  value={formData.venue}
-                  onChange={(e) => handleChange('venue', e.target.value)}
-                  placeholder="e.g., Cordon Bleu Cookery School"
-                />
-              </FormField>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Venue Name">
+                  <Input
+                    value={formData.venue}
+                    onChange={(e) => handleChange('venue', e.target.value)}
+                    placeholder="e.g., Central Park, Joe's Restaurant"
+                  />
+                </FormField>
 
-              <FormField label="Street Address" error={errors.address}>
+                <FormField label="Venue Type">
+                  <Input
+                    value={formData.venueType}
+                    onChange={(e) => handleChange('venueType', e.target.value)}
+                    placeholder="e.g., Restaurant, Park, Home"
+                  />
+                </FormField>
+              </div>
+
+              <FormField label="Address">
                 <Input
                   value={formData.address}
                   onChange={(e) => handleChange('address', e.target.value)}
-                  placeholder="e.g., 123 Main Street"
+                  placeholder="Street address"
                 />
               </FormField>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField label="City" error={errors.city}>
+                <FormField label="City">
                   <Input
                     value={formData.city}
                     onChange={(e) => handleChange('city', e.target.value)}
@@ -517,7 +551,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                   />
                 </FormField>
 
-                <FormField label="State" error={errors.state}>
+                <FormField label="State">
                   <Input
                     value={formData.state}
                     onChange={(e) => handleChange('state', e.target.value)}
@@ -525,111 +559,128 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                   />
                 </FormField>
 
-                <FormField label="ZIP Code" error={errors.zipCode}>
+                <FormField label="Zip Code">
                   <Input
                     value={formData.zipCode}
                     onChange={(e) => handleChange('zipCode', e.target.value)}
-                    placeholder="ZIP"
+                    placeholder="12345"
                   />
                 </FormField>
               </div>
             </CardContent>
           </Card>
 
-          {/* Event Details */}
+          {/* Additional Details */}
           <Card>
             <CardHeader>
-              <div className="flex items-center">
-                <Heart className="h-5 w-5 text-purple-600 mr-2" />
-                <CardTitle>Event Details</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField label="Detailed Description" error={errors.detailedDescription}>
-                <Textarea
-                  value={formData.detailedDescription}
-                  onChange={(e) => handleChange('detailedDescription', e.target.value)}
-                  placeholder="Describe what participants will do, learn, or experience..."
-                  rows={4}
-                />
-              </FormField>
-
-              <FormField label="Requirements" error={errors.requirements}>
-                <Textarea
-                  value={formData.requirements}
-                  onChange={(e) => handleChange('requirements', e.target.value)}
-                  placeholder="What should participants bring or know beforehand?"
-                  rows={3}
-                />
-              </FormField>
-            </CardContent>
-          </Card>
-
-          {/* Additional Info */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center">
-                <DollarSign className="h-5 w-5 text-orange-600 mr-2" />
-                <CardTitle>Additional Information</CardTitle>
-              </div>
+              <CardTitle className="flex items-center">
+                <Info className="h-5 w-5 text-purple-600 mr-2" />
+                Additional Information (Optional)
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Pricing Info" error={errors.priceInfo}>
-                  <Input
-                    value={formData.priceInfo}
-                    onChange={(e) => handleChange('priceInfo', e.target.value)}
-                    placeholder="e.g., $75 per person"
+                <FormField label="What to Bring / Requirements">
+                  <Textarea
+                    value={formData.requirements}
+                    onChange={(e) => handleChange('requirements', e.target.value)}
+                    placeholder="e.g., Bring water bottle, comfortable shoes"
+                    rows={2}
                   />
                 </FormField>
 
-                <FormField label="Max Capacity" error={errors.capacity}>
+                <FormField label="Contact Information">
+                  <Textarea
+                    value={formData.contactInfo}
+                    onChange={(e) => handleChange('contactInfo', e.target.value)}
+                    placeholder="e.g., Call me at 555-1234"
+                    rows={2}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Price Information">
+                  <Input
+                    value={formData.priceInfo}
+                    onChange={(e) => handleChange('priceInfo', e.target.value)}
+                    placeholder="e.g., $20 per person, Free"
+                  />
+                </FormField>
+
+                <FormField label="Capacity (Max People)">
                   <Input
                     type="number"
                     value={formData.capacity}
                     onChange={(e) => handleChange('capacity', e.target.value)}
-                    placeholder="e.g., 12"
+                    placeholder="e.g., 8"
+                    min="1"
                   />
                 </FormField>
               </div>
-
-              <FormField label="Contact Information" error={errors.contactInfo}>
-                <Input
-                  value={formData.contactInfo}
-                  onChange={(e) => handleChange('contactInfo', e.target.value)}
-                  placeholder="Venue phone number, website, or other contact details"
-                />
-              </FormField>
             </CardContent>
           </Card>
 
-          {/* AI Assist Button */}
-          <Card className="border-dashed border-blue-300 bg-blue-50">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-blue-900">Need help with details?</p>
-                    <p className="text-sm text-blue-700">AI can suggest venue details, descriptions, and requirements</p>
+          {/* Friends */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="h-5 w-5 text-green-600 mr-2" />
+                Invite Friends
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {friends.length === 0 ? (
+                <div className="text-center py-6">
+                  <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-2">No friends added yet</p>
+                  <Button variant="outline" onClick={() => router.push('/friends/new')}>
+                    Add Friends
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600">
+                    Select friends to invite ({formData.friendIds.length} selected):
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                    {(friends ?? []).map((friend) => (
+                      <label
+                        key={friend.id}
+                        className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.friendIds.includes(friend.id)}
+                          onChange={(e) => {
+                            const updatedFriends = e.target.checked
+                              ? [...formData.friendIds, friend.id]
+                              : formData.friendIds.filter(id => id !== friend.id);
+                            handleChange('friendIds', updatedFriends);
+                          }}
+                        />
+                        <span className="font-medium">{friend.name}</span>
+                        {friend.group && <Badge variant="outline" className="text-xs">{friend.group}</Badge>}
+                      </label>
+                    ))}
                   </div>
                 </div>
-                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  AI Suggest Details
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Navigation */}
+          {errors.submit && (
+            <div className="text-red-600 text-sm p-3 bg-red-50 border border-red-200 rounded-lg">
+              {errors.submit}
+            </div>
+          )}
+
           <div className="flex space-x-4">
-            <Button type="button" onClick={() => setCurrentStep('finalize')} size="lg">
-              Continue to Scheduling
-              <ArrowRight className="h-4 w-4 ml-2" />
+            <Button type="submit" disabled={submitting} size="lg">
+              {submitting ? 'Creating Event...' : 'Create Event'}
             </Button>
-            <Button type="button" variant="outline" size="lg" onClick={() => setCurrentStep('ai-discovery')}>
-              Back to AI Suggestions
+            <Button type="button" variant="outline" onClick={onBack}>
+              Cancel
             </Button>
           </div>
         </form>
@@ -637,229 +688,55 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     );
   }
 
-  // Step 4: Finalize
-  if (currentStep === 'finalize' && selectedActivity) {
-    // Group friends by group
-    const groupedFriends = friends.reduce((acc, friend) => {
-      const group = friend.group || 'No Group';
-      if (!acc[group]) acc[group] = [];
-      acc[group].push(friend);
-      return acc;
-    }, {} as Record<string, Friend[]>);
-
+  // Step: Finalize/Success
+  if (currentStep === 'finalize' && createdInstanceId) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={() => setCurrentStep('event-details')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Event Details
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Schedule & Invite</h1>
-            <p className="text-gray-600 mt-1">Set the date/time and invite your friends</p>
-          </div>
+        <div className="text-center">
+          <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Created Successfully!</h2>
+          <p className="text-gray-600">Your {selectedActivity?.name} event has been scheduled</p>
         </div>
 
-        {/* Event Summary */}
-        <Card className="border-blue-200 bg-blue-50">
+        {/* Calendar Export */}
+        <CalendarIntegration 
+          instanceId={createdInstanceId}
+          activityName={formData.customTitle || selectedActivity?.name || 'Event'}
+        />
+
+        {/* Next Steps */}
+        <Card>
           <CardHeader>
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-blue-600 mr-2" />
-              <CardTitle className="text-blue-900">Event Summary</CardTitle>
-            </div>
+            <CardTitle>Next Steps</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900">
-                {formData.customTitle || selectedActivity.name}
-              </h3>
-              <p className="text-sm text-blue-700">
-                Based on template: <span className="font-medium">{selectedActivity.name}</span>
-              </p>
-            </div>
-            
-            {(formData.venue || formData.address) && (
-              <div className="flex items-start space-x-2">
-                <MapPin className="h-4 w-4 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  {formData.venue && <div className="font-medium">{formData.venue}</div>}
-                  {formData.address && (
-                    <div>
-                      {formData.address}
-                      {formData.city && `, ${formData.city}`}
-                      {formData.state && `, ${formData.state}`}
-                      {formData.zipCode && ` ${formData.zipCode}`}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {formData.detailedDescription && (
-              <div className="text-sm text-blue-800">
-                <span className="font-medium">Description: </span>
-                {formData.detailedDescription.length > 100 
-                  ? `${formData.detailedDescription.substring(0, 100)}...`
-                  : formData.detailedDescription
-                }
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-2">
-              {formData.venueType && (
-                <Badge variant="outline" className="border-blue-300 text-blue-700">
-                  {formData.venueType}
-                </Badge>
-              )}
-              {formData.priceInfo && (
-                <Badge variant="outline" className="border-blue-300 text-blue-700">
-                  {formData.priceInfo}
-                </Badge>
-              )}
-              {formData.capacity && (
-                <Badge variant="outline" className="border-blue-300 text-blue-700">
-                  Max {formData.capacity} people
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Template Context */}
-        <Card className="bg-slate-50 border-slate-200">
-          <CardContent className="py-4">
+          <CardContent className="space-y-4">
             <div className="flex items-center space-x-3">
-              <Layers className="h-5 w-5 text-slate-600" />
-              <div>
-                <p className="text-sm text-slate-600">Creating event from template:</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-slate-900">{selectedActivity.name}</span>
-                  <Badge variant="secondary" className="bg-slate-200 text-slate-800 text-xs">
-                    Template
-                  </Badge>
-                </div>
-              </div>
+              <UserCheck className="h-5 w-5 text-blue-600" />
+              <span>Send invites to your friends</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-5 w-5 text-green-600" />
+              <span>Add to your calendar</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <MapPin className="h-5 w-5 text-purple-600" />
+              <span>Share location details</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* AI Selection Summary */}
-        {selectedOption && (
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-green-800">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                AI Suggestion Selected
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <h4 className="font-medium text-green-900">{selectedOption.name}</h4>
-                <p className="text-sm text-green-800">{selectedOption.description}</p>
-                <div className="flex items-center text-sm text-green-700">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  {selectedOption.suggestedLocation}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Date, Time & Location */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 text-green-600 mr-2" />
-                <CardTitle>When & Where</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField label="Date & Time" required error={errors.datetime}>
-                <Input
-                  type="datetime-local"
-                  value={formData.datetime}
-                  onChange={(e) => handleChange('datetime', e.target.value)}
-                  min={minDateTime}
-                  required
-                />
-              </FormField>
-
-              <FormField label="Location" error={errors.location}>
-                <Input
-                  value={formData.location}
-                  onChange={(e) => handleChange('location', e.target.value)}
-                  placeholder={selectedOption ? selectedOption.suggestedLocation : "Where will this activity take place?"}
-                />
-              </FormField>
-            </CardContent>
-          </Card>
-
-          {/* Friend Selection */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center">
-                <Users className="h-5 w-5 text-purple-600 mr-2" />
-                <CardTitle>Invite Friends</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {friends.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No friends added</h3>
-                  <p className="text-gray-600 mb-4">You need to add friends to invite them.</p>
-                  <Button onClick={() => router.push('/friends/new')}>
-                    Add Your First Friend
-                  </Button>
-                </div>
-              ) : (
-                <FormField label="Select Friends" required error={errors.friendIds}>
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
-                      Choose who to invite ({formData.friendIds.length} selected):
-                    </p>
-                    
-                    {Object.entries(groupedFriends).map(([group, groupFriends]) => (
-                      <div key={group} className="space-y-2">
-                        <h4 className="font-medium text-gray-700">{group}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {groupFriends.map((friend) => (
-                            <label
-                              key={friend.id}
-                              className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={formData.friendIds.includes(friend.id)}
-                                onChange={() => toggleFriend(friend.id)}
-                              />
-                              <span className="font-medium text-gray-900">{friend.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </FormField>
-              )}
-            </CardContent>
-          </Card>
-
-          {errors.submit && (
-            <div className="text-red-600 text-sm">{errors.submit}</div>
-          )}
-
-          {/* Submit */}
-          <div className="flex space-x-4">
-            <Button type="submit" disabled={submitting} size="lg">
-              {submitting ? 'Creating Event...' : 'Create Event & Generate Invite'}
-            </Button>
-            <Button type="button" variant="outline" size="lg" onClick={onBack}>
-              Cancel
-            </Button>
-          </div>
-        </form>
+        <div className="flex space-x-4">
+          <Button onClick={() => router.push(`/invite/${createdInstanceId}`)} size="lg">
+            <Users className="h-4 w-4 mr-2" />
+            Send Invites
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/')}>
+            Back to Dashboard
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/schedule')}>
+            Create Another Event
+          </Button>
+        </div>
       </div>
     );
   }

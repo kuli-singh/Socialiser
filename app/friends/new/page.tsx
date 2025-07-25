@@ -15,6 +15,7 @@ export default function NewFriendPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     group: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -83,6 +84,18 @@ export default function NewFriendPage() {
                 placeholder="Enter their full name"
                 required
               />
+            </FormField>
+
+            <FormField label="Email" error={errors.email}>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="their.email@example.com"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Optional: Add email to enable invite sending via email
+              </p>
             </FormField>
 
             <FormField label="Group" error={errors.group}>

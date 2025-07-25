@@ -131,7 +131,7 @@ export default function DashboardPage() {
       const data = await response.json();
       // Ensure data is an array and safely slice it
       const safeData = Array.isArray(data) ? data : [];
-      setTemplates(safeData.slice(0, 6) ?? []); // Show first 6 templates on dashboard
+      setTemplates((safeData ?? []).slice(0, 6)); // Show first 6 templates on dashboard
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setTemplates([]); // Ensure templates is always an array even on error
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{instances?.length ?? 0}</div>
+            <div className="text-3xl font-bold text-blue-600">{instances.length}</div>
             <p className="text-gray-600 text-sm">Scheduled events ready to go</p>
           </CardContent>
         </Card>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-600">{templates?.length ?? 0}</div>
+            <div className="text-3xl font-bold text-slate-600">{templates.length}</div>
             <p className="text-gray-600 text-sm">Templates ready for events</p>
           </CardContent>
         </Card>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               Scheduled Instances
             </Badge>
           </div>
-          {(instances?.length ?? 0) > 0 && (
+          {instances.length > 0 && (
             <Link href="/schedule">
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -285,7 +285,7 @@ export default function DashboardPage() {
           )}
         </div>
         
-        {(instances?.length ?? 0) === 0 ? (
+        {instances.length === 0 ? (
           <Card className="border-2 border-dashed border-blue-200 bg-blue-50">
             <CardContent className="text-center py-12">
               <CalendarCheck className="h-12 w-12 text-blue-400 mx-auto mb-4" />
@@ -301,7 +301,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(instances ?? []).map((instance) => {
+            {instances.map((instance) => {
               const { date, time } = formatDateTime(instance.datetime);
               const fullAddress = [
                 instance.address,
@@ -409,14 +409,42 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    {/* View Details Link */}
-                    <div className="pt-2">
+                    {/* Calendar Export Buttons */}
+                    <div className="flex space-x-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/calendar/${instance.id}`);
+                            if (!response.ok) throw new Error('Failed to generate calendar file');
+                            
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${(instance.customTitle || instance.activity.name).replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')}.ics`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                          } catch (error) {
+                            alert('Failed to download calendar file');
+                          }
+                        }}
+                      >
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Export
+                      </Button>
                       <Link
                         href={`/invite/${instance.id}`}
-                        className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700"
+                        className="flex-1"
                       >
-                        View Details & Send Invites
-                        <ArrowRight className="h-4 w-4 ml-1" />
+                        <Button size="sm" className="w-full">
+                          <Users className="h-3 w-3 mr-1" />
+                          Details
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
@@ -438,7 +466,7 @@ export default function DashboardPage() {
             </Badge>
           </div>
           <div className="flex space-x-2">
-            {(templates?.length ?? 0) > 0 && (
+            {templates.length > 0 && (
               <Link href="/activities">
                 <Button variant="outline" size="sm">
                   View All Templates
@@ -454,7 +482,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {(templates?.length ?? 0) === 0 ? (
+        {templates.length === 0 ? (
           <Card className="border-2 border-dashed border-slate-200 bg-slate-50">
             <CardContent className="text-center py-12">
               <Layers className="h-12 w-12 text-slate-400 mx-auto mb-4" />
@@ -470,7 +498,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(templates ?? []).map((template) => (
+            {templates.map((template) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-slate-500 bg-slate-50">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -518,10 +546,10 @@ export default function DashboardPage() {
 
                   {/* Action Buttons */}
                   <div className="flex space-x-2 pt-2">
-                    <Link href={`/schedule?template=${template.id}`} className="flex-1">
+                    <Link href={`/templates/${template.id}`} className="flex-1">
                       <Button size="sm" className="w-full">
                         <Plus className="h-4 w-4 mr-1" />
-                        Create Event
+                        Use Template
                       </Button>
                     </Link>
                     <Link href={`/templates/${template.id}/events`}>
@@ -538,7 +566,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions for First Time Users */}
-      {(instances?.length ?? 0) === 0 && (templates?.length ?? 0) === 0 && (
+      {instances.length === 0 && templates.length === 0 && (
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <CardContent className="text-center py-8">
             <Sparkles className="h-12 w-12 text-blue-600 mx-auto mb-4" />

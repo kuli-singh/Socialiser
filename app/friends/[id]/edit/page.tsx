@@ -15,6 +15,7 @@ import Link from 'next/link';
 interface Friend {
   id: string;
   name: string;
+  email: string | null;
   group: string | null;
 }
 
@@ -26,6 +27,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     group: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,6 +45,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
       setFriend(data);
       setFormData({
         name: data.name,
+        email: data.email || '',
         group: data.group || '',
       });
     } catch (err) {
@@ -120,6 +123,18 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
                 placeholder="Enter their full name"
                 required
               />
+            </FormField>
+
+            <FormField label="Email" error={errors.email}>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="their.email@example.com"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Optional: Add email to enable invite sending via email
+              </p>
             </FormField>
 
             <FormField label="Group" error={errors.group}>

@@ -235,14 +235,14 @@ function ScheduleContent() {
                 {selectedTemplate.description && (
                   <p className="text-sm text-gray-700 mb-2">{selectedTemplate.description}</p>
                 )}
-                {selectedTemplate.values.length > 0 && (
+                {(selectedTemplate?.values?.length ?? 0) > 0 && (
                   <div className="flex items-center space-x-2">
                     <Heart className="h-4 w-4 text-red-500" />
                     <span className="text-sm text-gray-600">Values:</span>
                     <div className="flex space-x-1">
-                      {selectedTemplate.values.map((av, index) => (
+                      {(selectedTemplate?.values ?? []).map((av, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {av.value.name}
+                          {av?.value?.name}
                         </Badge>
                       ))}
                     </div>

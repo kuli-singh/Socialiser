@@ -1,17 +1,17 @@
 
-name,group
-Alice Johnson,Work Colleagues
-Bob Smith,Family
-Charlie Brown,College Friends
-Diana Martinez,Work Colleagues
-Eva Chen,Gym Buddies
-Frank Wilson,Neighbors
-Grace Kim,College Friends
-Henry Taylor,Family
-Ivy Rodriguez,Book Club
-Jack Thompson,Work Colleagues
-Kate Anderson,Gym Buddies
-Liam O'Connor,
-Maria Gonzalez,Book Club
-Nathan Lee,Neighbors
-Olivia White,College Friends
+name,email,group
+Alice Johnson,alice.johnson@company.com,Work Colleagues
+Bob Smith,bob.smith@email.com,Family
+Charlie Brown,,College Friends
+Diana Martinez,diana.martinez@company.com,Work Colleagues
+Eva Chen,eva.chen@gym.com,Gym Buddies
+Frank Wilson,,Neighbors
+Grace Kim,grace.kim@college.edu,College Friends
+Henry Taylor,henry.taylor@family.com,Family
+Ivy Rodriguez,ivy.rodriguez@books.com,Book Club
+Jack Thompson,,Work Colleagues
+Kate Anderson,kate.anderson@gym.com,Gym Buddies
+Liam O'Connor,,
+Maria Gonzalez,maria.gonzalez@books.com,Book Club
+Nathan Lee,nathan.lee@neighborhood.com,Neighbors
+Olivia White,,College Friends

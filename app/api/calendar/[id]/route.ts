@@ -47,8 +47,12 @@ export async function GET(
     }
 
     // Format date for ICS
-    const formatDate = (date: Date) => {
+    const formatDateTime = (date: Date) => {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
+
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0].replace(/[-]/g, '');
     };
 
     // Validate and create start date
@@ -61,7 +65,18 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid event datetime format' }, { status: 400 });
     }
     
-    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+    // Handle end date - use provided endDate or default to 2 hours later
+    let endDate: Date;
+    if (instance.endDate) {
+      endDate = new Date(instance.endDate);
+      if (isNaN(endDate.getTime())) {
+        return NextResponse.json({ error: 'Invalid end date format' }, { status: 400 });
+      }
+    } else {
+      endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+    }
+
+    const isAllDay = instance.isAllDay || false;
 
     const eventTitle = instance.customTitle || instance.activity.name;
     const eventLocation = instance.venue ? 
@@ -78,23 +93,38 @@ export async function GET(
 
     const participants = instance.participations?.map(p => p.friend.name).join(', ') || '';
 
-    const icsContent = [
+    // Generate ICS content with proper formatting for all-day vs timed events
+    const icsLines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//Social Organizer//EN',
       'BEGIN:VEVENT',
       `UID:${instance.id}@socialorganizer.app`,
-      `DTSTART:${formatDate(startDate)}`,
-      `DTEND:${formatDate(endDate)}`,
-      `SUMMARY:${eventTitle}`,
-      eventLocation ? `LOCATION:${eventLocation}` : '',
-      eventDescription ? `DESCRIPTION:${eventDescription}` : '',
-      participants ? `ATTENDEE:${participants}` : '',
-      `CREATED:${formatDate(instance.createdAt)}`,
-      `LAST-MODIFIED:${formatDate(instance.updatedAt)}`,
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].filter(Boolean).join('\r\n');
+    ];
+
+    // Add date/time fields based on event type
+    if (isAllDay) {
+      icsLines.push(`DTSTART;VALUE=DATE:${formatDate(startDate)}`);
+      // For all-day events, end date should be the day after the last day
+      const allDayEndDate = new Date(endDate);
+      allDayEndDate.setDate(allDayEndDate.getDate() + 1);
+      icsLines.push(`DTEND;VALUE=DATE:${formatDate(allDayEndDate)}`);
+    } else {
+      icsLines.push(`DTSTART:${formatDateTime(startDate)}`);
+      icsLines.push(`DTEND:${formatDateTime(endDate)}`);
+    }
+
+    // Add remaining event fields
+    icsLines.push(`SUMMARY:${eventTitle}`);
+    if (eventLocation) icsLines.push(`LOCATION:${eventLocation}`);
+    if (eventDescription) icsLines.push(`DESCRIPTION:${eventDescription}`);
+    if (participants) icsLines.push(`ATTENDEE:${participants}`);
+    icsLines.push(`CREATED:${formatDateTime(instance.createdAt)}`);
+    icsLines.push(`LAST-MODIFIED:${formatDateTime(instance.updatedAt)}`);
+    icsLines.push('END:VEVENT');
+    icsLines.push('END:VCALENDAR');
+
+    const icsContent = icsLines.join('\r\n');
 
     return new NextResponse(icsContent, {
       headers: {

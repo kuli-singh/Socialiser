@@ -64,7 +64,7 @@ export default function EditActivityTemplatePage({ params }: { params: { id: str
       setFormData({
         name: data.name,
         description: data.description || '',
-        valueIds: data.values.map((v: any) => v.value.id),
+        valueIds: (data?.values ?? []).map((v: any) => v?.value?.id).filter(Boolean),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch activity template');
@@ -76,10 +76,11 @@ export default function EditActivityTemplatePage({ params }: { params: { id: str
       const response = await fetch('/api/values');
       if (response.ok) {
         const data = await response.json();
-        setAllValues(data);
+        setAllValues(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to fetch values:', err);
+      setAllValues([]); // Ensure allValues is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -264,7 +265,7 @@ export default function EditActivityTemplatePage({ params }: { params: { id: str
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {allValues.map((value) => (
+                    {(allValues ?? []).map((value) => (
                       <label
                         key={value.id}
                         className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-all ${
@@ -308,15 +309,15 @@ export default function EditActivityTemplatePage({ params }: { params: { id: str
               <div className="mt-4 p-4 bg-green-50 rounded-lg">
                 <h4 className="font-medium text-green-900 mb-2">Selected Values:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {formData.valueIds.map((valueId) => {
-                    const value = allValues.find(v => v.id === valueId);
+                  {(formData?.valueIds ?? []).map((valueId) => {
+                    const value = (allValues ?? []).find(v => v?.id === valueId);
                     return value ? (
                       <span
                         key={valueId}
                         className="inline-flex items-center bg-green-200 text-green-800 text-sm px-3 py-1 rounded-full"
                       >
                         <Heart className="h-3 w-3 mr-1" />
-                        {value.name}
+                        {value?.name}
                       </span>
                     ) : null;
                   })}

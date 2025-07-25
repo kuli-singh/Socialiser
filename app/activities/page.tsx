@@ -54,9 +54,11 @@ export default function ActivityTemplatesPage() {
       if (!response.ok) throw new Error('Failed to fetch activity templates');
       
       const data = await response.json();
-      setTemplates(data);
+      // Ensure data is an array before setting
+      setTemplates(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setTemplates([]); // Ensure templates is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -128,24 +130,24 @@ export default function ActivityTemplatesPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-2xl font-bold text-slate-600">{templates.length}</div>
+              <div className="text-2xl font-bold text-slate-600">{(templates ?? []).length}</div>
               <p className="text-gray-600 text-sm">Total Templates</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {templates.reduce((sum, t) => sum + (t._count?.instances || 0), 0)}
+                {(templates ?? []).reduce((sum, t) => sum + (t?._count?.instances ?? 0), 0)}
               </div>
               <p className="text-gray-600 text-sm">Events Created</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">
-                {templates.filter(t => t.values.length > 0).length}
+                {(templates ?? []).filter(t => (t?.values?.length ?? 0) > 0).length}
               </div>
               <p className="text-gray-600 text-sm">With Values</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">
-                {new Set(templates.flatMap(t => t.values.map(v => v.value.id))).size}
+                {new Set((templates ?? []).flatMap(t => (t?.values ?? []).map(v => v?.value?.id).filter(Boolean))).size}
               </div>
               <p className="text-gray-600 text-sm">Unique Values</p>
             </div>
@@ -170,7 +172,7 @@ export default function ActivityTemplatesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
+          {(templates ?? []).map((template) => (
             <Card key={template.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-slate-500">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -230,14 +232,14 @@ export default function ActivityTemplatesPage() {
                       Associated Values
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {template.values.slice(0, 3).map((av) => (
-                        <Badge key={av.value.id} variant="outline" className="text-xs">
-                          {av.value.name}
+                      {(template?.values ?? []).slice(0, 3).map((av) => (
+                        <Badge key={av?.value?.id} variant="outline" className="text-xs">
+                          {av?.value?.name}
                         </Badge>
                       ))}
-                      {template.values.length > 3 && (
+                      {(template?.values?.length ?? 0) > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{template.values.length - 3} more
+                          +{(template?.values?.length ?? 0) - 3} more
                         </Badge>
                       )}
                     </div>

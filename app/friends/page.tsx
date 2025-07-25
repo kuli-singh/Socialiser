@@ -31,9 +31,11 @@ export default function FriendsPage() {
       const response = await fetch('/api/friends');
       if (!response.ok) throw new Error('Failed to fetch friends');
       const data = await response.json();
-      setFriends(data);
+      // Ensure data is an array before setting
+      setFriends(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setFriends([]); // Ensure friends is always an array even on error
     } finally {
       setLoading(false);
     }
@@ -58,8 +60,8 @@ export default function FriendsPage() {
   if (error) return <ErrorMessage message={error} />;
 
   // Group friends by group
-  const groupedFriends = friends.reduce((acc, friend) => {
-    const group = friend.group || 'No Group';
+  const groupedFriends = (friends ?? []).reduce((acc, friend) => {
+    const group = friend?.group || 'No Group';
     if (!acc[group]) acc[group] = [];
     acc[group].push(friend);
     return acc;

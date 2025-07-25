@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, group } = body;
+    const { name, email, group } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     const friend = await prisma.friend.create({
       data: {
         name,
+        email: email || null, // Optional email field
         phone: "000", // Always set dummy phone value
         group,
         userId: user.id
