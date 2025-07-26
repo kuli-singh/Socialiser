@@ -1,55 +1,107 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { Friend } from './types';
-
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+ 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-export function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-export function validatePhone(phone: string): boolean {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-}
-
-export function searchFriends(friends: Friend[], query: string): Friend[] {
-  const searchTerm = query.toLowerCase().trim();
+// Date utility functions with comprehensive error handling
+export function safeParseDate(dateInput: string | Date | null | undefined): Date | null {
+  if (!dateInput) return null;
   
-  if (!searchTerm) return friends;
-  
-  return friends.filter(friend =>
-    friend.name.toLowerCase().includes(searchTerm) ||
-    friend.email.toLowerCase().includes(searchTerm) ||
-    (friend.phone && friend.phone.toLowerCase().includes(searchTerm)) ||
-    (friend.notes && friend.notes.toLowerCase().includes(searchTerm)) ||
-    (friend.tags && friend.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
-  );
+  try {
+    const date = new Date(dateInput);
+    // Check if date is valid
+    if (isNaN(date.getTime())) return null;
+    return date;
+  } catch {
+    return null;
+  }
 }
 
-export function sortFriends(friends: Friend[], sortBy: keyof Friend, order: 'asc' | 'desc' = 'asc'): Friend[] {
-  return [...friends].sort((a, b) => {
-    const aValue = a[sortBy];
-    const bValue = b[sortBy];
+export function formatDateTime(datetime: string | Date | null | undefined) {
+  const date = safeParseDate(datetime);
+  if (!date) {
+    return {
+      date: 'Invalid Date',
+      time: 'Invalid Time'
+    };
+  }
+
+  try {
+    return {
+      date: date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      }),
+      time: date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    };
+  } catch {
+    return {
+      date: 'Invalid Date',
+      time: 'Invalid Time'
+    };
+  }
+}
+
+export function getTimeUntil(datetime: string | Date | null | undefined): string {
+  const eventDate = safeParseDate(datetime);
+  if (!eventDate) return 'Date TBD';
+
+  try {
+    const now = new Date();
+    const diffMs = eventDate.getTime() - now.getTime();
     
-    if (aValue === undefined && bValue === undefined) return 0;
-    if (aValue === undefined) return order === 'asc' ? 1 : -1;
-    if (bValue === undefined) return order === 'asc' ? -1 : 1;
+    if (diffMs < 0) return 'Past Event';
     
-    if (aValue < bValue) return order === 'asc' ? -1 : 1;
-    if (aValue > bValue) return order === 'asc' ? 1 : -1;
-    return 0;
-  });
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays < 7) return `In ${diffDays} days`;
+    if (diffDays < 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
+    return `In ${Math.ceil(diffDays / 30)} months`;
+  } catch {
+    return 'Date TBD';
+  }
+}
+
+export function isValidDateString(dateString: string | null | undefined): boolean {
+  if (!dateString) return false;
+  const date = safeParseDate(dateString);
+  return date !== null;
+}
+
+export function toISOStringSafe(date: Date | string | null | undefined): string | null {
+  const parsedDate = safeParseDate(date);
+  if (!parsedDate) return null;
+  
+  try {
+    return parsedDate.toISOString();
+  } catch {
+    return null;
+  }
+}
+
+export function getMinDateTime(): string {
+  try {
+    const now = new Date();
+    return now.toISOString().slice(0, 16);
+  } catch {
+    // Fallback to a default recent date if Date constructor fails
+    return '2024-01-01T12:00';
+  }
 }

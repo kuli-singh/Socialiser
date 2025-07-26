@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
+import { ActivityInstanceWithRelations } from '@/lib/types';
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +31,22 @@ export async function GET(
         userId: user.id
       },
       include: {
-        activity: true,
+        activity: {
+          include: {
+            values: {
+              include: {
+                value: true
+              }
+            }
+          }
+        },
         participations: {
           include: {
             friend: true
           }
         }
       }
-    });
+    }) as ActivityInstanceWithRelations | null;
 
     if (!instance) {
       return NextResponse.json(

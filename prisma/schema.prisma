@@ -123,6 +123,7 @@ model ActivityInstance {
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   activity      Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
   participations Participation[]
+  publicRSVPs   PublicRSVP[]
   
   @@index([userId])
   @@index([activityId])
@@ -145,4 +146,20 @@ model Participation {
   @@index([userId])
   @@index([friendId])
   @@index([activityInstanceId])
+}
+
+model PublicRSVP {
+  id                 String          @id @default(cuid())
+  activityInstanceId String
+  name               String
+  email              String?
+  phone              String?
+  message            String?
+  createdAt          DateTime        @default(now())
+  
+  // Relationships
+  activityInstance ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
+  
+  @@index([activityInstanceId])
+  @@index([createdAt])
 }

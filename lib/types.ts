@@ -1,4 +1,3 @@
-
 // Core entities
 export type User = {
   id: string

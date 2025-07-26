@@ -14,6 +14,12 @@ export default withAuth(
           return true;
         }
         
+        // Allow access to public event pages without token
+        if (req.nextUrl.pathname.startsWith('/event/') ||
+            req.nextUrl.pathname.startsWith('/api/public-events/')) {
+          return true;
+        }
+        
         // For all other protected routes, require token
         return !!token;
       },
