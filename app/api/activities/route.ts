@@ -1,8 +1,10 @@
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
+import { ActivityWithValues, SerializedActivityWithValues } from '@/lib/types';
 
 export const dynamic = "force-dynamic";
 
@@ -43,11 +45,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Serialize dates to prevent JSON serialization issues
-    const serializedActivities = activities.map(activity => ({
+    const serializedActivities: SerializedActivityWithValues[] = (activities as ActivityWithValues[]).map((activity: ActivityWithValues) => ({
       ...activity,
       createdAt: activity.createdAt?.toISOString() ?? null,
       updatedAt: activity.updatedAt?.toISOString() ?? null,
-      values: activity.values?.map(v => ({
+      values: activity.values?.map((v: ActivityWithValues['values'][0]) => ({
         ...v,
         value: {
           ...v.value,
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
         description,
         userId: user.id,
         values: valueIds ? {
-          create: valueIds.map((valueId: string) => ({
+          create: (valueIds as string[]).map((valueId: string) => ({
             valueId
           }))
         } : undefined
@@ -122,11 +124,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Serialize dates to prevent JSON serialization issues
-    const serializedActivity = {
-      ...activity,
+    const serializedActivity: SerializedActivityWithValues = {
+      ...(activity as ActivityWithValues),
       createdAt: activity.createdAt?.toISOString() ?? null,
       updatedAt: activity.updatedAt?.toISOString() ?? null,
-      values: activity.values?.map(v => ({
+      values: activity.values?.map((v: ActivityWithValues['values'][0]) => ({
         ...v,
         value: {
           ...v.value,
@@ -145,3 +147,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

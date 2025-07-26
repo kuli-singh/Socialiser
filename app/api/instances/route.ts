@@ -1,8 +1,10 @@
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
+import { ActivityInstanceWithRelations, SerializedActivityInstanceWithRelations } from '@/lib/types';
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +49,15 @@ export async function GET(request: NextRequest) {
     const instances = await prisma.activityInstance.findMany({
       where,
       include: {
-        activity: true,
+        activity: {
+          include: {
+            values: {
+              include: {
+                value: true
+              }
+            }
+          }
+        },
         participations: {
           include: {
             friend: true
@@ -60,15 +70,24 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert Date objects to ISO strings to prevent serialization issues
-    const serializedInstances = instances.map(instance => ({
+    const serializedInstances: SerializedActivityInstanceWithRelations[] = (instances as ActivityInstanceWithRelations[]).map((instance: ActivityInstanceWithRelations) => ({
       ...instance,
       datetime: instance.datetime?.toISOString() ?? null,
+      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
+        values: instance.activity?.values?.map((v: ActivityInstanceWithRelations['activity']['values'][0]) => ({
+          ...v,
+          value: {
+            ...v.value,
+            createdAt: v.value?.createdAt?.toISOString() ?? null,
+            updatedAt: v.value?.updatedAt?.toISOString() ?? null
+          }
+        })) ?? []
       }
     }));
 
@@ -93,6 +112,8 @@ export async function POST(request: NextRequest) {
     const { 
       activityId, 
       datetime, 
+      endDate,
+      isAllDay,
       location, 
       friendIds,
       customTitle,
@@ -123,6 +144,26 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid datetime format' },
         { status: 400 }
       );
+    }
+
+    // Validate endDate if provided
+    let parsedEndDate = null;
+    if (endDate) {
+      parsedEndDate = new Date(endDate);
+      if (isNaN(parsedEndDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid end date format' },
+          { status: 400 }
+        );
+      }
+      
+      // Ensure end date is not before start date
+      if (parsedEndDate < parsedDateTime) {
+        return NextResponse.json(
+          { error: 'End date cannot be before start date' },
+          { status: 400 }
+        );
+      }
     }
 
     // Verify that the activity belongs to the user
@@ -158,6 +199,8 @@ export async function POST(request: NextRequest) {
       data: {
         activityId,
         datetime: parsedDateTime,
+        endDate: parsedEndDate,
+        isAllDay: isAllDay || false,
         location,
         userId: user.id,
         customTitle,
@@ -173,14 +216,22 @@ export async function POST(request: NextRequest) {
         priceInfo,
         capacity,
         participations: friendIds ? {
-          create: friendIds.map((friendId: string) => ({
+          create: (friendIds as string[]).map((friendId: string) => ({
             friendId,
             userId: user.id
           }))
         } : undefined
       },
       include: {
-        activity: true,
+        activity: {
+          include: {
+            values: {
+              include: {
+                value: true
+              }
+            }
+          }
+        },
         participations: {
           include: {
             friend: true
@@ -190,15 +241,24 @@ export async function POST(request: NextRequest) {
     });
 
     // Serialize the response to prevent Date object issues
-    const serializedInstance = {
-      ...instance,
+    const serializedInstance: SerializedActivityInstanceWithRelations = {
+      ...(instance as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
+      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
+        values: instance.activity?.values?.map((v: ActivityInstanceWithRelations['activity']['values'][0]) => ({
+          ...v,
+          value: {
+            ...v.value,
+            createdAt: v.value?.createdAt?.toISOString() ?? null,
+            updatedAt: v.value?.updatedAt?.toISOString() ?? null
+          }
+        })) ?? []
       }
     };
 
@@ -211,3 +271,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

@@ -1,8 +1,10 @@
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
+import { ActivityInstanceWithRelations, SerializedActivityInstanceWithRelations } from '@/lib/types';
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +42,15 @@ export async function GET(
         userId: user.id
       },
       include: {
-        activity: true,
+        activity: {
+          include: {
+            values: {
+              include: {
+                value: true
+              }
+            }
+          }
+        },
         participations: {
           include: {
             friend: true
@@ -57,15 +67,24 @@ export async function GET(
     }
 
     // Serialize the response to prevent Date object issues
-    const serializedInstance = {
-      ...instance,
+    const serializedInstance: SerializedActivityInstanceWithRelations = {
+      ...(instance as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
+      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
+        values: instance.activity?.values?.map((v: ActivityInstanceWithRelations['activity']['values'][0]) => ({
+          ...v,
+          value: {
+            ...v.value,
+            createdAt: v.value?.createdAt?.toISOString() ?? null,
+            updatedAt: v.value?.updatedAt?.toISOString() ?? null
+          }
+        })) ?? []
       }
     };
 
@@ -168,14 +187,22 @@ export async function PUT(
         priceInfo,
         capacity,
         participations: friendIds ? {
-          create: friendIds.map((friendId: string) => ({
+          create: (friendIds as string[]).map((friendId: string) => ({
             friendId,
             userId: user.id
           }))
         } : undefined
       },
       include: {
-        activity: true,
+        activity: {
+          include: {
+            values: {
+              include: {
+                value: true
+              }
+            }
+          }
+        },
         participations: {
           include: {
             friend: true
@@ -185,15 +212,24 @@ export async function PUT(
     });
 
     // Serialize the response to prevent Date object issues
-    const serializedInstance = {
-      ...instance,
+    const serializedInstance: SerializedActivityInstanceWithRelations = {
+      ...(instance as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
+      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
+        values: instance.activity?.values?.map((v: ActivityInstanceWithRelations['activity']['values'][0]) => ({
+          ...v,
+          value: {
+            ...v.value,
+            createdAt: v.value?.createdAt?.toISOString() ?? null,
+            updatedAt: v.value?.updatedAt?.toISOString() ?? null
+          }
+        })) ?? []
       }
     };
 
@@ -235,3 +271,4 @@ export async function DELETE(
     );
   }
 }
+

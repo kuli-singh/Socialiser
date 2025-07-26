@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { Users, Plus, Edit, Trash2, Upload } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Upload, Download } from 'lucide-react';
 
 interface Friend {
   id: string;
@@ -56,6 +57,37 @@ export default function FriendsPage() {
     }
   };
 
+  const exportFriends = async () => {
+    try {
+      const response = await fetch('/api/friends/export');
+      if (!response.ok) throw new Error('Failed to export friends');
+      
+      // Create a blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get filename from response headers or use default
+      const contentDisposition = response.headers.get('content-disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
+        : `friends-export-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to export friends');
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -82,6 +114,10 @@ export default function FriendsPage() {
               Import CSV
             </Button>
           </Link>
+          <Button variant="outline" onClick={exportFriends}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
           <Link href="/friends/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -133,6 +169,10 @@ export default function FriendsPage() {
                   Import from CSV
                 </Button>
               </Link>
+              <Button variant="outline" onClick={exportFriends}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
               <Link href="/friends/new">
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
@@ -204,4 +244,5 @@ export default function FriendsPage() {
     </div>
   );
 }
+
 
