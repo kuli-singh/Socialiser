@@ -47,15 +47,7 @@ export async function GET(request: NextRequest) {
     const instances = await prisma.activityInstance.findMany({
       where,
       include: {
-        activity: {
-          include: {
-            values: {
-              include: {
-                value: true
-              }
-            }
-          }
-        },
+        activity: true,
         participations: {
           include: {
             friend: true
@@ -71,21 +63,12 @@ export async function GET(request: NextRequest) {
     const serializedInstances = instances.map(instance => ({
       ...instance,
       datetime: instance.datetime?.toISOString() ?? null,
-      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
-        values: instance.activity?.values?.map(v => ({
-          ...v,
-          value: {
-            ...v.value,
-            createdAt: v.value?.createdAt?.toISOString() ?? null,
-            updatedAt: v.value?.updatedAt?.toISOString() ?? null
-          }
-        })) ?? []
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
       }
     }));
 
@@ -110,8 +93,6 @@ export async function POST(request: NextRequest) {
     const { 
       activityId, 
       datetime, 
-      endDate,
-      isAllDay,
       location, 
       friendIds,
       customTitle,
@@ -142,26 +123,6 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid datetime format' },
         { status: 400 }
       );
-    }
-
-    // Validate endDate if provided
-    let parsedEndDate = null;
-    if (endDate) {
-      parsedEndDate = new Date(endDate);
-      if (isNaN(parsedEndDate.getTime())) {
-        return NextResponse.json(
-          { error: 'Invalid end date format' },
-          { status: 400 }
-        );
-      }
-      
-      // Ensure end date is not before start date
-      if (parsedEndDate < parsedDateTime) {
-        return NextResponse.json(
-          { error: 'End date cannot be before start date' },
-          { status: 400 }
-        );
-      }
     }
 
     // Verify that the activity belongs to the user
@@ -197,8 +158,6 @@ export async function POST(request: NextRequest) {
       data: {
         activityId,
         datetime: parsedDateTime,
-        endDate: parsedEndDate,
-        isAllDay: isAllDay || false,
         location,
         userId: user.id,
         customTitle,
@@ -221,15 +180,7 @@ export async function POST(request: NextRequest) {
         } : undefined
       },
       include: {
-        activity: {
-          include: {
-            values: {
-              include: {
-                value: true
-              }
-            }
-          }
-        },
+        activity: true,
         participations: {
           include: {
             friend: true
@@ -242,21 +193,12 @@ export async function POST(request: NextRequest) {
     const serializedInstance = {
       ...instance,
       datetime: instance.datetime?.toISOString() ?? null,
-      endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
       updatedAt: instance.updatedAt?.toISOString() ?? null,
       activity: {
         ...instance.activity,
         createdAt: instance.activity?.createdAt?.toISOString() ?? null,
-        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null,
-        values: instance.activity?.values?.map(v => ({
-          ...v,
-          value: {
-            ...v.value,
-            createdAt: v.value?.createdAt?.toISOString() ?? null,
-            updatedAt: v.value?.updatedAt?.toISOString() ?? null
-          }
-        })) ?? []
+        updatedAt: instance.activity?.updatedAt?.toISOString() ?? null
       }
     };
 

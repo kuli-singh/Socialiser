@@ -126,6 +126,181 @@ export type DateRange = {
   to: Date | undefined
 }
 
+// Prisma query result types for API responses
+export type ActivityWithValues = {
+  id: string
+  userId: string
+  name: string
+  description: string | null
+  createdAt: Date
+  updatedAt: Date
+  values: {
+    id: string
+    activityId: string
+    valueId: string
+    value: {
+      id: string
+      userId: string
+      name: string
+      description: string | null
+      createdAt: Date
+      updatedAt: Date
+    }
+  }[]
+  _count?: {
+    instances: number
+  }
+}
+
+export type ActivityInstanceWithRelations = {
+  id: string
+  userId: string
+  datetime: Date
+  endDate: Date | null
+  isAllDay: boolean
+  location: string | null
+  activityId: string
+  createdAt: Date
+  updatedAt: Date
+  customTitle: string | null
+  venue: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  zipCode: string | null
+  detailedDescription: string | null
+  requirements: string | null
+  contactInfo: string | null
+  venueType: string | null
+  priceInfo: string | null
+  capacity: number | null
+  activity: {
+    id: string
+    userId: string
+    name: string
+    description: string | null
+    createdAt: Date
+    updatedAt: Date
+    values: {
+      id: string
+      activityId: string
+      valueId: string
+      value: {
+        id: string
+        userId: string
+        name: string
+        description: string | null
+        createdAt: Date
+        updatedAt: Date
+      }
+    }[]
+  }
+  participations: {
+    id: string
+    userId: string
+    friendId: string
+    activityInstanceId: string
+    createdAt: Date
+    friend: {
+      id: string
+      userId: string
+      name: string
+      phone: string
+      email: string | null
+      group: string | null
+      createdAt: Date
+      updatedAt: Date
+    }
+  }[]
+}
+
+export type SerializedActivityWithValues = {
+  id: string
+  userId: string
+  name: string
+  description: string | null
+  createdAt: string | null
+  updatedAt: string | null
+  values: {
+    id: string
+    activityId: string
+    valueId: string
+    value: {
+      id: string
+      userId: string
+      name: string
+      description: string | null
+      createdAt: string | null
+      updatedAt: string | null
+    }
+  }[]
+  _count?: {
+    instances: number
+  }
+}
+
+export type SerializedActivityInstanceWithRelations = {
+  id: string
+  userId: string
+  datetime: string | null
+  endDate: string | null
+  isAllDay: boolean
+  location: string | null
+  activityId: string
+  createdAt: string | null
+  updatedAt: string | null
+  customTitle: string | null
+  venue: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  zipCode: string | null
+  detailedDescription: string | null
+  requirements: string | null
+  contactInfo: string | null
+  venueType: string | null
+  priceInfo: string | null
+  capacity: number | null
+  activity: {
+    id: string
+    userId: string
+    name: string
+    description: string | null
+    createdAt: string | null
+    updatedAt: string | null
+    values: {
+      id: string
+      activityId: string
+      valueId: string
+      value: {
+        id: string
+        userId: string
+        name: string
+        description: string | null
+        createdAt: string | null
+        updatedAt: string | null
+      }
+    }[]
+  }
+  participations: {
+    id: string
+    userId: string
+    friendId: string
+    activityInstanceId: string
+    createdAt: Date
+    friend: {
+      id: string
+      userId: string
+      name: string
+      phone: string
+      email: string | null
+      group: string | null
+      createdAt: Date
+      updatedAt: Date
+    }
+  }[]
+}
+
 // NextAuth type extensions
 declare module 'next-auth' {
   interface Session {

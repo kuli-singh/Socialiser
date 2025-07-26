@@ -40,15 +40,7 @@ export async function GET(
         userId: user.id
       },
       include: {
-        activity: {
-          include: {
-            values: {
-              include: {
-                value: true
-              }
-            }
-          }
-        },
+        activity: true,
         participations: {
           include: {
             friend: true
@@ -183,15 +175,7 @@ export async function PUT(
         } : undefined
       },
       include: {
-        activity: {
-          include: {
-            values: {
-              include: {
-                value: true
-              }
-            }
-          }
-        },
+        activity: true,
         participations: {
           include: {
             friend: true
