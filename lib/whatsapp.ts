@@ -62,14 +62,7 @@ export function generateWhatsAppMessage(activityInstance: ActivityInstanceWithDe
   return message;
 }
 
-export function generateWhatsAppUrl(message: string, phoneNumber?: string): string {
+export function generateWhatsAppUrl(message: string): string {
   const encodedMessage = encodeURIComponent(message);
-  
-  if (phoneNumber) {
-    // Remove non-numeric characters from phone number
-    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
-    return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-  }
-  
   return `https://wa.me/?text=${encodedMessage}`;
 }

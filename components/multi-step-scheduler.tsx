@@ -28,7 +28,6 @@ import {
   Heart,
   Building,
   Info,
-  Phone,
   DollarSign,
   UserCheck,
   Plus

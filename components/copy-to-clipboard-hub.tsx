@@ -12,7 +12,6 @@ import {
   CheckCircle, 
   MessageCircle, 
   Mail, 
-  Smartphone, 
   Share2,
   Link,
   Calendar,
@@ -50,7 +49,6 @@ interface ActivityInstance {
     friend: {
       id: string;
       name: string;
-      phone: string;
       email: string | null;
     };
   }>;
@@ -102,7 +100,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
 
   // Smart recipient detection
   const friendsWithEmail = instance.participations?.filter(p => p?.friend?.email) ?? [];
-  const friendsWithoutEmail = instance.participations?.filter(p => !p?.friend?.email) ?? [];
+  const friendsWithoutContact = instance.participations?.filter(p => !p?.friend?.email) ?? [];
 
   const generateWhatsAppFormat = () => {
     let message = `🎉 You're invited to: ${eventTitle}!\n\n`;
@@ -215,7 +213,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
     {
       id: 'sms',
       name: 'SMS',
-      icon: Smartphone,
+      icon: MessageCircle,
       color: 'purple',
       content: generateSMSFormat(),
       description: 'Short format for text messages (160 characters max)'
@@ -298,21 +296,21 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
                 </div>
               )}
               
-              {friendsWithoutEmail.length > 0 && (
+              {friendsWithoutContact.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-orange-700 mb-2 flex items-center">
-                    <Smartphone className="h-4 w-4 mr-1" />
-                    Phone only ({friendsWithoutEmail.length})
+                  <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                    <Users className="h-4 w-4 mr-1" />
+                    No email provided ({friendsWithoutContact.length})
                   </h4>
                   <div className="space-y-1">
-                    {friendsWithoutEmail.map(p => (
+                    {friendsWithoutContact.map(p => (
                       <div key={p?.friend?.id} className="text-sm text-gray-600">
-                        {p?.friend?.name} - {p?.friend?.phone}
+                        {p?.friend?.name}
                       </div>
                     ))}
                   </div>
-                  <Badge variant="outline" className="mt-2 text-xs border-orange-300 text-orange-700">
-                    Use WhatsApp or SMS formats
+                  <Badge variant="outline" className="mt-2 text-xs border-gray-300 text-gray-700">
+                    Share via link or messaging apps
                   </Badge>
                 </div>
               )}
