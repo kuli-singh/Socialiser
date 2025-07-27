@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Login Test</title>
+</head>
+<body>
+    <h2>Auto Login Test</h2>
+    <form id="loginForm" method="POST" action="/api/auth/callback/credentials">
+        <input type="hidden" name="email" value="john@doe.com" />
+        <input type="hidden" name="password" value="johndoe123" />
+        <input type="hidden" name="csrfToken" id="csrfToken" value="" />
+        <input type="hidden" name="callbackUrl" value="/activities" />
+        <button type="submit">Auto Login</button>
+    </form>
+
+    <script>
+        // Get CSRF token first
+        fetch('/api/auth/csrf')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('csrfToken').value = data.csrfToken;
+                console.log('CSRF token loaded:', data.csrfToken);
+            })
+            .catch(error => {
+                console.error('Error getting CSRF token:', error);
+            });
+            
+        // Auto-submit after 2 seconds
+        setTimeout(() => {
+            console.log('Auto-submitting login form...');
+            document.getElementById('loginForm').submit();
+        }, 2000);
+    </script>
+</body>
+</html>

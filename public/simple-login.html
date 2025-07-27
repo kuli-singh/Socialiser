@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .status { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h2>Login to Social Organizer</h2>
+    <div id="status"></div>
+    
+    <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="email" value="john@doe.com" />
+    </div>
+    
+    <div class="form-group">
+        <label>Password:</label>
+        <input type="password" id="password" value="johndoe123" />
+    </div>
+    
+    <button onclick="login()">Login</button>
+    
+    <div style="margin-top: 20px;">
+        <button onclick="testAPI()" style="background: #28a745;">Test Activities API</button>
+        <button onclick="goToActivities()" style="background: #6f42c1;">Go to Activities Page</button>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showStatus('Logging in...', 'info');
+            
+            try {
+                // Get CSRF token
+                const csrfResponse = await fetch('/api/auth/csrf');
+                const { csrfToken } = await csrfResponse.json();
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', password);
+                formData.append('csrfToken', csrfToken);
+                formData.append('callbackUrl', '/activities');
+                
+                // Submit login
+                const response = await fetch('/api/auth/callback/credentials', {
+                    method: 'POST',
+                    body: formData,
+                    redirect: 'manual'
+                });
+                
+                if (response.status === 302) {
+                    showStatus('✅ Login successful! You can now access the activities page.', 'success');
+                } else {
+                    showStatus('❌ Login failed. Please check credentials.', 'error');
+                }
+                
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/activities');
+                if (response.ok) {
+                    const data = await response.json();
+                    showStatus(`✅ API working! Found ${data.length} activities.`, 'success');
+                } else {
+                    showStatus(`❌ API Error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ API Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function goToActivities() {
+            window.location.href = '/activities';
+        }
+        
+        // Auto-login on page load
+        setTimeout(() => {
+            login();
+        }, 1000);
+    </script>
+</body>
+</html>

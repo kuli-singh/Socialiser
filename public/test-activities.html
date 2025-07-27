@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Activities Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <div class="space-y-6">
+            <!-- Header -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <div>
+                    <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 flex items-center">
+                        <i data-lucide="layers" class="h-8 w-8 text-slate-600 mr-3"></i>
+                        Activity Templates
+                    </h1>
+                    <p class="text-gray-600 mt-2 text-lg">Reusable blueprints for creating specific events with AI assistance</p>
+                </div>
+            </div>
+
+            <!-- Test Activities List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="activitiesList">
+                <!-- Activities will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Test delete function
+        function testDelete(id, name) {
+            if (confirm(`Are you sure you want to delete "${name}"? This will also delete all associated events.`)) {
+                alert(`Delete function called for activity: ${name} (ID: ${id})`);
+            }
+        }
+
+        // Load activities from API
+        async function loadActivities() {
+            try {
+                const response = await fetch('/api/test-activities');
+                const activities = await response.json();
+                
+                const listContainer = document.getElementById('activitiesList');
+                
+                if (activities.length === 0) {
+                    listContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No activity templates yet</h3>
+                            <p class="text-gray-600">No activities found in the database.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listContainer.innerHTML = activities.map(activity => `
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-slate-500 p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="text-lg font-semibold text-slate-900">${activity.name}</h3>
+                                    <span class="ml-2 bg-slate-200 text-slate-800 text-xs px-2 py-1 rounded">Template</span>
+                                </div>
+                                <p class="text-sm text-gray-600">Created ${new Date(activity.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            
+                            <!-- ACTION BUTTONS - This is where delete buttons should be -->
+                            <div class="flex space-x-1">
+                                <button 
+                                    class="inline-flex items-center justify-center h-9 w-9 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                    title="Edit Template"
+                                >
+                                    <i data-lucide="edit" class="h-4 w-4"></i>
+                                </button>
+                                <button 
+                                    onclick="testDelete('${activity.id}', '${activity.name}')"
+                                    class="inline-flex items-center justify-center h-9 w-9 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+                                    title="Delete Template"
+                                >
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            ${activity.description ? `<p class="text-sm text-gray-700">${activity.description}</p>` : ''}
+                            
+                            <div class="flex flex-wrap gap-1">
+                                ${(activity.values || []).slice(0, 3).map(av => 
+                                    `<span class="text-xs px-2 py-1 bg-gray-100 border rounded">${av.value.name}</span>`
+                                ).join('')}
+                                ${activity.values && activity.values.length > 3 ? 
+                                    `<span class="text-xs px-2 py-1 bg-gray-100 border rounded">+${activity.values.length - 3} more</span>` : 
+                                    ''
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Re-initialize icons after adding new content
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                document.getElementById('activitiesList').innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <h3 class="text-lg font-medium text-red-600 mb-2">Error Loading Activities</h3>
+                        <p class="text-gray-600">Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load activities when page loads
+        loadActivities();
+    </script>
+</body>
+</html>

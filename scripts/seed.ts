@@ -7,60 +7,102 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // Create a test user first
-  const hashedPassword = await bcrypt.hash('password123', 12);
+  // Create test users
+  const hashedPassword = await bcrypt.hash('johndoe123', 12);
   
   const testUser = await prisma.user.upsert({
-    where: { email: 'test@example.com' },
+    where: { email: 'john@doe.com' },
     update: {},
     create: {
-      name: 'Test User',
-      email: 'test@example.com',
+      name: 'John Doe',
+      email: 'john@doe.com',
       password: hashedPassword,
     },
   });
 
   console.log(`Created test user: ${testUser.email}`);
 
-  // Create Core Values
+  // Create Core Values using upsert to avoid duplicates
   const values = await Promise.all([
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Family Time'
+        }
+      },
+      update: {},
+      create: {
         name: 'Family Time',
         description: 'Spending quality time with family members',
         userId: testUser.id
       }
     }),
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Physical Health'
+        }
+      },
+      update: {},
+      create: {
         name: 'Physical Health',
         description: 'Activities that promote physical wellness and fitness',
         userId: testUser.id
       }
     }),
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Learning'
+        }
+      },
+      update: {},
+      create: {
         name: 'Learning',
         description: 'Educational and skill-building activities',
         userId: testUser.id
       }
     }),
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Community'
+        }
+      },
+      update: {},
+      create: {
         name: 'Community',
         description: 'Building connections and helping others',
         userId: testUser.id
       }
     }),
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Creativity'
+        }
+      },
+      update: {},
+      create: {
         name: 'Creativity',
         description: 'Artistic and creative expression',
         userId: testUser.id
       }
     }),
-    prisma.coreValue.create({
-      data: {
+    prisma.coreValue.upsert({
+      where: { 
+        userId_name: {
+          userId: testUser.id,
+          name: 'Adventure'
+        }
+      },
+      update: {},
+      create: {
         name: 'Adventure',
         description: 'Exploring new places and experiences',
         userId: testUser.id
