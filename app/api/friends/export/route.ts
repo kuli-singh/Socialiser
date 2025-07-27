@@ -4,6 +4,12 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
 
+type FriendExportData = {
+  name: string;
+  email: string | null;
+  group: string | null;
+};
+
 export const dynamic = "force-dynamic";
 
 async function getAuthenticatedUser() {
@@ -22,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all friends for the authenticated user
-    const friends = await prisma.friend.findMany({
+    const friends: FriendExportData[] = await prisma.friend.findMany({
       where: {
         userId: user.id
       },
@@ -38,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Generate CSV content
     const csvHeader = 'name,email,group\n';
-    const csvRows = friends.map(friend => {
+    const csvRows = friends.map((friend: FriendExportData) => {
       // Escape commas and quotes in CSV fields
       const escapeCsvField = (field: string | null) => {
         if (!field) return '';
@@ -74,3 +80,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
