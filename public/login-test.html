@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Test</title>
+    <script>
+        async function loginAndRedirect() {
+            try {
+                // Try to login using fetch API
+                const formData = new FormData();
+                formData.append('email', 'john@doe.com');
+                formData.append('password', 'johndoe123');
+                formData.append('callbackUrl', '/');
+                
+                const response = await fetch('/api/auth/callback/credentials', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    console.log('Login successful, redirecting...');
+                    window.location.href = '/';
+                } else {
+                    console.log('Login failed:', response.status);
+                    // Fallback - redirect to login page with pre-filled data
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                window.location.href = '/login';
+            }
+        }
+        
+        window.onload = loginAndRedirect;
+    </script>
+</head>
+<body>
+    <h1>Attempting automatic login...</h1>
+    <p>Please wait...</p>
+    <p><a href="/login">Manual login if auto-login fails</a></p>
+</body>
+</html>

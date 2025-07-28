@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Test</title>
+</head>
+<body>
+    <h1>Testing Dashboard Delete Buttons</h1>
+    <p>This will auto-login and redirect to dashboard...</p>
+    
+    <script>
+        // Auto-login by filling form and submitting
+        function autoLogin() {
+            // Navigate to login page first
+            window.location.href = '/login?email=john@doe.com&password=johndoe123';
+        }
+        
+        // Start auto-login after page loads
+        window.onload = autoLogin;
+    </script>
+</body>
+</html>

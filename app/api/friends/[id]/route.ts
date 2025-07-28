@@ -14,64 +14,111 @@ async function getAuthenticatedUser() {
   return session.user;
 }
 
-export async function GET(request: NextRequest) {
+async function verifyFriendOwnership(friendId: string, userId: string) {
+  const friend = await prisma.friend.findFirst({
+    where: {
+      id: friendId,
+      userId: userId
+    }
+  });
+  return !!friend;
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const friends = await prisma.friend.findMany({
+    const friend = await prisma.friend.findFirst({
       where: {
+        id: params.id,
         userId: user.id
-      },
-      orderBy: {
-        name: 'asc'
       }
     });
 
-    return NextResponse.json(friends);
+    if (!friend) {
+      return NextResponse.json(
+        { error: 'Friend not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(friend);
   } catch (error) {
-    console.error('Error fetching friends:', error);
+    console.error('Error fetching friend:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch friends' },
+      { error: 'Failed to fetch friend' },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const hasAccess = await verifyFriendOwnership(params.id, user.id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { name, email, group } = body;
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
-    }
-
-    const friend = await prisma.friend.create({
+    const friend = await prisma.friend.update({
+      where: { id: params.id },
       data: {
         name,
         email: email || null, // Optional email field
-        phone: "000", // Always set dummy phone value
-        group,
-        userId: user.id
+        group
       }
     });
 
-    return NextResponse.json(friend, { status: 201 });
+    return NextResponse.json(friend);
   } catch (error) {
-    console.error('Error creating friend:', error);
+    console.error('Error updating friend:', error);
     return NextResponse.json(
-      { error: 'Failed to create friend' },
+      { error: 'Failed to update friend' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const hasAccess = await verifyFriendOwnership(params.id, user.id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    await prisma.friend.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ message: 'Friend deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting friend:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete friend' },
       { status: 500 }
     );
   }

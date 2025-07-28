@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Delete Buttons</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .loading { color: #666; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .event-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
+        .delete-btn { background: #dc3545; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .delete-btn:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+    <h1>Delete Buttons Test</h1>
+    <p id="status" class="loading">Testing login and delete functionality...</p>
+    
+    <div id="events-container"></div>
+    
+    <script>
+        let sessionCookie = '';
+        
+        async function testLogin() {
+            try {
+                document.getElementById('status').innerHTML = 'Getting CSRF token...';
+                
+                // Get CSRF token
+                const csrfResponse = await fetch('/api/auth/csrf');
+                const { csrfToken } = await csrfResponse.json();
+                
+                document.getElementById('status').innerHTML = 'Attempting login...';
+                
+                // Perform login
+                const loginResponse = await fetch('/api/auth/signin/credentials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        email: 'john@doe.com',
+                        password: 'johndoe123',
+                        csrfToken: csrfToken,
+                        redirect: 'false'
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (loginResponse.ok) {
+                    document.getElementById('status').innerHTML = 'Login successful! Fetching events...';
+                    await fetchEvents();
+                } else {
+                    document.getElementById('status').innerHTML = 'Login failed. <a href="/login">Please login manually</a>';
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `Error: ${error.message}. <a href="/login">Please login manually</a>`;
+            }
+        }
+        
+        async function fetchEvents() {
+            try {
+                const response = await fetch('/api/instances', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const events = await response.json();
+                    displayEvents(events);
+                } else {
+                    document.getElementById('status').innerHTML = 'Failed to fetch events. Please check authentication.';
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `Error fetching events: ${error.message}`;
+            }
+        }
+        
+        function displayEvents(events) {
+            const container = document.getElementById('events-container');
+            
+            if (events.length === 0) {
+                document.getElementById('status').innerHTML = 'No events found in database.';
+                return;
+            }
+            
+            document.getElementById('status').innerHTML = `Found ${events.length} events with delete buttons:`;
+            
+            events.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'event-card';
+                
+                const title = event.customTitle || event.activity.name;
+                const date = new Date(event.datetime).toLocaleString();
+                
+                eventDiv.innerHTML = `
+                    <h3>${title}</h3>
+                    <p><strong>Date:</strong> ${date}</p>
+                    <p><strong>Location:</strong> ${event.location || event.venue || 'TBD'}</p>
+                    <p><strong>Template:</strong> ${event.activity.name}</p>
+                    <button class="delete-btn" onclick="deleteEvent('${event.id}', '${title}')">
+                        🗑️ Delete Event
+                    </button>
+                `;
+                
+                container.appendChild(eventDiv);
+            });
+        }
+        
+        async function deleteEvent(eventId, eventTitle) {
+            if (!confirm(`Are you sure you want to delete the event "${eventTitle}"? This action cannot be undone.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/instances/${eventId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    alert('Event deleted successfully!');
+                    location.reload(); // Refresh to show updated list
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to delete event: ${error.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`Error deleting event: ${error.message}`);
+            }
+        }
+        
+        // Start the test
+        testLogin();
+    </script>
+</body>
+</html>

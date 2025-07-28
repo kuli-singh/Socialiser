@@ -27,7 +27,8 @@ import {
   Zap,
   MessageCircle,
   UserPlus,
-  Target
+  Target,
+  Trash2
 } from 'lucide-react';
 import { formatDateTime, getTimeUntil, safeParseDate } from '@/lib/utils';
 
@@ -88,6 +89,7 @@ export default function DashboardPage() {
   const [templates, setTemplates] = useState<ActivityTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingInstanceId, setDeletingInstanceId] = useState<string | null>(null);
 
   // Authentication check
   useEffect(() => {
@@ -137,6 +139,39 @@ export default function DashboardPage() {
       setTemplates([]); // Ensure templates is always an array even on error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteInstance = async (instanceId: string, instanceTitle: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the event "${instanceTitle}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+
+    setDeletingInstanceId(instanceId);
+    
+    try {
+      const response = await fetch(`/api/instances/${instanceId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete event');
+      }
+
+      // Remove the deleted instance from local state
+      setInstances(prevInstances => 
+        prevInstances.filter(instance => instance.id !== instanceId)
+      );
+      
+      alert('Event deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete event');
+    } finally {
+      setDeletingInstanceId(null);
     }
   };
 
@@ -409,7 +444,7 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    {/* Calendar Export Buttons */}
+                    {/* Action Buttons */}
                     <div className="flex space-x-2 pt-2">
                       <Button
                         size="sm"
@@ -446,6 +481,20 @@ export default function DashboardPage() {
                           Details
                         </Button>
                       </Link>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => deleteInstance(instance.id, instance.customTitle || instance.activity.name)}
+                        disabled={deletingInstanceId === instance.id}
+                      >
+                        {deletingInstanceId === instance.id ? (
+                          <Clock className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3 w-3 mr-1" />
+                        )}
+                        Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

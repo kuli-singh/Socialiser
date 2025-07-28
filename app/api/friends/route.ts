@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         email: email || null, // Optional email field
-        phone: "000", // Always set dummy phone value
         group,
         userId: user.id
       }
