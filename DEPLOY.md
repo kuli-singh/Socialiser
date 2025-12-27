@@ -6,7 +6,8 @@ Since your app is already live on Vercel and connected to Render, you just need 
 You need to tell Prisma to update your **remote** Render database, not your local one. Run this **exact command** in your terminal:
 
 ```bash
-DATABASE_URL="postgres://socialiser_db_user:I8d0ub1eLDrni9XmqJX5L7eClOFLQU16@dpg-d1gnv1vfte5s738tfjrg-a.frankfurt-postgres.render.com/socialiser_db?sslmode=require" npx prisma db push
+# Replace [YOUR_CONNECTION_STRING] with the one from Render Dashboard
+DATABASE_URL="[YOUR_CONNECTION_STRING]" npx prisma db push
 ```
 
 *(This command temporarily points Prisma to your Render DB just for this update)*
