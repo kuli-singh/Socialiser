@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,15 +12,6 @@ interface DiscoveryRequest {
     start: string;
     end: string;
   };
-}
-
-interface DiscoveredOption {
-  name: string;
-  description: string;
-  suggestedLocation: string;
-  suggestedTime: string;
-  estimatedDuration: string;
-  reasoning: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -34,77 +26,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Construct AI prompt for discovering specific activity options
-    const prompt = `You are a helpful activity planning assistant. Given a generic activity type, suggest 4-5 specific, realistic options that people could actually do.
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error("GOOGLE_API_KEY is not set");
+    }
 
-Activity Type: ${activityName}
-${location ? `General Location Area: ${location}` : ''}
-${preferences ? `Additional Preferences: ${preferences}` : ''}
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const today = new Date().toDateString();
+
+    const prompt = `
+You are a helpful activity planning assistant.
+Current Date: ${today}
+
+Given a generic activity type: "${activityName}", suggest 4-5 specific, realistic options that people could actually do.
+
+Context:
+${location ? `Location: ${location}` : ''}
+${preferences ? `Preferences: ${preferences}` : ''}
 ${dateRange ? `Date Range: ${dateRange.start} to ${dateRange.end}` : ''}
 
-Please suggest specific, actionable activity options. For each option, provide:
-1. A specific name/title for the activity
-2. A brief description (2-3 sentences)
-3. A suggested specific location (can be general like "Local hiking trail" or "Downtown coffee shop")
-4. Suggested time/timing recommendations
-5. Estimated duration
-6. Brief reasoning why this option fits the activity type
-
-Respond with raw JSON only. Do not include code blocks, markdown, or any other formatting.
-
-Use this exact format:
+Please suggest specific, actionable activity options.
+Respond with raw JSON only. Use this exact format:
 {
   "options": [
     {
       "name": "Specific activity name",
-      "description": "Brief description of what this involves",
+      "description": "Brief description",
       "suggestedLocation": "Specific location suggestion",
-      "suggestedTime": "Time recommendation (e.g., 'Weekend morning', 'Evening', 'Weekday afternoon')",
-      "estimatedDuration": "Duration estimate (e.g., '2-3 hours', '1 hour', 'Half day')",
-      "reasoning": "Why this fits the activity type"
+      "suggestedTime": "Time recommendation",
+      "estimatedDuration": "Duration estimate",
+      "reasoning": "Why this fits"
     }
   ]
-}`;
+}
+`;
 
-    // Make request to AI API
-    const response = await fetch('https://apps.abacus.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.ABACUSAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 2000
-      }),
-    });
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-pro-latest", "gemini-flash-latest"];
+    let aiContent = null;
+    let lastError = null;
 
-    if (!response.ok) {
-      throw new Error(`AI API request failed: ${response.status}`);
+    for (const modelName of modelsToTry) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        aiContent = result.response.text();
+        break;
+      } catch (err: any) {
+        console.error(`AI Discovery failed with ${modelName}:`, err.message);
+        lastError = err;
+      }
     }
 
-    const aiResponse = await response.json();
-    let aiContent = aiResponse.choices?.[0]?.message?.content;
-
     if (!aiContent) {
-      throw new Error('No content received from AI API');
+      throw lastError || new Error("All AI models failed");
     }
 
     // Clean and parse the JSON response
-    aiContent = aiContent.trim();
-    // Remove any markdown code blocks if present
-    aiContent = aiContent.replace(/```json\s*|\s*```/g, '');
-    // Remove any trailing commas
-    aiContent = aiContent.replace(/,(\s*[}\]])/g, '$1');
-    
+    aiContent = aiContent.replace(/```json\s*|\s*```/g, '').trim();
+
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(aiContent);
@@ -113,31 +92,20 @@ Use this exact format:
       throw new Error('Failed to parse AI response as JSON');
     }
 
-    // Validate the response structure
     if (!parsedResponse.options || !Array.isArray(parsedResponse.options)) {
       throw new Error('Invalid response format from AI');
     }
 
-    // Ensure all options have required fields
-    const validOptions = parsedResponse.options.filter((option: any) => 
-      option.name && option.description && option.suggestedLocation && 
-      option.suggestedTime && option.estimatedDuration && option.reasoning
-    );
-
-    if (validOptions.length === 0) {
-      throw new Error('No valid options returned from AI');
-    }
-
     return NextResponse.json({
       success: true,
-      options: validOptions,
+      options: parsedResponse.options,
       activityType: activityName
     });
 
   } catch (error) {
     console.error('AI discovery error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate activity suggestions',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

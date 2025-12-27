@@ -16,11 +16,11 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 import { AIActivityDiscovery } from '@/components/ai-activity-discovery';
 import { CalendarIntegration } from '@/components/calendar-integration';
 import { DateRangePicker } from '@/components/date-range-picker';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Users,
   Sparkles,
   CheckCircle,
   ArrowRight,
@@ -49,6 +49,14 @@ interface Friend {
   id: string;
   name: string;
   group: string | null;
+}
+
+interface Location {
+  id: string;
+  name: string;
+  type: string;
+  address?: string;
+  description?: string;
 }
 
 interface DiscoveredOption {
@@ -88,20 +96,21 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
   const router = useRouter();
   const searchParams = useSearchParams();
   const isManualMode = searchParams.get('mode') === 'manual';
-  
+
   const [currentStep, setCurrentStep] = useState<Step>(() => {
     if (aiSuggestion) return 'event-details';
     if (preselectedTemplate && isManualMode) return 'event-details';
     if (preselectedTemplate) return 'ai-discovery';
     return 'activity-selection';
   });
-  
+
   const [activities, setActivities] = useState<Activity[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [createdInstanceId, setCreatedInstanceId] = useState<string | null>(null);
-  
+
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(preselectedTemplate || null);
   const [selectedOption, setSelectedOption] = useState<DiscoveredOption | null>(null);
   const [formData, setFormData] = useState({
@@ -109,6 +118,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     endDate: '',
     isAllDay: false,
     location: '',
+    locationId: undefined as string | undefined,
     friendIds: [] as string[],
     // Rich instance fields
     customTitle: '',
@@ -132,19 +142,37 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       const suggestionOption: DiscoveredOption = {
         name: aiSuggestion.eventName || 'AI Suggested Event',
         description: aiSuggestion.description || 'Event discovered through AI chat',
-        suggestedLocation: aiSuggestion.venue && aiSuggestion.address 
+        suggestedLocation: aiSuggestion.venue && aiSuggestion.address
           ? `${aiSuggestion.venue}, ${aiSuggestion.address}`
           : aiSuggestion.venue || aiSuggestion.address || 'Location TBD',
-        suggestedTime: aiSuggestion.date && aiSuggestion.time 
+        suggestedTime: aiSuggestion.date && aiSuggestion.time
           ? `${aiSuggestion.date} at ${aiSuggestion.time}`
           : aiSuggestion.date || aiSuggestion.time || 'Time TBD',
         estimatedDuration: aiSuggestion.duration || '2-3 hours',
         reasoning: `Selected through AI discovery chat. ${aiSuggestion.price ? `Price: ${aiSuggestion.price}` : ''}`
       };
-      
+
       setSelectedOption(suggestionOption);
-      
+
       // Pre-populate form data with AI suggestion
+      // Construct a valid datetime string
+      let validDateTime = '';
+      if (aiSuggestion.date && aiSuggestion.time) {
+        try {
+          const dateStr = `${aiSuggestion.date}T${aiSuggestion.time}`;
+          const dateObj = new Date(dateStr);
+          if (!isNaN(dateObj.getTime())) {
+            validDateTime = dateObj.toISOString(); // Or keep as local string if picker prefers
+            // Actually, usually inputs prefer YYYY-MM-DDTHH:mm
+            validDateTime = `${aiSuggestion.date}T${aiSuggestion.time}`; // Simplest safe bet
+          } else {
+            validDateTime = `${aiSuggestion.date} ${aiSuggestion.time}`;
+          }
+        } catch (e) {
+          validDateTime = '';
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
         customTitle: aiSuggestion.eventName || '',
@@ -160,16 +188,17 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         priceInfo: aiSuggestion.price || '',
         capacity: aiSuggestion.capacity || '',
         location: suggestionOption.suggestedLocation,
+        datetime: validDateTime || prev.datetime || '', // Use parsed date
       }));
-      
+
       // Only fetch friends for AI suggestions
       fetchFriends();
     } else if (preselectedTemplate) {
       // If template is preselected, we only need to fetch friends
       fetchFriends();
     } else {
-      // Otherwise fetch both activities and friends
-      Promise.all([fetchActivities(), fetchFriends()]);
+      // Otherwise fetch both activities and friends and locations
+      Promise.all([fetchActivities(), fetchFriends(), fetchLocations()]);
     }
   }, [preselectedTemplate, aiSuggestion]);
 
@@ -198,6 +227,18 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       setFriends([]); // Ensure friends is always an array even on error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('/api/locations');
+      if (response.ok) {
+        const data = await response.json();
+        setLocations(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch locations:', err);
     }
   };
 
@@ -260,6 +301,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
           endDate: formData.endDate || null,
           isAllDay: formData.isAllDay,
           location: formData.location,
+          locationId: formData.locationId,
           friendIds: formData.friendIds,
           // Rich fields
           customTitle: formData.customTitle || null,
@@ -324,8 +366,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(activities ?? []).map((activity) => (
-              <Card 
-                key={activity.id} 
+              <Card
+                key={activity.id}
                 className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300"
                 onClick={() => handleActivitySelect(activity)}
               >
@@ -524,6 +566,37 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                   />
                 </FormField>
 
+                <div className="col-span-1 md:col-span-2">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                    Or Select Saved Location
+                  </label>
+                  <Select onValueChange={(val) => {
+                    const loc = locations.find(l => l.id === val);
+                    if (loc) {
+                      setFormData(prev => ({
+                        ...prev,
+                        locationId: loc.id,
+                        venue: loc.name,
+                        venueType: loc.type,
+                        address: loc.address || prev.address,
+                        // detailedDescription: loc.description || prev.detailedDescription,
+                        location: loc.name // Set general location too
+                      }));
+                    }
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a saved location..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map(loc => (
+                        <SelectItem key={loc.id} value={loc.id}>
+                          {loc.name} ({loc.type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <FormField label="Venue Type">
                   <Input
                     value={formData.venueType}
@@ -698,7 +771,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         </div>
 
         {/* Calendar Export */}
-        <CalendarIntegration 
+        <CalendarIntegration
           instanceId={createdInstanceId}
           activityName={formData.customTitle || selectedActivity?.name || 'Event'}
         />

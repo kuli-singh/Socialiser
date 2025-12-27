@@ -7,22 +7,23 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { 
-  Calendar, 
-  Users, 
-  Heart, 
-  Activity, 
+import {
+  Calendar,
+  Users,
+  Heart,
+  Activity,
   Sparkles,
   User,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
 
 export function Navigation() {
@@ -44,6 +45,7 @@ export function Navigation() {
     { href: '/', label: 'Dashboard', icon: Calendar },
     { href: '/schedule', label: 'Schedule', icon: Calendar },
     { href: '/activities', label: 'Activities', icon: Activity },
+    { href: '/locations', label: 'Locations', icon: MapPin },
     { href: '/friends', label: 'Friends', icon: Users },
     { href: '/values', label: 'Values', icon: Heart },
     { href: '/ai-discovery', label: 'AI Discovery', icon: Sparkles },
@@ -77,16 +79,15 @@ export function Navigation() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
-              
+
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200 shadow-sm'
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:text-gray-900 hover:shadow-sm'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${active
+                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200 shadow-sm'
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:text-gray-900 hover:shadow-sm'
+                      }`}
                   >
                     <Icon className={`h-5 w-5 transition-colors ${active ? 'text-indigo-500' : 'text-gray-400'}`} />
                     {item.label}
@@ -121,7 +122,7 @@ export function Navigation() {
                 <ChevronDown className="h-4 w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
-            
+
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem asChild>
                 <Link href="/profile" className="flex items-center gap-2">
@@ -129,9 +130,9 @@ export function Navigation() {
                   Profile Settings
                 </Link>
               </DropdownMenuItem>
-              
+
               <DropdownMenuSeparator />
-              
+
               <DropdownMenuItem
                 onClick={handleSignOut}
                 className="flex items-center gap-2 text-red-600 focus:text-red-600"

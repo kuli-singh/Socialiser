@@ -1,7 +1,5 @@
 generator client {
     provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    output = "/home/ubuntu/social_organizer_prototype/app/node_modules/.prisma/client"
 }
 
 datasource db {
@@ -28,6 +26,7 @@ model User {
   activities     Activity[]
   activityInstances ActivityInstance[]
   participations Participation[]
+  locations      Location[]
   
   @@index([email])
 }
@@ -101,6 +100,7 @@ model ActivityInstance {
   endDate    DateTime? // End date for multi-day events (optional)
   isAllDay   Boolean   @default(false) // True for all-day events
   location   String?
+  locationId String?
   activityId String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -122,6 +122,8 @@ model ActivityInstance {
   // Relationships
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   activity      Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  locationRef   Location?       @relation(fields: [locationId], references: [id])
   participations Participation[]
   publicRSVPs   PublicRSVP[]
   
@@ -162,4 +164,23 @@ model PublicRSVP {
   
   @@index([activityInstanceId])
   @@index([createdAt])
+}
+
+model Location {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  type        String    @default("Venue") // Venue, Club, Organization, etc.
+  address     String?
+  description String?
+  website     String?
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events      ActivityInstance[]
+
+  @@index([userId])
 }

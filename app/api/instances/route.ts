@@ -108,12 +108,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { 
-      activityId, 
-      datetime, 
+    const {
+      activityId,
+      datetime,
       endDate,
       isAllDay,
-      location, 
+      location,
       friendIds,
       customTitle,
       venue,
@@ -126,7 +126,8 @@ export async function POST(request: NextRequest) {
       contactInfo,
       venueType,
       priceInfo,
-      capacity
+      capacity,
+      locationId
     } = body;
 
     if (!activityId || !datetime) {
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       // Ensure end date is not before start date
       if (parsedEndDate < parsedDateTime) {
         return NextResponse.json(
@@ -201,6 +202,7 @@ export async function POST(request: NextRequest) {
         endDate: parsedEndDate,
         isAllDay: isAllDay || false,
         location,
+        locationId,
         userId: user.id,
         customTitle,
         venue,
