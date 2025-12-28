@@ -93,10 +93,23 @@ export async function POST(request: NextRequest) {
       select: { name: true, type: true, address: true, description: true }
     });
 
+    // Fetch User Preferences (Default Location, System Prompt)
+    // We need to fetch the full user record since session user doesn't contain preferences
+    const userRecord = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { preferences: true }
+    });
+
+    const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string }) || {};
+    const defaultLocation = userPreferences.defaultLocation || "Unknown";
+    const systemPrompt = userPreferences.systemPrompt || "";
+
     debugLog("Context loaded", {
       activities: userActivities.length,
       values: userValues.length,
-      locations: userLocations.length
+      locations: userLocations.length,
+      defaultLocation,
+      hasSystemPrompt: !!systemPrompt
     });
 
     // 4. Initialize Gemini
@@ -109,15 +122,21 @@ export async function POST(request: NextRequest) {
 
     // 5. Build Prompt
     const today = new Date().toDateString();
+
+    // Determine effective location
+    const effectiveLocation = location && location.address ? location.address : defaultLocation;
+
     const prompt = `
 You are an advanced AI social event planner. Your goal is to help the user plan social activities.
+
+${systemPrompt ? `IMPORTANT SYSTEM OVERRIDE: ${systemPrompt}\n` : ''}
 
 User Context:
 - Current Date: ${today}
 - Activities: ${JSON.stringify(userActivities)}
 - Core Values: ${JSON.stringify(userValues)}
 - Saved Locations: ${JSON.stringify(userLocations)}
-- Current Location Context: ${location || "Unknown"}
+- Location Context: ${effectiveLocation}
 
 User Request: "${message}"
 

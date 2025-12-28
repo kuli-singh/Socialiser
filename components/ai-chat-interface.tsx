@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
-import { 
-  Bot, 
-  Send, 
-  MapPin, 
-  User, 
-  Sparkles, 
+import {
+  Bot,
+  Send,
+  MapPin,
+  User,
+  Sparkles,
   Calendar,
   Clock,
   DollarSign,
@@ -80,7 +80,7 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
     const initialMessage: ChatMessage = {
       id: 'initial',
       role: 'assistant',
-      content: initialContext?.templateName 
+      content: initialContext?.templateName
         ? `Hi! I'm here to help you find amazing ${initialContext.templateName.toLowerCase()} activities! 🎉\n\nTo get started, I'll need to know your location so I can find local events and venues. You can either share your location automatically or tell me what city/area you're in.\n\nWhat kind of ${initialContext.templateName.toLowerCase()} experience are you looking for?`
         : `Hi! I'm your AI activity planner! ✨\n\nI can help you discover amazing local events, activities, restaurants, concerts, and more based on your interests and location.\n\nTo get started, either share your location or tell me what city you're in, and let me know what you're interested in doing!`,
       timestamp: Date.now()
@@ -101,12 +101,12 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          
+
           // Reverse geocoding to get address (simplified)
           const address = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
-          
+
           setLocation({ latitude, longitude, address });
-          
+
           // Send confirmation message
           sendMessage(`I'm located at coordinates ${latitude.toFixed(4)}, ${longitude.toFixed(4)}. Please use this location to find nearby activities.`);
         },
@@ -136,10 +136,10 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
     const text = messageText || inputMessage.trim();
     if (!text) return;
 
-    console.log('[AI-CHAT FRONTEND] Sending message:', { 
-      message: text, 
-      location, 
-      historyLength: messages.length 
+    console.log('[AI-CHAT FRONTEND] Sending message:', {
+      message: text,
+      location,
+      historyLength: messages.length
     });
 
     // Add user message
@@ -172,21 +172,21 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
         body: JSON.stringify(requestBody),
       });
 
-      console.log('[AI-CHAT FRONTEND] Response received:', { 
-        status: response.status, 
-        statusText: response.statusText, 
-        ok: response.ok 
+      console.log('[AI-CHAT FRONTEND] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('[AI-CHAT FRONTEND] API error:', errorData);
-        
+
         let errorMessage = "Sorry, I encountered an error. Please try again! 😅";
         if (errorData.debug) {
           errorMessage += `\n\nDebug info: ${errorData.debug}`;
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -198,7 +198,7 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
         console.error('[AI-CHAT FRONTEND] Invalid response structure:', data);
         throw new Error('Invalid response format from AI service');
       }
-      
+
       // Simulate typing delay
       setTimeout(() => {
         setIsTyping(false);
@@ -212,9 +212,9 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
     } catch (error) {
       console.error('[AI-CHAT FRONTEND] Chat error:', error);
       setIsTyping(false);
-      
+
       let errorMessage = "Sorry, I encountered an error. Please try again! 😅";
-      
+
       if (error instanceof Error) {
         // Show more specific error messages
         if (error.message.includes('API key')) {
@@ -229,7 +229,7 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
           errorMessage = error.message; // Show debug info if available
         }
       }
-      
+
       addAssistantMessage(errorMessage);
     } finally {
       setIsLoading(false);
@@ -245,14 +245,14 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
 
   const formatTimestamp = (timestamp: number) => {
     if (!timestamp || isNaN(timestamp)) return '--:--';
-    
+
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) return '--:--';
-      
-      return date.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } catch {
       return '--:--';
@@ -268,19 +268,10 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
           <div>
             <h3 className="font-semibold">AI Activity Planner</h3>
             <p className="text-xs opacity-90">
-              {location ? `📍 ${location.address}` : 'Location not shared'}
+              {location ? `📍 ${location.address}` : 'Using saved preferences'}
             </p>
           </div>
         </div>
-        <Button
-          onClick={requestLocation}
-          variant="secondary"
-          size="sm"
-          className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-        >
-          <Navigation className="h-4 w-4 mr-1" />
-          {location ? 'Update' : 'Share'} Location
-        </Button>
       </div>
 
       {/* Messages Container */}
@@ -290,26 +281,23 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
             <div className={`flex max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               {/* Avatar */}
               <div className={`flex-shrink-0 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  message.role === 'user' 
-                    ? 'bg-blue-600 text-white' 
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${message.role === 'user'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                }`}>
+                  }`}>
                   {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </div>
               </div>
 
               {/* Message Content */}
               <div className="flex flex-col">
-                <div className={`rounded-lg px-4 py-2 ${
-                  message.role === 'user'
+                <div className={`rounded-lg px-4 py-2 ${message.role === 'user'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-900'
-                }`}>
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.role === 'user' ? 'text-blue-200' : 'text-gray-500'
                   }`}>
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-500'
+                    }`}>
                     {formatTimestamp(message.timestamp)}
                   </p>
                 </div>
@@ -397,9 +385,9 @@ function EventCard({ event, onSelect }: { event: SuggestedEvent; onSelect: () =>
             Select
           </Button>
         </div>
-        
+
         <p className="text-sm text-gray-600 mb-3">{event.description}</p>
-        
+
         <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-3">
           <div className="flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
