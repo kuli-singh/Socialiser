@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await request.json();
-        const { defaultLocation, systemPrompt } = data;
+        const { defaultLocation, systemPrompt, preferredModel, enableGoogleSearch } = data;
 
         // Validate if needed, but strings are generally safe
 
@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
             data: {
                 preferences: {
                     defaultLocation: defaultLocation || '',
-                    systemPrompt: systemPrompt || ''
+                    systemPrompt: systemPrompt || '',
+                    preferredModel: preferredModel || 'gemini-1.5-pro',
+                    enableGoogleSearch: enableGoogleSearch !== undefined ? enableGoogleSearch : true
                 }
             },
             select: { preferences: true }

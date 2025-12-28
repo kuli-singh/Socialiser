@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
-import { Save, MapPin, Terminal, Loader2 } from 'lucide-react';
+import { Save, MapPin, Terminal, Loader2, Bot, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -18,6 +20,8 @@ export default function SettingsPage() {
 
     const [defaultLocation, setDefaultLocation] = useState('');
     const [systemPrompt, setSystemPrompt] = useState('');
+    const [preferredModel, setPreferredModel] = useState('gemini-1.5-pro');
+    const [enableGoogleSearch, setEnableGoogleSearch] = useState(true);
 
     useEffect(() => {
         fetchSettings();
@@ -30,6 +34,8 @@ export default function SettingsPage() {
                 const data = await response.json();
                 setDefaultLocation(data.defaultLocation || '');
                 setSystemPrompt(data.systemPrompt || '');
+                setPreferredModel(data.preferredModel || 'gemini-1.5-pro');
+                setEnableGoogleSearch(data.enableGoogleSearch !== undefined ? data.enableGoogleSearch : true);
             } else {
                 toast.error('Failed to load settings');
             }
@@ -51,7 +57,9 @@ export default function SettingsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     defaultLocation,
-                    systemPrompt
+                    systemPrompt,
+                    preferredModel,
+                    enableGoogleSearch
                 }),
             });
 
@@ -131,6 +139,53 @@ export default function SettingsPage() {
                             <p className="text-sm text-gray-500">
                                 These instructions will override or augment the default AI behavior. Use this to set a specific tone (e.g., "Be sarcastic", "Act like a pirate") or constraints (e.g., "Only suggest vegan restaurants").
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center space-x-2">
+                            <Bot className="h-5 w-5 text-indigo-600" />
+                            <CardTitle>AI Model Configuration</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Configure which AI model to use and its capabilities.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="preferredModel">AI Model</Label>
+                            <Select value={preferredModel} onValueChange={setPreferredModel}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a model" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro (Recommended)</SelectItem>
+                                    <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Experimental, Faster)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-sm text-gray-500">
+                                <strong>Gemini 1.5 Pro</strong> is recommended for complex reasoning and search. <br />
+                                <strong>Gemini 2.0 Flash</strong> is faster but may be unstable with search tools.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-between space-x-2">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="enableGoogleSearch" className="flex items-center">
+                                    <Search className="h-4 w-4 mr-2" />
+                                    Enable Real-World Search
+                                </Label>
+                                <p className="text-sm text-gray-500">
+                                    Allow the AI to search Google for real-time events.
+                                </p>
+                            </div>
+                            <Switch
+                                id="enableGoogleSearch"
+                                checked={enableGoogleSearch}
+                                onCheckedChange={setEnableGoogleSearch}
+                            />
                         </div>
                     </CardContent>
                 </Card>

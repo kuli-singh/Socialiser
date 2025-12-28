@@ -1,5 +1,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
+import { prisma } from '@/lib/db';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const dynamic = 'force-dynamic';
@@ -16,8 +19,24 @@ interface DiscoveryRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    let preferredModel = "gemini-1.5-pro";
+    let enableGoogleSearch = true;
+
+    if (session?.user?.id) {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { preferences: true }
+      });
+      const prefs = (user?.preferences as any) || {};
+      if (prefs.preferredModel) preferredModel = prefs.preferredModel;
+      if (prefs.enableGoogleSearch !== undefined) enableGoogleSearch = prefs.enableGoogleSearch;
+    }
+
     const body: DiscoveryRequest = await request.json();
     const { activityName, location, preferences, dateRange } = body;
+
+    // ... (rest of validation)
 
     if (!activityName) {
       return NextResponse.json(
@@ -45,8 +64,10 @@ ${location ? `Location: ${location}` : ''}
 ${preferences ? `Preferences: ${preferences}` : ''}
 ${dateRange ? `Date Range: ${dateRange.start} to ${dateRange.end}` : ''}
 
-Please suggest specific, actionable activity options.
-Respond with raw JSON only. Use this exact format:
+Instructions:
+1. ${enableGoogleSearch ? 'Use Google Search to verify availability.' : 'Suggest realistic general options.'}
+2. Suggest specific, actionable activity options.
+3. Respond with raw JSON only. Use this exact format:
 {
   "options": [
     {
@@ -62,15 +83,16 @@ Respond with raw JSON only. Use this exact format:
 }
 `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-pro"];
+    const modelsToTry = [preferredModel];
     let aiContent = null;
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
+        const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
         const model = genAI.getGenerativeModel({
           model: modelName,
-          tools: [{ googleSearch: {} } as any]
+          tools: tools
         });
         const result = await model.generateContent(prompt);
         aiContent = result.response.text();

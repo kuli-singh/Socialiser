@@ -101,16 +101,20 @@ export async function POST(request: NextRequest) {
       select: { preferences: true }
     });
 
-    const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string }) || {};
+    const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
     const systemPrompt = userPreferences.systemPrompt || "";
+    const preferredModel = userPreferences.preferredModel || "gemini-1.5-pro";
+    const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
     debugLog("Context loaded", {
       activities: userActivities.length,
       values: userValues.length,
       locations: userLocations.length,
       defaultLocation,
-      hasSystemPrompt: !!systemPrompt
+      hasSystemPrompt: !!systemPrompt,
+      preferredModel,
+      enableGoogleSearch
     });
 
     // 4. Initialize Gemini
@@ -143,7 +147,7 @@ User Request: "${message}"
 
 Instructions:
 1. Suggest 3-4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
-2. Use Google Search to verify if events are actually happening. Do not hallucinate.
+2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
 3. If no specific real event is found, suggest a highly specific realistic venue/activity and provide a Google Search URL.
 4. Prioritize saved locations/activities if relevant.
 5. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
@@ -166,17 +170,20 @@ Instructions:
   ]
 }
     `;
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-pro"]; // Prioritize models with search tool support
+    const modelsToTry = [preferredModel];
     let aiResponseText = null;
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
         debugLog(`Attempting model: ${modelName}`);
-        // Enable Google Search Tool
+
+        // Config tools based on preferences
+        const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
+
         const model = genAI.getGenerativeModel({
           model: modelName,
-          tools: [{ googleSearch: {} } as any]
+          tools: tools
         });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
