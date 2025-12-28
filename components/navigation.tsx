@@ -15,17 +15,11 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
-  Calendar,
-  Users,
-  Heart,
-  Activity,
-  Sparkles,
   User,
   LogOut,
-  ChevronDown,
-  MapPin,
-  Settings
+  ChevronDown
 } from 'lucide-react';
+import { navItems } from '@/lib/nav-config';
 
 export function Navigation() {
   const { data: session, status } = useSession();
@@ -42,17 +36,6 @@ export function Navigation() {
 
   const isActive = (path: string) => pathname === path;
 
-  const navItems = [
-    { href: '/', label: 'Dashboard', icon: Calendar },
-    { href: '/schedule', label: 'Schedule', icon: Calendar },
-    { href: '/activities', label: 'Activities', icon: Activity },
-    { href: '/locations', label: 'Locations', icon: MapPin },
-    { href: '/friends', label: 'Friends', icon: Users },
-    { href: '/values', label: 'Values', icon: Heart },
-    { href: '/ai-discovery', label: 'AI Discovery', icon: Sparkles },
-    { href: '/settings', label: 'Settings', icon: Settings },
-  ];
-
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -67,7 +50,7 @@ export function Navigation() {
   };
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-lg z-40">
+    <nav className="hidden md:block fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-lg z-40">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
