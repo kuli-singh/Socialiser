@@ -70,9 +70,10 @@ ${preferences ? `Preferences: ${preferences}` : ''}
 ${dateRange ? `Date Range: ${dateRange.start} to ${dateRange.end}` : ''}
 
 Instructions:
-1. ${enableGoogleSearch ? 'Use Google Search to verify availability.' : 'Suggest realistic general options.'}
-2. Suggest specific, actionable activity options.
-3. Respond with raw JSON only. Use this exact format:
+1. ${enableGoogleSearch ? 'Use Google Search to find REAL, verifyable options.' : 'Suggest realistic options based on general knowledge.'}
+2. CRITICAL: You MUST provide a valid 'url' for EVERY option found. Use the link from the Google Search result.
+3. Provide specific time, duration, and price estimates.
+4. Respond with raw JSON only. Use this exact format:
 {
   "options": [
     {
@@ -159,7 +160,7 @@ Instructions:
       {
         error: isRateLimit ? 'Rate Limit Exceeded' : 'Failed to generate activity suggestions',
         details: isRateLimit
-          ? 'Usage limit reached. Please switch to Gemini 1.5 Pro in Settings.'
+          ? 'Usage limit reached. Please switch to Gemini Flash (Latest Stable) in Settings.'
           : errorMessage
       },
       { status: isRateLimit ? 429 : 500 }

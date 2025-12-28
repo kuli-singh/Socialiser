@@ -154,7 +154,7 @@ User Request: "${message}"
 Instructions:
 1. Suggest 3-4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
 2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
-3. If no specific real event is found, suggest a highly specific realistic venue/activity and provide a Google Search URL.
+3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
 4. Prioritize saved locations/activities if relevant.
 5. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
 6. Follow this JSON structure:
@@ -247,7 +247,7 @@ Instructions:
     let userMessage = "I'm having trouble connecting to my brain right now.";
 
     if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-      userMessage = "I've hit my usage limit for this AI model. Please go to Settings and try switching to 'Gemini 1.5 Pro' or disable Real-World Search.";
+      userMessage = "I've hit my usage limit for this AI model. Please go to Settings and try switching to 'Gemini Flash (Latest Stable)'.";
     } else {
       userMessage += ` Error details: ${errorMessage}`;
     }
