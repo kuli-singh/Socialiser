@@ -81,8 +81,8 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
       id: 'initial',
       role: 'assistant',
       content: initialContext?.templateName
-        ? `Hi! I'm here to help you find amazing ${initialContext.templateName.toLowerCase()} activities! 🎉\n\nTo get started, I'll need to know your location so I can find local events and venues. You can either share your location automatically or tell me what city/area you're in.\n\nWhat kind of ${initialContext.templateName.toLowerCase()} experience are you looking for?`
-        : `Hi! I'm your AI activity planner! ✨\n\nI can help you discover amazing local events, activities, restaurants, concerts, and more based on your interests and location.\n\nTo get started, either share your location or tell me what city you're in, and let me know what you're interested in doing!`,
+        ? `Hi! I'm here to help you find amazing ${initialContext.templateName.toLowerCase()} activities! 🎉\n\nWhat kind of ${initialContext.templateName.toLowerCase()} experience are you looking for?`
+        : `Hi! I'm your AI activity planner! ✨\n\nI can help you discover amazing local events, activities, restaurants, concerts, and more based on your interests.\n\nLet me know what you're interested in doing!`,
       timestamp: Date.now()
     };
     setMessages([initialMessage]);
@@ -282,8 +282,8 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
               {/* Avatar */}
               <div className={`flex-shrink-0 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                   }`}>
                   {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </div>
@@ -292,8 +292,8 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
               {/* Message Content */}
               <div className="flex flex-col">
                 <div className={`rounded-lg px-4 py-2 ${message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-900'
                   }`}>
                   <p className="whitespace-pre-wrap">{message.content}</p>
                   <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-500'

@@ -8,9 +8,10 @@ export function MobileNavigation() {
     const pathname = usePathname();
     const isActive = (path: string) => pathname === path;
 
-    // Filter for key mobile items (Dashboard, Schedule, Activities, AI, Friends) to avoid overcrowding
+    // Filter for key mobile items (Dashboard, Schedule, Activities, Friends, Locations, Settings)
+    // AI Discovery is removed as requested
     const mobileItems = navItems.filter(item =>
-        ['Dashboard', 'Schedule', 'Activities', 'AI Discovery', 'Settings'].includes(item.label)
+        ['Dashboard', 'Schedule', 'Activities', 'Friends', 'Locations', 'Settings'].includes(item.label)
     );
 
     return (
