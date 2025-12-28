@@ -239,7 +239,7 @@ Instructions:
     // Fallback if AI fails
     return NextResponse.json({
       response: {
-        message: "I'm having trouble connecting to my brain right now, but I'm here to help!",
+        message: `I'm having trouble connecting to my brain right now. Error details: ${error instanceof Error ? error.message : String(error)}`,
         searchResults: [],
         suggestedEvents: []
       }
