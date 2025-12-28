@@ -188,7 +188,8 @@ Instructions:
         const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
         const model = genAI.getGenerativeModel({
           model: modelName,
-          tools: tools
+          tools: tools,
+          generationConfig: { responseMimeType: "application/json" }
         });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
@@ -204,7 +205,8 @@ Instructions:
             debugLog(`Retrying model: ${modelName} WITHOUT tools (Fallback)`);
             const model = genAI.getGenerativeModel({
               model: modelName,
-              tools: [] // Force empty tools
+              tools: [], // Force empty tools
+              generationConfig: { responseMimeType: "application/json" }
             });
             const result = await model.generateContent(prompt);
             aiResponseText = result.response.text();

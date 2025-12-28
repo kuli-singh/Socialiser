@@ -98,7 +98,8 @@ Instructions:
         const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
         const model = genAI.getGenerativeModel({
           model: modelName,
-          tools: tools
+          tools: tools,
+          generationConfig: { responseMimeType: "application/json" }
         });
         const result = await model.generateContent(prompt);
         aiContent = result.response.text();
@@ -113,7 +114,8 @@ Instructions:
             console.log(`Retrying ${modelName} WITHOUT tools`);
             const model = genAI.getGenerativeModel({
               model: modelName,
-              tools: []
+              tools: [],
+              generationConfig: { responseMimeType: "application/json" }
             });
             const result = await model.generateContent(prompt);
             aiContent = result.response.text();
