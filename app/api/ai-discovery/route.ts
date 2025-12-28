@@ -20,7 +20,7 @@ interface DiscoveryRequest {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    let preferredModel = "gemini-1.5-flash";
+    let preferredModel = "gemini-flash-latest";
     let enableGoogleSearch = true;
 
     if (session?.user?.id) {

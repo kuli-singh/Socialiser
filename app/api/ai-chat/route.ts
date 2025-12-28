@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
     const systemPrompt = userPreferences.systemPrompt || "";
-    const preferredModel = userPreferences.preferredModel || "gemini-1.5-flash";
+    const preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
     debugLog("Context loaded", {
