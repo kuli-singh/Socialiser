@@ -30,6 +30,11 @@ export async function POST(request: NextRequest) {
       });
       const prefs = (user?.preferences as any) || {};
       if (prefs.preferredModel) preferredModel = prefs.preferredModel;
+      // Fix legacy/unavailable model names from DB
+      if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-flash-latest";
+      if (preferredModel === "gemini-1.5-pro") preferredModel = "gemini-pro-latest";
+      if (preferredModel === "gemini-1.5-pro-latest") preferredModel = "gemini-pro-latest";
+
       if (prefs.enableGoogleSearch !== undefined) enableGoogleSearch = prefs.enableGoogleSearch;
     }
 

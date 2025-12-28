@@ -104,7 +104,13 @@ export async function POST(request: NextRequest) {
     const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
     const systemPrompt = userPreferences.systemPrompt || "";
-    const preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
+    let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
+
+    // Fix legacy/unavailable model names from DB
+    if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-flash-latest";
+    if (preferredModel === "gemini-1.5-pro") preferredModel = "gemini-pro-latest";
+    if (preferredModel === "gemini-1.5-pro-latest") preferredModel = "gemini-pro-latest"; // Just in case
+
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
     debugLog("Context loaded", {
