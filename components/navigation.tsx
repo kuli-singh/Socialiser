@@ -23,7 +23,8 @@ import {
   User,
   LogOut,
   ChevronDown,
-  MapPin
+  MapPin,
+  Settings
 } from 'lucide-react';
 
 export function Navigation() {
@@ -49,6 +50,7 @@ export function Navigation() {
     { href: '/friends', label: 'Friends', icon: Users },
     { href: '/values', label: 'Values', icon: Heart },
     { href: '/ai-discovery', label: 'AI Discovery', icon: Sparkles },
+    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const getUserInitials = (name: string) => {
