@@ -141,7 +141,7 @@ User Context:
 User Request: "${message}"
 
 Instructions:
-1. Suggest an event matching the request.
+1. Suggest 3-4 diverse event options matching the request.
 2. Prioritize saved locations/activities if relevant.
 3. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
 4. Follow this JSON structure:
@@ -153,8 +153,8 @@ Instructions:
       "description": "...",
       "venue": "...",
       "address": "...",
-      "date": "...",
-      "time": "...",
+      "date": "YYYY-MM-DD (e.g. 2025-12-31)",
+      "time": "HH:MM (24h format, e.g. 19:00)",
       "duration": "...",
       "price": "...",
       "reasoning": "..."

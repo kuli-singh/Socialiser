@@ -53,7 +53,7 @@ Respond with raw JSON only. Use this exact format:
       "name": "Specific activity name",
       "description": "Brief description",
       "suggestedLocation": "Specific location suggestion",
-      "suggestedTime": "Time recommendation",
+      "suggestedTime": "YYYY-MM-DD at HH:MM (e.g. 2025-12-31 at 19:00)",
       "estimatedDuration": "Duration estimate",
       "reasoning": "Why this fits"
     }

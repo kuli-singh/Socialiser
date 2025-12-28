@@ -113,6 +113,9 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
 
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(preselectedTemplate || null);
   const [selectedOption, setSelectedOption] = useState<DiscoveredOption | null>(null);
+  // Friends Filter State
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
   const [formData, setFormData] = useState({
     datetime: '',
     endDate: '',
@@ -194,8 +197,12 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       // Only fetch friends for AI suggestions
       fetchFriends();
     } else if (preselectedTemplate) {
-      // If template is preselected, we only need to fetch friends
+      // If template is preselected, fetch friends and set title
       fetchFriends();
+      setFormData(prev => ({
+        ...prev,
+        customTitle: prev.customTitle || preselectedTemplate.name
+      }));
     } else {
       // Otherwise fetch both activities and friends and locations
       Promise.all([fetchActivities(), fetchFriends(), fetchLocations()]);
@@ -249,12 +256,34 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
 
   const handleOptionSelected = (option: DiscoveredOption) => {
     setSelectedOption(option);
+
+    // Parse the suggested time (Expected format: "YYYY-MM-DD at HH:MM")
+    let validDateTime = '';
+    try {
+      // Simple regex to find date and time components
+      const dateMatch = option.suggestedTime.match(/(\d{4}-\d{2}-\d{2})/);
+      const timeMatch = option.suggestedTime.match(/(\d{2}:\d{2})/);
+
+      if (dateMatch && timeMatch) {
+        validDateTime = `${dateMatch[1]}T${timeMatch[1]}`;
+      } else {
+        // Fallback or try to parse as-is if the AI returned strict ISO
+        const d = new Date(option.suggestedTime);
+        if (!isNaN(d.getTime())) {
+          validDateTime = d.toISOString().slice(0, 16);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse AI date:', option.suggestedTime);
+    }
+
     // Pre-fill form data based on AI suggestion
     setFormData(prev => ({
       ...prev,
       customTitle: option.name,
       detailedDescription: option.description,
       location: option.suggestedLocation,
+      datetime: validDateTime,
     }));
     setCurrentStep('event-details');
   };
@@ -712,51 +741,72 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">
-                    Select friends to invite ({formData.friendIds.length} selected):
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      Select friends to invite ({formData.friendIds.length} selected):
+                    </p>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-[180px] h-8 text-xs">
+                        <SelectValue placeholder="Filter by category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Categories</SelectItem>
+                        {Array.from(new Set(friends.map(f => f.group).filter(Boolean))).sort().map(category => (
+                          <SelectItem key={category as string} value={category as string}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                    {(friends ?? []).map((friend) => (
-                      <label
-                        key={friend.id}
-                        className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.friendIds.includes(friend.id)}
-                          onChange={(e) => {
-                            const updatedFriends = e.target.checked
-                              ? [...formData.friendIds, friend.id]
-                              : formData.friendIds.filter(id => id !== friend.id);
-                            handleChange('friendIds', updatedFriends);
-                          }}
-                        />
-                        <span className="font-medium">{friend.name}</span>
-                        {friend.group && <Badge variant="outline" className="text-xs">{friend.group}</Badge>}
-                      </label>
-                    ))}
+                    {(friends ?? [])
+                      .filter(friend => selectedCategory === 'All' || friend.group === selectedCategory)
+                      .map((friend) => (
+                        <label
+                          key={friend.id}
+                          className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.friendIds.includes(friend.id)}
+                            onChange={(e) => {
+                              const updatedFriends = e.target.checked
+                                ? [...formData.friendIds, friend.id]
+                                : formData.friendIds.filter(id => id !== friend.id);
+                              handleChange('friendIds', updatedFriends);
+                            }}
+                          />
+                          <span className="font-medium">{friend.name}</span>
+                          {friend.group && <Badge variant="outline" className="text-xs">{friend.group}</Badge>}
+                        </label>
+                      ))}
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              )
+              }
+            </CardContent >
+          </Card >
 
-          {errors.submit && (
-            <div className="text-red-600 text-sm p-3 bg-red-50 border border-red-200 rounded-lg">
-              {errors.submit}
-            </div>
-          )}
+          {
+            errors.submit && (
+              <div className="text-red-600 text-sm p-3 bg-red-50 border border-red-200 rounded-lg">
+                {errors.submit}
+              </div>
+            )
+          }
 
-          <div className="flex space-x-4">
+          < div className="flex space-x-4" >
             <Button type="submit" disabled={submitting} size="lg">
               {submitting ? 'Creating Event...' : 'Create Event'}
             </Button>
             <Button type="button" variant="outline" onClick={onBack}>
               Cancel
             </Button>
-          </div>
-        </form>
-      </div>
+          </div >
+        </form >
+      </div >
     );
   }
 
