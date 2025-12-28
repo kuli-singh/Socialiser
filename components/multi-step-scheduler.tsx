@@ -66,6 +66,7 @@ interface DiscoveredOption {
   suggestedTime: string;
   estimatedDuration: string;
   reasoning: string;
+  url?: string;
 }
 
 type Step = 'activity-selection' | 'ai-discovery' | 'event-details' | 'finalize';
@@ -278,10 +279,14 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     }
 
     // Pre-fill form data based on AI suggestion
+    const descriptionWithLink = option.url
+      ? `${option.description}\n\nLink: ${option.url}`
+      : option.description;
+
     setFormData(prev => ({
       ...prev,
       customTitle: option.name,
-      detailedDescription: option.description,
+      detailedDescription: descriptionWithLink,
       location: option.suggestedLocation,
       datetime: validDateTime,
     }));

@@ -48,9 +48,10 @@ const responseSchema = {
           time: { type: SchemaType.STRING, description: "Suggested time" },
           duration: { type: SchemaType.STRING, description: "Estimated duration" },
           price: { type: SchemaType.STRING, description: "Price info" },
-          reasoning: { type: SchemaType.STRING, description: "Why this was suggested" }
+          reasoning: { type: SchemaType.STRING, description: "Why this was suggested" },
+          url: { type: SchemaType.STRING, description: "URL to official event page or search result", nullable: true }
         },
-        required: ["name", "description", "venue", "reasoning"]
+        required: ["name", "description", "venue", "reasoning", "url"]
       }
     }
   },
@@ -141,10 +142,12 @@ User Context:
 User Request: "${message}"
 
 Instructions:
-1. Suggest 3-4 diverse event options matching the request.
-2. Prioritize saved locations/activities if relevant.
-3. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
-4. Follow this JSON structure:
+1. Suggest 3-4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
+2. Use Google Search to verify if events are actually happening. Do not hallucinate.
+3. If no specific real event is found, suggest a highly specific realistic venue/activity and provide a Google Search URL.
+4. Prioritize saved locations/activities if relevant.
+5. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
+6. Follow this JSON structure:
 {
   "message": "Friendly response to user...",
   "suggestedEvents": [
@@ -157,19 +160,24 @@ Instructions:
       "time": "HH:MM (24h format, e.g. 19:00)",
       "duration": "...",
       "price": "...",
-      "reasoning": "..."
+      "reasoning": "...",
+      "url": "https://..."
     }
   ]
 }
     `;
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-pro-latest", "gemini-flash-latest"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-pro"]; // Prioritize models with search tool support
     let aiResponseText = null;
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
         debugLog(`Attempting model: ${modelName}`);
-        const model = genAI.getGenerativeModel({ model: modelName });
+        // Enable Google Search Tool
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          tools: [{ googleSearch: {} } as any]
+        });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
         debugLog(`Success with model: ${modelName}`);

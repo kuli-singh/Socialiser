@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { FormField } from '@/components/form-field';
-import { Sparkles, MapPin, Clock, ArrowRight, Lightbulb } from 'lucide-react';
+import { Sparkles, MapPin, Clock, ArrowRight, Lightbulb, ExternalLink } from 'lucide-react';
 
 interface Activity {
   id: string;
@@ -22,7 +22,9 @@ interface DiscoveredOption {
   suggestedLocation: string;
   suggestedTime: string;
   estimatedDuration: string;
+
   reasoning: string;
+  url?: string;
 }
 
 interface AIActivityDiscoveryProps {
@@ -31,10 +33,10 @@ interface AIActivityDiscoveryProps {
   onBack: () => void;
 }
 
-export function AIActivityDiscovery({ 
-  selectedActivity, 
-  onOptionSelected, 
-  onBack 
+export function AIActivityDiscovery({
+  selectedActivity,
+  onOptionSelected,
+  onBack
 }: AIActivityDiscoveryProps) {
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<DiscoveredOption[]>([]);
@@ -116,7 +118,7 @@ export function AIActivityDiscovery({
           </FormField>
 
           <div className="flex space-x-3">
-            <Button 
+            <Button
               onClick={handleDiscover}
               disabled={loading}
               className="flex-1"
@@ -156,11 +158,11 @@ export function AIActivityDiscovery({
               AI-Suggested Options for {selectedActivity.name}
             </h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {options.map((option, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300"
                 onClick={() => onOptionSelected(option)}
               >
@@ -169,13 +171,13 @@ export function AIActivityDiscovery({
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-gray-700">{option.description}</p>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="h-4 w-4 mr-2 text-green-600" />
                       {option.suggestedLocation}
                     </div>
-                    
+
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="h-4 w-4 mr-2 text-blue-600" />
                       {option.suggestedTime} • {option.estimatedDuration}
@@ -188,7 +190,22 @@ export function AIActivityDiscovery({
                     </p>
                   </div>
 
-                  <Button 
+                  {option.url && (
+                    <div className="flex items-center text-xs text-blue-600">
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      <a
+                        href={option.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View Details
+                      </a>
+                    </div>
+                  )}
+
+                  <Button
                     className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();

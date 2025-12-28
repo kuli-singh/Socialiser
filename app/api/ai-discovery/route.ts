@@ -55,19 +55,23 @@ Respond with raw JSON only. Use this exact format:
       "suggestedLocation": "Specific location suggestion",
       "suggestedTime": "YYYY-MM-DD at HH:MM (e.g. 2025-12-31 at 19:00)",
       "estimatedDuration": "Duration estimate",
-      "reasoning": "Why this fits"
+      "reasoning": "Why this fits",
+      "url": "URL to event or Google Search"
     }
   ]
 }
 `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-pro-latest", "gemini-flash-latest"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-pro"];
     let aiContent = null;
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
-        const model = genAI.getGenerativeModel({ model: modelName });
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          tools: [{ googleSearch: {} } as any]
+        });
         const result = await model.generateContent(prompt);
         aiContent = result.response.text();
         break;
