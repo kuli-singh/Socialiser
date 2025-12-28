@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
     const systemPrompt = userPreferences.systemPrompt || "";
-    const preferredModel = userPreferences.preferredModel || "gemini-1.5-pro";
+    const preferredModel = userPreferences.preferredModel || "gemini-1.5-flash";
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
     debugLog("Context loaded", {
@@ -237,9 +237,18 @@ Instructions:
     debugLog("CRITICAL ERROR", error);
 
     // Fallback if AI fails
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    let userMessage = "I'm having trouble connecting to my brain right now.";
+
+    if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+      userMessage = "I've hit my usage limit for this AI model. Please go to Settings and try switching to 'Gemini 1.5 Pro' or disable Real-World Search.";
+    } else {
+      userMessage += ` Error details: ${errorMessage}`;
+    }
+
     return NextResponse.json({
       response: {
-        message: `I'm having trouble connecting to my brain right now. Error details: ${error instanceof Error ? error.message : String(error)}`,
+        message: userMessage,
         searchResults: [],
         suggestedEvents: []
       }

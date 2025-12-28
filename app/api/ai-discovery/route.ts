@@ -20,7 +20,7 @@ interface DiscoveryRequest {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    let preferredModel = "gemini-1.5-pro";
+    let preferredModel = "gemini-1.5-flash";
     let enableGoogleSearch = true;
 
     if (session?.user?.id) {
@@ -147,12 +147,17 @@ Instructions:
 
   } catch (error) {
     console.error('AI discovery error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isRateLimit = errorMessage.includes("429") || errorMessage.includes("quota");
+
     return NextResponse.json(
       {
-        error: 'Failed to generate activity suggestions',
-        details: error instanceof Error ? error.message : String(error)
+        error: isRateLimit ? 'Rate Limit Exceeded' : 'Failed to generate activity suggestions',
+        details: isRateLimit
+          ? 'Usage limit reached. Please switch to Gemini 1.5 Pro in Settings.'
+          : errorMessage
       },
-      { status: 500 }
+      { status: isRateLimit ? 429 : 500 }
     );
   }
 }

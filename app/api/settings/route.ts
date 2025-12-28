@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
                 preferences: {
                     defaultLocation: defaultLocation || '',
                     systemPrompt: systemPrompt || '',
-                    preferredModel: preferredModel || 'gemini-1.5-pro',
+                    preferredModel: preferredModel || 'gemini-1.5-flash',
                     enableGoogleSearch: enableGoogleSearch !== undefined ? enableGoogleSearch : true
                 }
             },

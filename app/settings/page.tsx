@@ -20,7 +20,7 @@ export default function SettingsPage() {
 
     const [defaultLocation, setDefaultLocation] = useState('');
     const [systemPrompt, setSystemPrompt] = useState('');
-    const [preferredModel, setPreferredModel] = useState('gemini-1.5-pro');
+    const [preferredModel, setPreferredModel] = useState('gemini-1.5-flash');
     const [enableGoogleSearch, setEnableGoogleSearch] = useState(true);
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export default function SettingsPage() {
                 const data = await response.json();
                 setDefaultLocation(data.defaultLocation || '');
                 setSystemPrompt(data.systemPrompt || '');
-                setPreferredModel(data.preferredModel || 'gemini-1.5-pro');
+                setPreferredModel(data.preferredModel || 'gemini-1.5-flash');
                 setEnableGoogleSearch(data.enableGoogleSearch !== undefined ? data.enableGoogleSearch : true);
             } else {
                 toast.error('Failed to load settings');
@@ -161,13 +161,15 @@ export default function SettingsPage() {
                                     <SelectValue placeholder="Select a model" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro (Recommended)</SelectItem>
-                                    <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Experimental, Faster)</SelectItem>
+                                    <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended, Fast)</SelectItem>
+                                    <SelectItem value="gemini-1.5-pro-latest">Gemini 1.5 Pro (High Intelligence)</SelectItem>
+                                    <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-sm text-gray-500">
-                                <strong>Gemini 1.5 Pro</strong> is recommended for complex reasoning and search. <br />
-                                <strong>Gemini 2.0 Flash</strong> is faster but may be unstable with search tools.
+                                <strong>Gemini 1.5 Flash</strong> is the most stable and fast option.<br />
+                                <strong>Gemini 1.5 Pro</strong> is smarter but may have lower rate limits.<br />
+                                <strong>Gemini 2.0 Flash</strong> is experimental (preview).
                             </p>
                         </div>
 
