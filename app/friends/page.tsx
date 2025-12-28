@@ -1,9 +1,7 @@
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -18,9 +16,11 @@ interface Friend {
 }
 
 export default function FriendsPage() {
+  const router = useRouter();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     fetchFriends();
@@ -31,11 +31,21 @@ export default function FriendsPage() {
       const response = await fetch('/api/friends');
       if (!response.ok) throw new Error('Failed to fetch friends');
       const data = await response.json();
-      // Ensure data is an array before setting and filter out nulls
-      setFriends(Array.isArray(data) ? data.filter((item): item is Friend => item !== null && item !== undefined) : []);
+
+      // Strict filtering to ensure we only have valid friend objects with IDs
+      const validFriends = Array.isArray(data)
+        ? data.filter((item): item is Friend =>
+          item !== null &&
+          typeof item === 'object' &&
+          typeof item.id === 'string'
+        )
+        : [];
+
+      setFriends(validFriends);
     } catch (err) {
+      console.error("Error fetching friends:", err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-      setFriends([]); // Ensure friends is always an array even on error
+      setFriends([]);
     } finally {
       setLoading(false);
     }
@@ -87,12 +97,8 @@ export default function FriendsPage() {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message={error} />;
-
-  // Extract unique categories
+  // Extract unique categories (Memoized or derived during render is fine if inside body)
   const categories = ['All', ...Array.from(new Set(friends.map(f => f.group || 'No Group')))].sort();
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Filter friends based on selection
   const filteredFriends = selectedCategory === 'All'
@@ -106,6 +112,9 @@ export default function FriendsPage() {
     acc[group].push(friend);
     return acc;
   }, {} as Record<string, Friend[]>);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="space-y-6">
@@ -132,21 +141,19 @@ export default function FriendsPage() {
             </div>
           </div>
 
-          <Button variant="outline" asChild>
-            <Link href="/friends/import">
-              <Upload className="h-4 w-4 mr-2" />
-              Import CSV
-            </Link>
+          <Button variant="outline" onClick={() => router.push('/friends/import')}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import CSV
           </Button>
+
           <Button variant="outline" onClick={exportFriends}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button asChild>
-            <Link href="/friends/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Friend
-            </Link>
+
+          <Button onClick={() => router.push('/friends/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Friend
           </Button>
         </div>
       </div>
@@ -188,21 +195,17 @@ export default function FriendsPage() {
             <p className="text-gray-600 mb-4"> Try adjusting your filter or add new friends.</p>
             {friends.length === 0 && ( /* Only show add/import if NO friends total */
               <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" asChild>
-                  <Link href="/friends/import">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import from CSV
-                  </Link>
+                <Button variant="outline" onClick={() => router.push('/friends/import')}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import from CSV
                 </Button>
                 <Button variant="outline" onClick={exportFriends}>
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
                 </Button>
-                <Button asChild>
-                  <Link href="/friends/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Friend
-                  </Link>
+                <Button onClick={() => router.push('/friends/new')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Friend
                 </Button>
               </div>
             )}
@@ -243,11 +246,10 @@ export default function FriendsPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end space-x-2">
-                              <Button variant="outline" size="sm" asChild>
-                                <Link href={`/friends/${friend.id}/edit`}>
-                                  <Edit className="h-4 w-4" />
-                                </Link>
+                              <Button variant="outline" size="sm" onClick={() => router.push(`/friends/${friend.id}/edit`)}>
+                                <Edit className="h-4 w-4" />
                               </Button>
+
                               <Button
                                 variant="destructive"
                                 size="sm"
@@ -270,4 +272,3 @@ export default function FriendsPage() {
     </div>
   );
 }
-
