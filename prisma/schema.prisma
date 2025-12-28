@@ -109,6 +109,7 @@ model ActivityInstance {
   customTitle        String?    // Custom event title (e.g., "Thai Cooking Lesson at Cordon Bleu")
   venue              String?    // Specific venue name
   address            String?    // Full street address
+  eventUrl           String?    // URL to the event page or venue website
   city               String?    // City
   state              String?    // State/Province
   zipCode            String?    // Postal/ZIP code

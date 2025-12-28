@@ -90,6 +90,7 @@ interface MultiStepSchedulerProps {
     contactInfo?: string;
     venueType?: string;
     capacity?: string;
+    url?: string;
   };
 }
 
@@ -137,6 +138,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     venueType: '',
     priceInfo: '',
     capacity: '',
+    eventUrl: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -192,7 +194,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         priceInfo: aiSuggestion.price || '',
         capacity: aiSuggestion.capacity || '',
         location: suggestionOption.suggestedLocation,
-        datetime: validDateTime || prev.datetime || '', // Use parsed date
+        datetime: validDateTime || prev.datetime || '',
+        eventUrl: aiSuggestion.url || '',
       }));
 
       // Only fetch friends for AI suggestions
@@ -289,6 +292,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       detailedDescription: descriptionWithLink,
       location: option.suggestedLocation,
       datetime: validDateTime,
+      eventUrl: option.url || '',
     }));
     setCurrentStep('event-details');
   };
@@ -350,6 +354,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
           venueType: formData.venueType || null,
           priceInfo: formData.priceInfo || null,
           capacity: formData.capacity ? parseInt(formData.capacity) : null,
+          eventUrl: formData.eventUrl || null,
         }),
       });
 
@@ -597,6 +602,14 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                     value={formData.venue}
                     onChange={(e) => handleChange('venue', e.target.value)}
                     placeholder="e.g., Central Park, Joe's Restaurant"
+                  />
+                </FormField>
+
+                <FormField label="Event URL">
+                  <Input
+                    value={formData.eventUrl}
+                    onChange={(e) => handleChange('eventUrl', e.target.value)}
+                    placeholder="https://event-website.com"
                   />
                 </FormField>
 

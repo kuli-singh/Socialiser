@@ -37,7 +37,7 @@ function AIDiscoveryContent() {
 
   const handleEventSelected = (event: SuggestedEvent) => {
     setSelectedEvent(event);
-    
+
     // Navigate to schedule page with pre-filled data
     const scheduleUrl = new URLSearchParams({
       aiSuggestion: 'true',
@@ -49,6 +49,7 @@ function AIDiscoveryContent() {
       duration: event.duration,
       price: event.price,
       description: event.description,
+      ...(event.url && { url: event.url }),
       ...(templateId && { templateId }),
       ...(templateName && { templateName })
     });
@@ -69,7 +70,7 @@ function AIDiscoveryContent() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          
+
           {templateName && (
             <div className="bg-blue-50 px-4 py-2 rounded-full">
               <span className="text-sm font-medium text-blue-700">
@@ -104,7 +105,7 @@ function AIDiscoveryContent() {
                 Have a conversation with AI to discover perfect activities
               </p>
             </div>
-            
+
             <div className="bg-white p-4 rounded-lg border shadow-sm">
               <MapPin className="h-6 w-6 text-green-600 mx-auto mb-2" />
               <h3 className="font-semibold text-gray-900 mb-1">Location-Aware</h3>
@@ -112,7 +113,7 @@ function AIDiscoveryContent() {
                 Find real events and venues near your location
               </p>
             </div>
-            
+
             <div className="bg-white p-4 rounded-lg border shadow-sm">
               <Zap className="h-6 w-6 text-purple-600 mx-auto mb-2" />
               <h3 className="font-semibold text-gray-900 mb-1">Smart Suggestions</h3>
@@ -126,7 +127,7 @@ function AIDiscoveryContent() {
 
       {/* Chat Interface */}
       <div className="bg-white rounded-lg shadow-lg">
-        <AIChatInterface 
+        <AIChatInterface
           initialContext={initialContext}
           onEventSelected={handleEventSelected}
         />

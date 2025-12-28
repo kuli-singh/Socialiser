@@ -25,7 +25,7 @@ interface ActivityTemplate {
 function ScheduleContent() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
-  
+
   // Check for AI suggestion parameters
   const isAISuggestion = searchParams.get('aiSuggestion') === 'true';
   const aiEventName = searchParams.get('eventName');
@@ -38,7 +38,8 @@ function ScheduleContent() {
   const aiDescription = searchParams.get('description');
   const aiTemplateId = searchParams.get('templateId');
   const aiTemplateName = searchParams.get('templateName');
-  
+  const aiUrl = searchParams.get('url');
+
   const [selectedTemplate, setSelectedTemplate] = useState<ActivityTemplate | null>(null);
   const [showScheduler, setShowScheduler] = useState(!!(templateId || isAISuggestion));
   const [loading, setLoading] = useState(!!(templateId || aiTemplateId));
@@ -62,7 +63,7 @@ function ScheduleContent() {
         });
         setLoading(false);
       }
-      
+
       // Set up AI suggestion data
       setAiSuggestionData({
         eventName: aiEventName,
@@ -72,7 +73,8 @@ function ScheduleContent() {
         time: aiTime,
         duration: aiDuration,
         price: aiPrice,
-        description: aiDescription
+        description: aiDescription,
+        url: aiUrl
       });
     }
   }, [templateId, isAISuggestion, aiTemplateId, aiTemplateName]);
@@ -117,7 +119,7 @@ function ScheduleContent() {
             <p className="text-gray-600 mt-1">Plan your next social activity with AI assistance</p>
           </div>
         </div>
-        
+
         {/* AI Discovery vs Template Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* AI Discovery Option */}
@@ -186,7 +188,7 @@ function ScheduleContent() {
             <div className="text-center">
               <h4 className="font-medium text-blue-900 mb-1">New to Social Organizer?</h4>
               <p className="text-sm text-blue-800">
-                Start with AI Discovery to explore what's available, or create your first 
+                Start with AI Discovery to explore what's available, or create your first
                 <Link href="/activities/new" className="underline mx-1 hover:text-blue-900">
                   activity template
                 </Link>
@@ -227,7 +229,7 @@ function ScheduleContent() {
               </Badge>
             </div>
           </div>
-          
+
           {/* Template Info */}
           <div className="mt-3 pt-3 border-t border-slate-200">
             <div className="flex items-start justify-between">
@@ -276,8 +278,8 @@ function ScheduleContent() {
       </Card>
 
       {/* Multi-Step Scheduler */}
-      <MultiStepScheduler 
-        onBack={() => setShowScheduler(false)} 
+      <MultiStepScheduler
+        onBack={() => setShowScheduler(false)}
         preselectedTemplate={selectedTemplate}
         aiSuggestion={aiSuggestionData}
       />
