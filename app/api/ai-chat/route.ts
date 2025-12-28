@@ -228,7 +228,24 @@ Instructions:
     let text = aiResponseText.replace(/```json/g, '').replace(/```/g, '').trim();
 
     // 7. Parse and Return
-    const parsed = JSON.parse(text);
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (parseError) {
+      debugLog("JSON Parse Failed. Attempting Regex Extraction...");
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          parsed = JSON.parse(jsonMatch[0]);
+          debugLog("Regex Extraction Successful");
+        } catch (regexError) {
+          debugLog("Regex Extraction Failed", (regexError as Error).message);
+          throw parseError; // Throw original error if regex also fails
+        }
+      } else {
+        throw parseError;
+      }
+    }
 
     // Ensure structure matches what frontend expects
     const responseData = {

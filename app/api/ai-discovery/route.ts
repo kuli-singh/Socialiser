@@ -139,8 +139,19 @@ Instructions:
     try {
       parsedResponse = JSON.parse(aiContent);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', aiContent);
-      throw new Error('Failed to parse AI response as JSON');
+      console.log('JSON Parse Failed. Attempting Regex Extraction...');
+      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+        } catch (regexError) {
+          console.error('Failed to parse (extracted) AI response:', aiContent);
+          throw new Error('Failed to parse AI response as JSON');
+        }
+      } else {
+        console.error('Failed to parse AI response:', aiContent);
+        throw new Error('Failed to parse AI response as JSON');
+      }
     }
 
     if (!parsedResponse.options || !Array.isArray(parsedResponse.options)) {
