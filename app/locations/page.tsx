@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Plus, MapPin, Search } from "lucide-react";
+import { Plus, MapPin, Edit, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"; // Assuming this exists, if not I'll stick to basic labels or check imports
+// Actually, let's play it safe and stick to standard HTML labels if Label isn't confirmed, 
+// but Friends page used standard HTML form elements? No, Friends page used specific shadcn components if available.
+// I will use standard HTML labels for consistency with what I saw in app/locations/page.tsx previously, simplified.
 
 interface Location {
   id: string;
@@ -20,7 +27,9 @@ export default function LocationsPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newLocation, setNewLocation] = useState({
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
     name: "",
     type: "Venue",
     address: "",
@@ -48,22 +57,65 @@ export default function LocationsPage() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const resetForm = () => {
+    setFormData({ name: "", type: "Venue", address: "", description: "", website: "" });
+    setEditingLocationId(null);
+    setShowAddForm(false);
+  };
+
+  const handleEditClick = (location: Location) => {
+    setFormData({
+      name: location.name,
+      type: location.type,
+      address: location.address || "",
+      description: location.description || "",
+      website: location.website || ""
+    });
+    setEditingLocationId(location.id);
+    setShowAddForm(true);
+    // Scroll to top to see form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this location?")) return;
+
     try {
-      const response = await fetch("/api/locations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newLocation),
+      const response = await fetch(`/api/locations/${id}`, {
+        method: "DELETE"
       });
 
       if (response.ok) {
-        setShowAddForm(false);
-        setNewLocation({ name: "", type: "Venue", address: "", description: "", website: "" });
+        fetchLocations();
+      } else {
+        alert("Failed to delete location");
+      }
+    } catch (error) {
+      console.error("Error deleting location:", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const url = editingLocationId
+        ? `/api/locations/${editingLocationId}`
+        : "/api/locations";
+
+      const method = editingLocationId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        resetForm();
         fetchLocations();
       }
     } catch (error) {
-      console.error("Failed to create location", error);
+      console.error("Failed to save location", error);
     }
   };
 
@@ -76,97 +128,119 @@ export default function LocationsPage() {
           </h1>
           <p className="text-slate-500 mt-1">Manage your favorite places and clubs</p>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
-        >
-          <Plus size={20} />
-          <span>Add Location</span>
-        </button>
+        {!showAddForm && (
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Location
+          </Button>
+        )}
       </div>
 
       {showAddForm && (
-        <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-100 animate-in fade-in slide-in-from-top-4">
-          <h2 className="text-xl font-semibold mb-4 text-slate-800">Add New Place</h2>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Name</label>
-                <input
-                  required
-                  placeholder="e.g. Oxford Running Club"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={newLocation.name}
-                  onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
-                />
+        <Card className="animate-in fade-in slide-in-from-top-4">
+          <CardHeader>
+            <CardTitle>{editingLocationId ? "Edit Location" : "Add New Place"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Name</label>
+                  <Input
+                    required
+                    placeholder="e.g. Oxford Running Club"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Type</label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  >
+                    <option value="Venue">Venue</option>
+                    <option value="Club">Club</option>
+                    <option value="Organization">Organization</option>
+                    <option value="Online">Online</option>
+                  </select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-slate-700">Address / Location</label>
+                  <Input
+                    placeholder="e.g. 123 High St, Oxford"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Type</label>
-                <select
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={newLocation.type}
-                  onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value })}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={resetForm}
                 >
-                  <option value="Venue">Venue</option>
-                  <option value="Club">Club</option>
-                  <option value="Organization">Organization</option>
-                  <option value="Online">Online</option>
-                </select>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {editingLocationId ? "Update" : "Save"}
+                </Button>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">Address / Location</label>
-                <input
-                  placeholder="e.g. 123 High St, Oxford"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={newLocation.address}
-                  onChange={(e) => setNewLocation({ ...newLocation, address: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {locations.map((loc) => (
-          <div
-            key={loc.id}
-            className="group bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
-                  {loc.name}
-                </h3>
-                <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">
-                  {loc.type}
-                </span>
+          <Card key={loc.id} className="group hover:shadow-md transition-all hover:-translate-y-1">
+            <CardContent className="p-5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+                    {loc.name}
+                  </h3>
+                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">
+                    {loc.type}
+                  </span>
+                </div>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <MapPin size={20} />
+                </div>
               </div>
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                <MapPin size={20} />
+              {loc.address && (
+                <p className="mt-3 text-sm text-slate-500 flex items-center gap-1">
+                  {loc.address}
+                </p>
+              )}
+
+              <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditClick(loc)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(loc.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
               </div>
-            </div>
-            {loc.address && (
-              <p className="mt-3 text-sm text-slate-500 flex items-center gap-1">
-                {loc.address}
-              </p>
-            )}
-           </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
