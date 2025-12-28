@@ -30,7 +30,8 @@ import {
   Info,
   DollarSign,
   UserCheck,
-  Plus
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 import { getMinDateTime } from '@/lib/utils';
 
@@ -606,11 +607,24 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
                 </FormField>
 
                 <FormField label="Event URL">
-                  <Input
-                    value={formData.eventUrl}
-                    onChange={(e) => handleChange('eventUrl', e.target.value)}
-                    placeholder="https://event-website.com"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      value={formData.eventUrl}
+                      onChange={(e) => handleChange('eventUrl', e.target.value)}
+                      placeholder="https://event-website.com"
+                    />
+                    {formData.eventUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-shrink-0"
+                        onClick={() => window.open(formData.eventUrl, '_blank', 'noopener,noreferrer')}
+                        title="Open URL"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </FormField>
 
                 <div className="col-span-1 md:col-span-2">
