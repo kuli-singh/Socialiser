@@ -98,8 +98,25 @@ Instructions:
         aiContent = result.response.text();
         break;
       } catch (err: any) {
-        console.error(`AI Discovery failed with ${modelName}:`, err.message);
+        console.error(`AI Discovery failed with ${modelName} (Tools: ${enableGoogleSearch}):`, err.message);
         lastError = err;
+
+        // Fallback retry without tools
+        if (enableGoogleSearch) {
+          try {
+            console.log(`Retrying ${modelName} WITHOUT tools`);
+            const model = genAI.getGenerativeModel({
+              model: modelName,
+              tools: []
+            });
+            const result = await model.generateContent(prompt);
+            aiContent = result.response.text();
+            break;
+          } catch (retryErr: any) {
+            console.error(`AI Discovery fallback failed with ${modelName}:`, retryErr.message);
+            lastError = retryErr;
+          }
+        }
       }
     }
 

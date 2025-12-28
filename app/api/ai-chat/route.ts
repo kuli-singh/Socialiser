@@ -175,12 +175,11 @@ Instructions:
     let lastError = null;
 
     for (const modelName of modelsToTry) {
+      // First attempt: With preference-based tools (if any)
       try {
-        debugLog(`Attempting model: ${modelName}`);
+        debugLog(`Attempting model: ${modelName} (Tools: ${enableGoogleSearch})`);
 
-        // Config tools based on preferences
         const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
-
         const model = genAI.getGenerativeModel({
           model: modelName,
           tools: tools
@@ -190,8 +189,26 @@ Instructions:
         debugLog(`Success with model: ${modelName}`);
         break;
       } catch (err: any) {
-        debugLog(`Failed with model ${modelName} - ${err.message}`);
+        debugLog(`Failed with model ${modelName} (With Tools) - ${err.message}`);
         lastError = err;
+
+        // Second attempt: Fallback WITHOUT tools if search was enabled
+        if (enableGoogleSearch) {
+          try {
+            debugLog(`Retrying model: ${modelName} WITHOUT tools (Fallback)`);
+            const model = genAI.getGenerativeModel({
+              model: modelName,
+              tools: [] // Force empty tools
+            });
+            const result = await model.generateContent(prompt);
+            aiResponseText = result.response.text();
+            debugLog(`Success with model: ${modelName} (Fallback)`);
+            break;
+          } catch (retryErr: any) {
+            debugLog(`Failed with model ${modelName} (Fallback) - ${retryErr.message}`);
+            lastError = retryErr;
+          }
+        }
       }
     }
 
