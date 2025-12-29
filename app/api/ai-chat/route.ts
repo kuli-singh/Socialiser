@@ -217,7 +217,10 @@ ${instructions}
         const model = genAI.getGenerativeModel({
           model: modelName,
           tools: tools,
-          generationConfig: { responseMimeType: "application/json" }
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema as any
+          }
         });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
@@ -234,7 +237,10 @@ ${instructions}
             const model = genAI.getGenerativeModel({
               model: modelName,
               tools: [], // Force empty tools
-              generationConfig: { responseMimeType: "application/json" }
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: responseSchema as any
+              }
             });
             const result = await model.generateContent(prompt);
             aiResponseText = result.response.text();
