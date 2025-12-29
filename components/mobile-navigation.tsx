@@ -11,7 +11,7 @@ export function MobileNavigation() {
     // Filter for key mobile items (Dashboard, Schedule, Activities, Friends, Locations, Settings)
     // AI Discovery is removed as requested
     const mobileItems = navItems.filter(item =>
-        ['Dashboard', 'Schedule', 'Activities', 'Friends', 'Locations', 'Settings'].includes(item.label)
+        ['Dashboard', 'Events', 'Activities', 'Friends', 'Locations', 'Settings'].includes(item.label)
     );
 
     return (

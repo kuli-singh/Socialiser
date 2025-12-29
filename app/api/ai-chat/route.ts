@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/db';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { decrypt } from '@/lib/encryption';
 
 export const dynamic = "force-dynamic";
 
@@ -133,9 +134,21 @@ export async function POST(request: NextRequest) {
     });
 
     // 4. Initialize Gemini
-    const apiKey = process.env.GOOGLE_API_KEY;
+    let apiKey = process.env.GOOGLE_API_KEY;
+
+    // Use User-stored key if available
+    if (user.id) {
+      const userWithKey = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { googleApiKey: true }
+      });
+      if (userWithKey?.googleApiKey) {
+        apiKey = decrypt(userWithKey.googleApiKey);
+      }
+    }
+
     if (!apiKey) {
-      throw new Error("GOOGLE_API_KEY is not set");
+      throw new Error("GOOGLE_API_KEY is not set (system or user)");
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);

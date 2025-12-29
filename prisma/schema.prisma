@@ -17,6 +17,7 @@ model User {
   profilePicture    String?
   timezone          String?
   preferences       Json?
+  googleApiKey      String?
   activities        Activity[]
   activityInstances ActivityInstance[]
   coreValues        CoreValue[]

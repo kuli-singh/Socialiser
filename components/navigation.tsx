@@ -17,7 +17,8 @@ import {
 import {
   User,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 import { navItems } from '@/lib/nav-config';
 
@@ -113,6 +114,13 @@ export function Navigation() {
                 <Link href="/profile" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Profile Settings
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  AI Settings
                 </Link>
               </DropdownMenuItem>
 
