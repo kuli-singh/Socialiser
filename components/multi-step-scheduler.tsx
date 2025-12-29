@@ -143,6 +143,18 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Fetch initial data
+  useEffect(() => {
+    // Always fetch friends and locations as they are needed for the form
+    fetchFriends();
+    fetchLocations();
+
+    // Only fetch activities if we need to select one
+    if (!preselectedTemplate && !aiSuggestion) {
+      fetchActivities();
+    }
+  }, []); // Run once on mount
+
   useEffect(() => {
     if (aiSuggestion) {
       // If AI suggestion is provided, set up the data and pre-populate rich fields
@@ -198,19 +210,12 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         datetime: validDateTime || prev.datetime || '',
         eventUrl: aiSuggestion.url || '',
       }));
-
-      // Fetch friends and locations for AI suggestions
-      Promise.all([fetchFriends(), fetchLocations()]);
     } else if (preselectedTemplate) {
-      // If template is preselected, fetch friends and set title
-      Promise.all([fetchFriends(), fetchLocations()]);
+      // If template is preselected, set title and defaults
       setFormData(prev => ({
         ...prev,
         customTitle: prev.customTitle || preselectedTemplate.name
       }));
-    } else {
-      // Otherwise fetch both activities and friends and locations
-      Promise.all([fetchActivities(), fetchFriends(), fetchLocations()]);
     }
   }, [preselectedTemplate, aiSuggestion]);
 
