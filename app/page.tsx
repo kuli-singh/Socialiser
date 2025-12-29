@@ -113,12 +113,17 @@ export default function DashboardPage() {
       // Ensure data is an array and filter for upcoming instances only with safe date parsing
       const safeData = Array.isArray(data) ? data : [];
       const now = new Date();
-      const upcoming = safeData.filter((instance: ActivityInstance) => {
+      // Start of today (00:00:00)
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const todayAndUpcoming = safeData.filter((instance: ActivityInstance) => {
         if (!instance) return false;
         const eventDate = safeParseDate(instance?.datetime);
-        return eventDate && eventDate > now;
+        // Show anything from today onwards
+        return eventDate && eventDate >= startOfToday;
       });
-      setInstances(upcoming ?? []);
+      setInstances(todayAndUpcoming ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setInstances([]); // Ensure instances is always an array even on error
@@ -221,12 +226,12 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center">
               <CalendarCheck className="h-5 w-5 text-blue-600 mr-2" />
-              <CardTitle className="text-lg">Upcoming Events</CardTitle>
+              <CardTitle className="text-lg">Today & Upcoming</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-blue-600">{instances.length}</div>
-            <p className="text-gray-600 text-sm">Scheduled events ready to go</p>
+            <p className="text-gray-600 text-sm">Active and upcoming events</p>
           </CardContent>
         </Card>
 
@@ -264,19 +269,27 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <CalendarCheck className="h-6 w-6 text-blue-600 mr-2" />
-            <h2 className="text-2xl font-semibold text-gray-900">Upcoming Events</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Today & Upcoming Events</h2>
             <Badge variant="secondary" className="ml-3 bg-blue-100 text-blue-800">
-              Scheduled Instances
+              Active Instances
             </Badge>
           </div>
-          {instances.length > 0 && (
-            <Link href="/schedule">
-              <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Another
+          <div className="flex space-x-2">
+            <Link href="/events">
+              <Button variant="ghost" size="sm">
+                View All Events
+                <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             </Link>
-          )}
+            {instances.length > 0 && (
+              <Link href="/schedule">
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Another
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {instances.length === 0 ? (
@@ -317,9 +330,15 @@ export default function DashboardPage() {
                         {/* Template Name - Secondary */}
                         <div className="flex items-center text-sm text-blue-600 mb-2">
                           <span>Template: {instance.activity.name}</span>
-                          <Badge variant="secondary" className="ml-2 bg-blue-200 text-blue-800 text-xs">
-                            Event
-                          </Badge>
+                          {safeParseDate(instance.datetime)! < new Date() ? (
+                            <Badge variant="secondary" className="ml-2 bg-gray-200 text-gray-700 text-xs">
+                              Started
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="ml-2 bg-blue-200 text-blue-800 text-xs">
+                              Upcoming
+                            </Badge>
+                          )}
                         </div>
 
                         {/* Time Until */}

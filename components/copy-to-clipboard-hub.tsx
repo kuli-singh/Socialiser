@@ -7,11 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Copy, 
-  CheckCircle, 
-  MessageCircle, 
-  Mail, 
+import {
+  Copy,
+  CheckCircle,
+  MessageCircle,
+  Mail,
   Share2,
   Link,
   Calendar,
@@ -123,7 +123,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
     message += `📅 ${date}\n`;
     message += `🕐 ${time}\n`;
     if (location !== 'Location TBD') message += `📍 ${location}\n`;
-    
+
     if (instance.detailedDescription || instance.activity.description) {
       message += `\n📋 About this event:\n${instance.detailedDescription || instance.activity.description}\n`;
     }
@@ -161,7 +161,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
     message += `${eventTitle}\n`;
     message += `${date} at ${time}\n`;
     if (location !== 'Location TBD') message += `Location: ${location}\n`;
-    
+
     if (instance.detailedDescription || instance.activity.description) {
       message += `\nDescription:\n${instance.detailedDescription || instance.activity.description}\n`;
     }
@@ -240,12 +240,16 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={eventUrl}
-              readOnly
-              className="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
-            />
+            <div className="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono overflow-x-auto whitespace-nowrap scrollbar-hide">
+              <a
+                href={eventUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+              >
+                {eventUrl}
+              </a>
+            </div>
             <Button onClick={copyEventUrl} variant="outline">
               {copied === 'url' ? (
                 <>
@@ -262,7 +266,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
           </div>
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-sm text-blue-800">
-              🌟 <strong>Anyone can view this link!</strong> Share it anywhere - social media, 
+              🌟 <strong>Anyone can view this link!</strong> Share it anywhere - social media,
               messaging apps, email, or just copy-paste. No account required to view or RSVP.
             </p>
           </div>
@@ -295,7 +299,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
                   </div>
                 </div>
               )}
-              
+
               {friendsWithoutContact.length > 0 && (
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center">
@@ -340,7 +344,7 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
                 );
               })}
             </TabsList>
-            
+
             {formats.map(format => (
               <TabsContent key={format.id} value={format.id} className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -365,14 +369,14 @@ export function CopyToClipboardHub({ instance, eventUrl }: CopyToClipboardHubPro
                     )}
                   </Button>
                 </div>
-                
+
                 <Textarea
                   value={format.content}
                   readOnly
                   rows={format.id === 'sms' ? 3 : 10}
                   className="font-mono text-sm"
                 />
-                
+
                 {format.id === 'sms' && format.content.length > 160 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                     <p className="text-sm text-yellow-800">
