@@ -10,14 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Clock, 
-  Sparkles, 
-  Heart, 
-  Plus, 
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  Sparkles,
+  Heart,
+  Plus,
   Layers,
   CalendarCheck,
   Eye,
@@ -108,7 +108,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch('/api/instances');
       if (!response.ok) throw new Error('Failed to fetch scheduled events');
-      
+
       const data = await response.json();
       // Ensure data is an array and filter for upcoming instances only with safe date parsing
       const safeData = Array.isArray(data) ? data : [];
@@ -129,7 +129,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch('/api/activities');
       if (!response.ok) throw new Error('Failed to fetch activity templates');
-      
+
       const data = await response.json();
       // Ensure data is an array and safely slice it
       const safeData = Array.isArray(data) ? data : [];
@@ -146,11 +146,11 @@ export default function DashboardPage() {
     const confirmed = window.confirm(
       `Are you sure you want to delete the event "${instanceTitle}"? This action cannot be undone.`
     );
-    
+
     if (!confirmed) return;
 
     setDeletingInstanceId(instanceId);
-    
+
     try {
       const response = await fetch(`/api/instances/${instanceId}`, {
         method: 'DELETE',
@@ -162,10 +162,10 @@ export default function DashboardPage() {
       }
 
       // Remove the deleted instance from local state
-      setInstances(prevInstances => 
+      setInstances(prevInstances =>
         prevInstances.filter(instance => instance.id !== instanceId)
       );
-      
+
       alert('Event deleted successfully!');
     } catch (err) {
       console.error('Error deleting event:', err);
@@ -213,48 +213,7 @@ export default function DashboardPage() {
       </div>
 
       {/* AI Discovery Banner */}
-      <Card className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 shadow-xl">
-        <CardContent className="py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center mb-4 md:mb-0">
-              <div className="bg-white/20 p-3 rounded-full mr-4">
-                <Bot className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-2 flex items-center">
-                  AI-Powered Discovery
-                  <Sparkles className="h-6 w-6 ml-2 text-yellow-300" />
-                </h2>
-                <p className="text-purple-100 text-lg">
-                  Chat with AI to discover amazing local activities and events
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              <Link href="/ai-discovery">
-                <Button 
-                  size="lg" 
-                  className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg min-w-[160px]"
-                >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Chat with AI
-                </Button>
-              </Link>
-              <div className="hidden sm:block text-white/80 text-sm max-w-xs">
-                <div className="flex items-center mb-1">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Real-time event search
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Location-aware suggestions
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -319,7 +278,7 @@ export default function DashboardPage() {
             </Link>
           )}
         </div>
-        
+
         {instances.length === 0 ? (
           <Card className="border-2 border-dashed border-blue-200 bg-blue-50">
             <CardContent className="text-center py-12">
@@ -344,7 +303,7 @@ export default function DashboardPage() {
                 instance.state,
                 instance.zipCode
               ].filter(Boolean).join(', ');
-              
+
               return (
                 <Card key={instance.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500 bg-blue-50">
                   <CardHeader className="pb-3">
@@ -354,7 +313,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-lg font-semibold text-blue-900 mb-1">
                           {instance.customTitle || instance.activity.name}
                         </CardTitle>
-                        
+
                         {/* Template Name - Secondary */}
                         <div className="flex items-center text-sm text-blue-600 mb-2">
                           <span>Template: {instance.activity.name}</span>
@@ -362,7 +321,7 @@ export default function DashboardPage() {
                             Event
                           </Badge>
                         </div>
-                        
+
                         {/* Time Until */}
                         <div className="flex items-center text-sm text-blue-700">
                           <Clock className="h-4 w-4 mr-1" />
@@ -371,7 +330,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-3">
                     {/* Date & Time */}
                     <div className="flex items-center text-sm text-gray-700">
@@ -454,7 +413,7 @@ export default function DashboardPage() {
                           try {
                             const response = await fetch(`/api/calendar/${instance.id}`);
                             if (!response.ok) throw new Error('Failed to generate calendar file');
-                            
+
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -569,7 +528,7 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-3">
                   {/* Description */}
                   {template.description && (
