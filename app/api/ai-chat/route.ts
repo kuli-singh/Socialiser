@@ -171,67 +171,69 @@ export async function POST(request: NextRequest) {
         2. SOCIAL HUB: ${socialLocation} (Use for: Restaurants, Theatre, Cinema, Nightlife).
         `;
     }
-    1. Suggest 3 - 4 diverse, REAL, CONCRETE event options matching the request happening around ${ today }.
-    2. ${ enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.' } Do not hallucinate.
-3. CRITICAL: You MUST provide a valid 'url' for EVERY event found.Use the link from the Google Search result.
-4. Prioritize saved locations / activities if relevant.
+    const coreGuardrails = `
+    1. Suggest 3 - 4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
+    2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
+    3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
+    4. Prioritize saved locations / activities if relevant.
 
-8. TARGET ACTIVITY TYPE(STRICT):
-    - You MUST identify the specific "Activity Type" requested by the user from their message(e.g., "Theatre", "Concert", "Dinner", "Hiking").
-   - ALL suggested events must strictly match this Activity Type.
-   - SAVED ACTIVITIES: You may only suggest a Saved Activity if its name or description clearly matches the requested Activity Type.Do NOT suggest a Saved "Hiking" activity if the user asked for "Theatre".
+    8. TARGET ACTIVITY TYPE (STRICT):
+       - You MUST identify the specific "Activity Type" requested by the user from their message (e.g., "Theatre", "Concert", "Dinner", "Hiking").
+       - ALL suggested events must strictly match this Activity Type.
+       - SAVED ACTIVITIES: You may only suggest a Saved Activity if its name or description clearly matches the requested Activity Type. Do NOT suggest a Saved "Hiking" activity if the user asked for "Theatre".
 
-9. GROUNDING & EXISTENCE(CRITICAL):
-      - ${ enableGoogleSearch ? 'You MUST use Google Search to find REAL, ACTIVE events happening on the specified dates.' : 'Since search is disabled, rely on your knowledge base but be as accurate as possible.' }
-    - VERIFY EXISTENCE: Do not suggest shows or venues that have closed(e.g., verify that a show is currently running / ticketed).
-   - VERIFY LOCATION: Ensure suggestions are in the correct location based on the 'Location Context' below.
-   - SEARCH - FIRST: Use real - time search results as your primary source of truth, not your internal training data.
+    9. GROUNDING & EXISTENCE (CRITICAL):
+       - ${enableGoogleSearch ? 'You MUST use Google Search to find REAL, ACTIVE events happening on the specified dates.' : 'Since search is disabled, rely on your knowledge base but be as accurate as possible.'}
+       - VERIFY EXISTENCE: Do not suggest shows or venues that have closed (e.g., verify that a show is currently running / ticketed).
+       - VERIFY LOCATION: Ensure suggestions are in the correct location based on the 'Location Context' below.
+       - SEARCH-FIRST: Use real-time search results as your primary source of truth, not your internal training data.
 
-10. LOCATION SELECTION LOGIC:
-    - If the user specifies a location in the request, use that.
-   - If the request implies TRAVEL(flight, holiday, getaway), treat 'HOME / ORIGIN' as the DEPARTURE point.
-   - If the request implies LOCAL NATURE(hiking, walks), use 'HOME / ORIGIN'.
-   - If the request implies URBAN SOCIALIZING(dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
+    10. LOCATION SELECTION LOGIC:
+        - If the user specifies a location in the request, use that.
+        - If the request implies TRAVEL (flight, holiday, getaway), treat 'HOME / ORIGIN' as the DEPARTURE point.
+        - If the request implies LOCAL NATURE (hiking, walks), use 'HOME / ORIGIN'.
+        - If the request implies URBAN SOCIALIZING (dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
 
-11. OUTPUT MUST BE STRICT VALID JSON ONLY.No markdown, no explanations outside JSON.
-12. Follow this JSON structure:
-    {
-      "message": "Friendly response to user...",
-        "suggestedEvents": [
-          {
-            "name": "Event Title",
-            "description": "...",
-            "venue": "...",
-            "address": "...",
-            "date": "YYYY-MM-DD (e.g. 2025-12-31)",
-            "time": "HH:MM (24h format, e.g. 19:00)",
-            "duration": "...",
-            "venueType": "...",
-            "price": "...",
-            "reasoning": "...",
-            "url": "https://..."
-          }
-        ]
-    }
+    11. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
+    12. Follow this JSON structure:
+        {
+          "message": "Friendly response to user...",
+          "suggestedEvents": [
+            {
+              "name": "Event Title",
+              "description": "...",
+              "venue": "...",
+              "address": "...",
+              "date": "YYYY-MM-DD",
+              "time": "HH:MM",
+              "duration": "...",
+              "venueType": "...",
+              "price": "...",
+              "reasoning": "...",
+              "url": "https://..."
+            }
+          ]
+        }
     `;
 
-    // Use User's System Prompt if available, otherwise use defaults.
-    const instructions = systemPrompt || defaultInstructions;
-
     const prompt = `
-You are an advanced AI social event planner.Your goal is to help the user plan social activities.
+You are an advanced AI social event planner. Your goal is to help the user plan social activities.
 
-User Context:
-    - Current Date: ${ today }
-    - Activities: ${ JSON.stringify(userActivities) }
-    - Core Values: ${ JSON.stringify(userValues) }
-    - Saved Locations: ${ JSON.stringify(userLocations) }
-    - Location Context: ${ locationContextString }
+USER CONTEXT:
+- Current Date: ${today}
+- Saved Activities: ${JSON.stringify(userActivities)}
+- Core Values: ${JSON.stringify(userValues)}
+- Saved Locations: ${JSON.stringify(userLocations)}
+- Location Context: ${locationContextString}
 
-User Request: "${message}"
+CORE MANDATORY RULES:
+${coreGuardrails}
 
-    Instructions:
-${ instructions }
+${systemPrompt ? `USER-SPECIFIED STYLE & IDENTITY INSTRUCTIONS:
+${systemPrompt}
+` : ''}
+
+USER REQUEST: "${message}"
     `;
 
     // Models to try (Fallback logic)
@@ -256,7 +258,7 @@ ${ instructions }
     for (const modelName of modelsToTry) {
       // First attempt: With preference-based tools (if any)
       try {
-        debugLog(`Attempting model: ${ modelName } (Tools: ${ enableGoogleSearch })`);
+        debugLog(`Attempting model: ${modelName} (Tools: ${enableGoogleSearch})`);
 
         const tools = enableGoogleSearch ? [{ googleSearch: {} } as any] : [];
         const model = genAI.getGenerativeModel({
@@ -269,16 +271,16 @@ ${ instructions }
         });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
-        debugLog(`Success with model: ${ modelName } `);
+        debugLog(`Success with model: ${modelName} `);
         break;
       } catch (err: any) {
-        debugLog(`Failed with model ${ modelName } (With Tools) - ${ err.message } `);
+        debugLog(`Failed with model ${modelName} (With Tools) - ${err.message} `);
         lastError = err;
 
         // Second attempt: Fallback WITHOUT tools if search was enabled
         if (enableGoogleSearch) {
           try {
-            debugLog(`Retrying model: ${ modelName } WITHOUT tools(Fallback)`);
+            debugLog(`Retrying model: ${modelName} WITHOUT tools(Fallback)`);
             const model = genAI.getGenerativeModel({
               model: modelName,
               tools: [], // Force empty tools
@@ -289,10 +291,10 @@ ${ instructions }
             });
             const result = await model.generateContent(prompt);
             aiResponseText = result.response.text();
-            debugLog(`Success with model: ${ modelName } (Fallback)`);
+            debugLog(`Success with model: ${modelName} (Fallback)`);
             break;
           } catch (retryErr: any) {
-            debugLog(`Failed with model ${ modelName } (Fallback) - ${ retryErr.message } `);
+            debugLog(`Failed with model ${modelName} (Fallback) - ${retryErr.message} `);
             lastError = retryErr;
           }
         }
