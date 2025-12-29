@@ -107,10 +107,12 @@ export async function POST(request: NextRequest) {
     const systemPrompt = userPreferences.systemPrompt || "";
     let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
 
-    // Fix legacy/unavailable model names from DB
-    if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-flash-latest";
-    if (preferredModel === "gemini-1.5-pro") preferredModel = "gemini-pro-latest";
-    if (preferredModel === "gemini-1.5-pro-latest") preferredModel = "gemini-pro-latest"; // Just in case
+    // Fix legacy/unavailable model names from DB or update to latest stable aliases
+    if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-1.5-flash-latest";
+    if (preferredModel === "gemini-1.5-flash-8b") preferredModel = "gemini-1.5-flash-8b-latest";
+    if (preferredModel === "gemini-flash-latest") preferredModel = "gemini-1.5-flash-latest";
+    if (preferredModel === "gemini-pro-latest") preferredModel = "gemini-1.5-pro-latest";
+    if (preferredModel === "gemini-2.0-flash-exp") preferredModel = "gemini-2.0-flash-exp"; // Stable exp name
 
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
@@ -215,18 +217,24 @@ ${instructions}
     let modelsToTry = [preferredModel];
 
     // If Pro is preferred but fails, try Flash as fallback
-    if (preferredModel.includes('pro') || preferredModel.includes('Pro')) {
-      modelsToTry.push('gemini-1.5-flash'); // Fallback to Flash
-      modelsToTry.push('gemini-1.5-flash-8b'); // Ultimate fallback
-    } else if (preferredModel === 'gemini-1.5-flash') {
-      modelsToTry.push('gemini-1.5-flash-8b');
+    if (preferredModel.includes('pro')) {
+      modelsToTry.push('gemini-1.5-flash-latest'); // Fallback to standard Flash
+      modelsToTry.push('gemini-1.5-flash-8b-latest'); // Ultimate fallback
+    } else if (preferredModel.includes('flash') && preferredModel.includes('8b')) {
+      modelsToTry.push('gemini-1.5-flash-latest'); // If 8B fails, try standard Flash
+    } else if (preferredModel.includes('2.0')) {
+      modelsToTry.push('gemini-1.5-flash-latest'); // If 2.0 Exp fails, try stable 1.5 Flash
     }
-    // If already Flash, maybe try legacy Pro? No, usually Flash is the safety net.
+
+    // Safety: ensure the list is unique and doesn't contain duplicates
+    modelsToTry = Array.from(new Set(modelsToTry));
 
 
     // Ensure strict naming for Flash fallback
+    // Standardize all names to the most compatible format for the SDK
     modelsToTry = modelsToTry.map(m => {
-      if (m === 'gemini-1.5-flash') return 'gemini-1.5-flash'; // Or 'gemini-flash-latest' if supported
+      if (m === 'gemini-1.5-flash') return 'gemini-1.5-flash-latest';
+      if (m === 'gemini-1.5-flash-8b') return 'gemini-1.5-flash-8b-latest';
       return m;
     });
 
