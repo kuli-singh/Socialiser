@@ -158,6 +158,12 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     }
   }, []); // Run once on mount
 
+  // Helper to sanitize literal "undefined" strings from URL parameters
+  const sanitizeValue = (val: string | undefined | null) => {
+    if (val === 'undefined' || val === 'null' || !val) return '';
+    return val;
+  };
+
   useEffect(() => {
     if (aiSuggestion) {
       // If AI suggestion is provided, set up the data and pre-populate rich fields
@@ -197,21 +203,21 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
 
       setFormData(prev => ({
         ...prev,
-        customTitle: aiSuggestion.eventName || '',
-        venue: aiSuggestion.venue || '',
-        address: aiSuggestion.address || '',
-        city: aiSuggestion.city || '',
-        state: aiSuggestion.state || '',
-        zipCode: aiSuggestion.zipCode || '',
-        detailedDescription: aiSuggestion.description || '',
-        requirements: aiSuggestion.requirements || '',
-        contactInfo: aiSuggestion.contactInfo || '',
-        venueType: aiSuggestion.venueType || '',
-        priceInfo: aiSuggestion.price || '',
-        capacity: aiSuggestion.capacity || '',
+        customTitle: sanitizeValue(aiSuggestion.eventName),
+        venue: sanitizeValue(aiSuggestion.venue),
+        address: sanitizeValue(aiSuggestion.address),
+        city: sanitizeValue(aiSuggestion.city),
+        state: sanitizeValue(aiSuggestion.state),
+        zipCode: sanitizeValue(aiSuggestion.zipCode),
+        detailedDescription: sanitizeValue(aiSuggestion.description),
+        requirements: sanitizeValue(aiSuggestion.requirements),
+        contactInfo: sanitizeValue(aiSuggestion.contactInfo),
+        venueType: sanitizeValue(aiSuggestion.venueType),
+        priceInfo: sanitizeValue(aiSuggestion.price),
+        capacity: sanitizeValue(aiSuggestion.capacity),
         location: suggestionOption.suggestedLocation,
         datetime: validDateTime || prev.datetime || '',
-        eventUrl: aiSuggestion.url || '',
+        eventUrl: sanitizeValue(aiSuggestion.url),
       }));
     } else if (preselectedTemplate) {
       // If template is preselected, set title and defaults

@@ -11,6 +11,7 @@ import { ErrorMessage } from '@/components/error-message';
 import { CalendarIntegration } from '@/components/calendar-integration';
 import { QRCodeGenerator } from '@/components/qr-code-generator';
 import { CopyToClipboardHub } from '@/components/copy-to-clipboard-hub';
+import { getParticipantCount } from '@/lib/utils';
 import {
   ArrowLeft,
   Calendar,
@@ -283,7 +284,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       <MapPin className="h-4 w-4 mr-3 text-green-600" />
                       <div>
                         <div className="font-medium">{instance.venue}</div>
-                        {instance.venueType && (
+                        {instance.venueType && instance.venueType !== 'undefined' && (
                           <Badge variant="outline" className="text-xs mt-1 border-green-300 text-green-700">
                             {instance.venueType}
                           </Badge>
@@ -322,7 +323,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                     <span className="text-sm">Max {instance.capacity} people</span>
                   </div>
                 )}
-                {instance.priceInfo && (
+                {instance.priceInfo && instance.priceInfo !== 'undefined' && (
                   <Badge variant="outline" className="border-green-300 text-green-700">
                     {instance.priceInfo}
                   </Badge>
@@ -334,11 +335,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 <div className="font-medium text-gray-900 mb-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <Users className="h-5 w-5 mr-2 text-purple-600" />
-                    Guest List ({(
-                      (instance?.participations?.length ?? 0) +
-                      (instance?.publicRSVPs?.filter(r => !instance.participations.some(p => p.friend.email === r.email) && !r.friendId).length ?? 0) +
-                      (instance?.hostAttending ? 1 : 0)
-                    )})
+                    Guest List ({getParticipantCount(instance)})
                   </div>
                 </div>
 

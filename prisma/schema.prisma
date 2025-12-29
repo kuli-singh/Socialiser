@@ -104,9 +104,9 @@ model ActivityInstance {
   capacity            Int?
   endDate             DateTime?
   isAllDay            Boolean         @default(false)
-  hostAttending       Boolean         @default(true)
   locationId          String?
   eventUrl            String?
+  hostAttending       Boolean         @default(true)
   activity            Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
   locationRef         Location?       @relation(fields: [locationId], references: [id])
   user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -141,8 +141,8 @@ model PublicRSVP {
   email              String?
   phone              String?
   message            String?
-  friendId           String?
   createdAt          DateTime         @default(now())
+  friendId           String?
   activityInstance   ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
 
   @@index([activityInstanceId])

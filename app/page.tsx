@@ -30,7 +30,7 @@ import {
   Target,
   Trash2
 } from 'lucide-react';
-import { formatDateTime, getTimeUntil, safeParseDate } from '@/lib/utils';
+import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
 
 interface ActivityInstance {
   id: string;
@@ -382,12 +382,12 @@ export default function DashboardPage() {
 
                     {/* Rich Details Badges */}
                     <div className="flex flex-wrap gap-2">
-                      {instance.venueType && (
+                      {instance.venueType && instance.venueType !== 'undefined' && (
                         <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
                           {instance.venueType}
                         </Badge>
                       )}
-                      {instance.priceInfo && (
+                      {instance.priceInfo && instance.priceInfo !== 'undefined' && (
                         <Badge variant="outline" className="text-xs border-green-300 text-green-700">
                           {instance.priceInfo}
                         </Badge>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                     {/* Participants */}
                     <div className="flex items-center text-sm text-gray-700">
                       <Users className="h-4 w-4 mr-2 text-purple-600" />
-                      <span>{instance?.participations?.length ?? 0} participants</span>
+                      <span>{getParticipantCount(instance)} participants</span>
                     </div>
 
                     {/* Values */}

@@ -16,6 +16,7 @@ interface SuggestedEvent {
   date: string;
   time: string;
   duration: string;
+  venueType: string;
   price: string;
   url?: string;
   reasoning: string;
@@ -38,22 +39,25 @@ function AIDiscoveryContent() {
   const handleEventSelected = (event: SuggestedEvent) => {
     setSelectedEvent(event);
 
-    // Navigate to schedule page with pre-filled data
-    const scheduleUrl = new URLSearchParams({
+    // Navigate to schedule page with pre-filled data - Sanitized to avoid "undefined" strings
+    const params: Record<string, string> = {
       aiSuggestion: 'true',
-      eventName: event.name,
-      venue: event.venue,
-      address: event.address,
-      date: event.date,
-      time: event.time,
-      duration: event.duration,
-      price: event.price,
-      description: event.description,
-      ...(event.url && { url: event.url }),
-      ...(templateId && { templateId }),
-      ...(templateName && { templateName })
-    });
+    };
 
+    if (event.name) params.eventName = event.name;
+    if (event.venue) params.venue = event.venue;
+    if (event.address) params.address = event.address;
+    if (event.date) params.date = event.date;
+    if (event.time) params.time = event.time;
+    if (event.duration) params.duration = event.duration;
+    if (event.venueType) params.venueType = event.venueType;
+    if (event.price) params.price = event.price;
+    if (event.description) params.description = event.description;
+    if (event.url) params.url = event.url;
+    if (templateId) params.templateId = templateId;
+    if (templateName) params.templateName = templateName;
+
+    const scheduleUrl = new URLSearchParams(params);
     router.push(`/schedule?${scheduleUrl.toString()}`);
   };
 

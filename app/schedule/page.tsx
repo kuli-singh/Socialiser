@@ -40,6 +40,7 @@ function ScheduleContent() {
   const aiTemplateId = searchParams.get('templateId');
   const aiTemplateName = searchParams.get('templateName');
   const aiUrl = searchParams.get('url');
+  const aiVenueType = searchParams.get('venueType');
 
   const [selectedTemplate, setSelectedTemplate] = useState<ActivityTemplate | null>(null);
   const [showScheduler, setShowScheduler] = useState(true);
@@ -75,7 +76,8 @@ function ScheduleContent() {
         duration: aiDuration,
         price: aiPrice,
         description: aiDescription,
-        url: aiUrl
+        url: aiUrl,
+        venueType: aiVenueType
       });
     }
   }, [templateId, isAISuggestion, aiTemplateId, aiTemplateName]);

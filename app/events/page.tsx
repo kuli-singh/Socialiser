@@ -20,7 +20,7 @@ import {
     Eye,
     Trash2
 } from 'lucide-react';
-import { formatDateTime, getTimeUntil, safeParseDate } from '@/lib/utils';
+import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
 
 interface ActivityInstance {
     id: string;
@@ -235,7 +235,7 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
 
                 <div className="flex items-center text-sm text-gray-700">
                     <Users className="h-4 w-4 mr-2 text-purple-600" />
-                    <span>{instance.participations.length} participants</span>
+                    <span>{getParticipantCount(instance)} participants</span>
                 </div>
 
                 <div className="flex space-x-2 pt-2">

@@ -47,11 +47,12 @@ const responseSchema = {
           date: { type: SchemaType.STRING, description: "Suggested date" },
           time: { type: SchemaType.STRING, description: "Suggested time" },
           duration: { type: SchemaType.STRING, description: "Estimated duration" },
+          venueType: { type: SchemaType.STRING, description: "Type of venue (e.g. Restaurant, Theatre, Park, Outdoor, Indoor)" },
           price: { type: SchemaType.STRING, description: "Price info" },
           reasoning: { type: SchemaType.STRING, description: "Why this was suggested" },
           url: { type: SchemaType.STRING, description: "URL to official event page or search result", nullable: true }
         },
-        required: ["name", "description", "venue", "reasoning", "url"]
+        required: ["name", "description", "venue", "reasoning", "url", "venueType"]
       }
     }
   },
@@ -209,6 +210,7 @@ ${instructions}
       "date": "YYYY-MM-DD (e.g. 2025-12-31)",
       "time": "HH:MM (24h format, e.g. 19:00)",
       "duration": "...",
+      "venueType": "...",
       "price": "...",
       "reasoning": "...",
       "url": "https://..."

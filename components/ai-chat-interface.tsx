@@ -47,6 +47,7 @@ interface SuggestedEvent {
   date: string;
   time: string;
   duration: string;
+  venueType: string;
   price: string;
   url?: string;
   reasoning: string;
@@ -405,6 +406,12 @@ function EventCard({ event, onSelect }: { event: SuggestedEvent; onSelect: () =>
             <DollarSign className="h-3 w-3 mr-1" />
             {event.price}
           </div>
+          {event.venueType && (
+            <div className="col-span-2 flex items-center text-blue-600 font-medium">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Type: {event.venueType}
+            </div>
+          )}
         </div>
 
         <div className="bg-blue-50 p-2 rounded text-xs text-blue-800">
