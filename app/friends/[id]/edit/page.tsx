@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/form-field';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -16,7 +17,7 @@ interface Friend {
   id: string;
   name: string;
   email: string | null;
-  phone: string | null;
+  notes: string | null;
   group: string | null;
 }
 
@@ -30,7 +31,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
     name: '',
     email: '',
     group: '',
-    phone: '',
+    notes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -49,7 +50,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
         name: data.name,
         email: data.email || '',
         group: data.group || '',
-        phone: data.phone || '',
+        notes: data.notes || '',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch friend');
@@ -151,15 +152,15 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
               </p>
             </FormField>
 
-            <FormField label="Phone Number" error={errors.phone}>
-              <Input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="(555) 123-4567"
+            <FormField label="Notes" error={errors.notes}>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                placeholder="Add some notes about your friend..."
+                rows={4}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Optional: Add phone number for text notifications
+                Optional: Add personal notes about this friend
               </p>
             </FormField>
 

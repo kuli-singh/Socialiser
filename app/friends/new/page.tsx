@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/form-field';
 import { ArrowLeft } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function NewFriendPage() {
     name: '',
     email: '',
     group: '',
-    phone: '',
+    notes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -110,15 +111,15 @@ export default function NewFriendPage() {
               </p>
             </FormField>
 
-            <FormField label="Phone Number" error={errors.phone}>
-              <Input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="(555) 123-4567"
+            <FormField label="Notes" error={errors.notes}>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                placeholder="Add some notes about your friend..."
+                rows={4}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Optional: Add phone number for text notifications
+                Optional: Add personal notes about this friend
               </p>
             </FormField>
 
