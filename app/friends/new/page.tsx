@@ -17,6 +17,7 @@ export default function NewFriendPage() {
     name: '',
     email: '',
     group: '',
+    phone: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -106,6 +107,18 @@ export default function NewFriendPage() {
               />
               <p className="text-sm text-gray-500 mt-1">
                 Optional: Organize friends into groups for easier management
+              </p>
+            </FormField>
+
+            <FormField label="Phone Number" error={errors.phone}>
+              <Input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="(555) 123-4567"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Optional: Add phone number for text notifications
               </p>
             </FormField>
 

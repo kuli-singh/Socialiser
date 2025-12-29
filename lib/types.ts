@@ -15,7 +15,7 @@ export type Friend = {
   id: string
   userId: string
   name: string
-  phone: string
+  phone: string | null
   group?: string
   createdAt: Date
   updatedAt: Date
@@ -220,7 +220,7 @@ export type ActivityInstanceWithRelations = {
       id: string
       userId: string
       name: string
-      phone: string
+      phone: string | null
       email: string | null
       group: string | null
       createdAt: Date
@@ -333,7 +333,7 @@ export type SerializedActivityInstanceWithRelations = {
       id: string
       userId: string
       name: string
-      phone: string
+      phone: string | null
       email: string | null
       group: string | null
       createdAt: Date

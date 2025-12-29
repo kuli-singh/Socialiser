@@ -16,6 +16,7 @@ interface Friend {
   id: string;
   name: string;
   email: string | null;
+  phone: string | null;
   group: string | null;
 }
 
@@ -29,6 +30,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
     name: '',
     email: '',
     group: '',
+    phone: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -40,13 +42,14 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
     try {
       const response = await fetch(`/api/friends/${params.id}`);
       if (!response.ok) throw new Error('Friend not found');
-      
+
       const data = await response.json();
       setFriend(data);
       setFormData({
         name: data.name,
         email: data.email || '',
         group: data.group || '',
+        phone: data.phone || '',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch friend');
@@ -145,6 +148,18 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
               />
               <p className="text-sm text-gray-500 mt-1">
                 Optional: Organize friends into groups for easier management
+              </p>
+            </FormField>
+
+            <FormField label="Phone Number" error={errors.phone}>
+              <Input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="(555) 123-4567"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Optional: Add phone number for text notifications
               </p>
             </FormField>
 

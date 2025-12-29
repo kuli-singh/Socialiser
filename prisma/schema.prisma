@@ -31,7 +31,7 @@ model Friend {
   id             String          @id @default(cuid())
   userId         String
   name           String
-  phone          String          @default("000")
+  phone          String?
   group          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt

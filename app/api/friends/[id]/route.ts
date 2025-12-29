@@ -74,13 +74,14 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, email, group } = body;
+    const { name, email, group, phone } = body;
 
     const friend = await prisma.friend.update({
       where: { id: params.id },
       data: {
         name,
         email: email || null, // Optional email field
+        phone: phone || null,
         group
       }
     });
