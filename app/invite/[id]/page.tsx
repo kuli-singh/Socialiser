@@ -11,11 +11,11 @@ import { ErrorMessage } from '@/components/error-message';
 import { CalendarIntegration } from '@/components/calendar-integration';
 import { QRCodeGenerator } from '@/components/qr-code-generator';
 import { CopyToClipboardHub } from '@/components/copy-to-clipboard-hub';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Users,
   Heart,
   CheckCircle,
   Sparkles,
@@ -61,6 +61,13 @@ interface ActivityInstance {
       email: string | null;
     };
   }>;
+  publicRSVPs: Array<{
+    id: string;
+    name: string;
+    email: string | null;
+    message: string | null;
+    createdAt: string;
+  }>;
 }
 
 export default function InvitePage({ params }: { params: { id: string } }) {
@@ -68,8 +75,8 @@ export default function InvitePage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const eventUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/event/${params.id}` 
+  const eventUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/event/${params.id}`
     : '';
 
   useEffect(() => {
@@ -80,7 +87,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
     try {
       const response = await fetch(`/api/instances/${params.id}`);
       if (!response.ok) throw new Error('Activity instance not found');
-      
+
       const data = await response.json();
       setInstance(data);
     } catch (err) {
@@ -201,7 +208,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
               <Layers className="h-5 w-5 text-slate-600" />
               <div>
                 <p className="text-sm text-slate-600">Created from template:</p>
-                <Link 
+                <Link
                   href={`/templates/${instance.activity.id}/events`}
                   className="font-medium text-slate-900 hover:text-slate-700 flex items-center"
                 >
@@ -239,7 +246,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 <CardTitle className="text-xl font-bold text-blue-900 mb-2">
                   {instance.customTitle || instance.activity.name}
                 </CardTitle>
-                
+
                 <div className="flex items-center text-sm text-blue-600 mb-2">
                   <span>Template: {instance.activity.name}</span>
                   <Badge className="ml-2 bg-blue-100 text-blue-800 text-xs">
@@ -274,7 +281,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                   )}
-                  
+
                   {(instance.address || instance.city || instance.state) && (
                     <div className="flex items-start text-gray-700 ml-7">
                       <div className="text-sm">
@@ -287,7 +294,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                   )}
-                  
+
                   {!instance.venue && !instance.address && instance.location && (
                     <div className="flex items-center text-gray-700">
                       <MapPin className="h-4 w-4 mr-3 text-green-600" />
@@ -316,9 +323,12 @@ export default function InvitePage({ params }: { params: { id: string } }) {
               <div className="flex items-start text-gray-700">
                 <Users className="h-4 w-4 mr-3 mt-1 text-purple-600" />
                 <div>
-                  <div className="font-medium">{(instance?.participations?.length ?? 0)} participants invited</div>
+                  <div className="font-medium">{(instance?.participations?.length ?? 0) + (instance?.publicRSVPs?.length ?? 0)} participants</div>
                   <div className="text-sm text-gray-600">
-                    {(instance?.participations ?? []).map(p => p?.friend?.name).filter(Boolean).join(', ')}
+                    {[
+                      ...(instance?.participations ?? []).map(p => p?.friend?.name),
+                      ...(instance?.publicRSVPs ?? []).map(p => p?.name + " (RSVP)")
+                    ].filter(Boolean).join(', ')}
                   </div>
                 </div>
               </div>
@@ -367,13 +377,13 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         {/* Right Column - Actions */}
         <div className="space-y-6">
           {/* Calendar Integration */}
-          <CalendarIntegration 
+          <CalendarIntegration
             instanceId={instance.id}
             activityName={instance.customTitle || instance.activity.name}
           />
 
           {/* QR Code */}
-          <QRCodeGenerator 
+          <QRCodeGenerator
             url={eventUrl}
             eventTitle={instance.customTitle || instance.activity.name}
           />

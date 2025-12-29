@@ -54,7 +54,8 @@ export async function GET(
           include: {
             friend: true
           }
-        }
+        },
+        publicRSVPs: true
       }
     });
 
@@ -113,9 +114,9 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { 
-      datetime, 
-      location, 
+    const {
+      datetime,
+      location,
       friendIds,
       customTitle,
       venue,
@@ -162,7 +163,7 @@ export async function PUT(
 
     // Delete existing participations and create new ones
     await prisma.participation.deleteMany({
-      where: { 
+      where: {
         activityInstanceId: params.id,
         userId: user.id
       }
