@@ -25,7 +25,7 @@ import {
   ArrowRight,
   Eye,
   Share2,
-  ExternalLink,
+  Heart,
   Phone,
   MessageSquare,
   Mail

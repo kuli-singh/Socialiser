@@ -28,7 +28,8 @@ import {
   MessageCircle,
   UserPlus,
   Target,
-  Trash2
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
 
@@ -49,6 +50,7 @@ interface ActivityInstance {
   venueType: string | null;
   priceInfo: string | null;
   capacity: number | null;
+  eventUrl: string | null;
   activity: {
     id: string;
     name: string;
