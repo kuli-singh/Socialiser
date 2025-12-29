@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true
           }
-        }
+        },
+        publicRSVPs: true
       },
       orderBy: {
         datetime: 'asc'
@@ -93,7 +94,12 @@ export async function GET(request: NextRequest) {
             updatedAt: v.value?.updatedAt?.toISOString() ?? null
           }
         })) ?? []
-      }
+      },
+      publicRSVPs: instance.publicRSVPs?.map(rsvp => ({
+        ...rsvp,
+        friendId: (rsvp as any).friendId ?? null,
+        createdAt: rsvp.createdAt.toISOString()
+      })) ?? []
     }));
 
     return NextResponse.json(serializedInstances);
@@ -249,7 +255,8 @@ export async function POST(request: NextRequest) {
             name: true,
             email: true
           }
-        }
+        },
+        publicRSVPs: true
       }
     });
 
@@ -272,8 +279,14 @@ export async function POST(request: NextRequest) {
             updatedAt: v.value?.updatedAt?.toISOString() ?? null
           }
         })) ?? []
-      }
+      },
+      publicRSVPs: instance.publicRSVPs?.map(rsvp => ({
+        ...rsvp,
+        friendId: (rsvp as any).friendId ?? null,
+        createdAt: rsvp.createdAt.toISOString()
+      })) ?? []
     };
+
 
     return NextResponse.json(serializedInstance, { status: 201 });
   } catch (error) {
