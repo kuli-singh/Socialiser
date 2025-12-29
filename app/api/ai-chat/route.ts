@@ -101,8 +101,9 @@ export async function POST(request: NextRequest) {
       select: { preferences: true }
     });
 
-    const userPreferences = (userRecord?.preferences as { defaultLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
+    const userPreferences = (userRecord?.preferences as { defaultLocation?: string, socialLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
+    const socialLocation = userPreferences.socialLocation || defaultLocation; // Fallback to default if not set
     const systemPrompt = userPreferences.systemPrompt || "";
     let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
 
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
       values: userValues.length,
       locations: userLocations.length,
       defaultLocation,
+      socialLocation,
       hasSystemPrompt: !!systemPrompt,
       preferredModel,
       enableGoogleSearch
@@ -135,7 +137,20 @@ export async function POST(request: NextRequest) {
     const today = new Date().toDateString();
 
     // Determine effective location
-    const effectiveLocation = location && location.address ? location.address : defaultLocation;
+    // If a specific location is passed in the request body (e.g. from a temporary override), use it.
+    // Otherwise, describe the dual-location context.
+    const specificLocationOverride = location && location.address ? location.address : null;
+
+    let locationContextString = "";
+    if (specificLocationOverride) {
+      locationContextString = `Current Override Location: ${specificLocationOverride}`;
+    } else {
+      locationContextString = `
+        User has TWO default locations:
+        1. HOME / ORIGIN: ${defaultLocation} (Use for: Hiking, Walks, Local activities, and as the ORIGIN for flights/travel).
+        2. SOCIAL HUB: ${socialLocation} (Use for: Restaurants, Theatre, Cinema, Nightlife).
+        `;
+    }
 
     const prompt = `
 You are an advanced AI social event planner. Your goal is to help the user plan social activities.
@@ -147,7 +162,7 @@ User Context:
 - Activities: ${JSON.stringify(userActivities)}
 - Core Values: ${JSON.stringify(userValues)}
 - Saved Locations: ${JSON.stringify(userLocations)}
-- Location Context: ${effectiveLocation} (This is the user's current location/origin. If the request implies travel/flights/weekend away, treat this as the Origin, not the Destination).
+- Location Context: ${locationContextString}
 
 User Request: "${message}"
 
@@ -156,7 +171,11 @@ Instructions:
 2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
 3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
 4. Prioritize saved locations/activities if relevant.
-5. If the user request implies travel (e.g. "flight", "holiday", "getaway", "short haul"), suggest destinations or travel options DEPARTING FROM the Location Context, rather than events strictly INSIDE the Location Context.
+5. LOCATION SELECTION LOGIC:
+   - If the user specifies a location in the request, use that.
+   - If the request implies TRAVEL (flight, holiday, getaway), treat 'HOME / ORIGIN' as the DEPARTURE point.
+   - If the request implies LOCAL NATURE (hiking, walks), use 'HOME / ORIGIN'.
+   - If the request implies URBAN SOCIALIZING (dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
 6. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
 7. Follow this JSON structure:
 {

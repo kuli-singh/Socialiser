@@ -23,7 +23,10 @@ import {
   ArrowRight,
   Eye,
   Share2,
-  ExternalLink
+  ExternalLink,
+  Phone,
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 
 interface ActivityInstance {
@@ -65,6 +68,7 @@ interface ActivityInstance {
     id: string;
     name: string;
     email: string | null;
+    phone: string | null;
     message: string | null;
     createdAt: string;
   }>;
@@ -319,17 +323,120 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 )}
               </div>
 
-              {/* Participants */}
-              <div className="flex items-start text-gray-700">
-                <Users className="h-4 w-4 mr-3 mt-1 text-purple-600" />
-                <div>
-                  <div className="font-medium">{(instance?.participations?.length ?? 0) + (instance?.publicRSVPs?.length ?? 0)} participants</div>
-                  <div className="text-sm text-gray-600">
-                    {[
-                      ...(instance?.participations ?? []).map(p => p?.friend?.name),
-                      ...(instance?.publicRSVPs ?? []).map(p => p?.name + " (RSVP)")
-                    ].filter(Boolean).join(', ')}
+              {/* Detailed Guest List */}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="font-medium text-gray-900 mb-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-purple-600" />
+                    Guest List ({(
+                      (instance?.participations?.length ?? 0) +
+                      (instance?.publicRSVPs?.filter(r => !instance.participations.some(p => p.friend.email === r.email)).length ?? 0)
+                    )})
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  {/* 1. Internal Friends (Matched with RSVPs) */}
+                  {(instance?.participations ?? []).map((p) => {
+                    const matchedRSVP = instance?.publicRSVPs?.find(r =>
+                      (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
+                      (p.friend.name.toLowerCase() === r.name.toLowerCase())
+                    );
+
+                    return (
+                      <div key={p.friend.id} className="flex flex-col p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 flex items-center">
+                              {p.friend.name}
+                              <Badge variant="outline" className="ml-2 text-xs border-purple-200 text-purple-700 bg-purple-50">
+                                Friend
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-500">{p.friend.email || 'No email'}</div>
+                          </div>
+                          <div>
+                            {matchedRSVP ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Confirmed
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500 border-gray-300">
+                                Invited
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {matchedRSVP && (matchedRSVP.message || matchedRSVP.phone) && (
+                          <div className="mt-2 text-sm text-gray-600 bg-white p-2 rounded border border-gray-100">
+                            {matchedRSVP.phone && (
+                              <div className="flex items-center mb-1">
+                                <Phone className="h-3 w-3 mr-2" />
+                                {matchedRSVP.phone}
+                              </div>
+                            )}
+                            {matchedRSVP.message && (
+                              <div className="flex items-start">
+                                <MessageSquare className="h-3 w-3 mr-2 mt-0.5" />
+                                <span className="italic">"{matchedRSVP.message}"</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* 2. External RSVPs (Unmatched) */}
+                  {(instance?.publicRSVPs ?? [])
+                    .filter(r => !instance?.participations?.some(p =>
+                      (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
+                      (p.friend.name.toLowerCase() === r.name.toLowerCase())
+                    ))
+                    .map((rsvp) => (
+                      <div key={rsvp.id} className="flex flex-col p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 flex items-center">
+                              {rsvp.name}
+                              <Badge variant="outline" className="ml-2 text-xs border-blue-200 text-blue-700 bg-white">
+                                Guest
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {rsvp.email && <div className="flex items-center"><Mail className="h-3 w-3 mr-1" /> {rsvp.email}</div>}
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Confirmed (RSVP)
+                          </Badge>
+                        </div>
+                        {(rsvp.phone || rsvp.message) && (
+                          <div className="mt-2 text-sm text-gray-600 bg-white p-2 rounded border border-blue-100">
+                            {rsvp.phone && (
+                              <div className="flex items-center mb-1">
+                                <Phone className="h-3 w-3 mr-2" />
+                                {rsvp.phone}
+                              </div>
+                            )}
+                            {rsvp.message && (
+                              <div className="flex items-start">
+                                <MessageSquare className="h-3 w-3 mr-2 mt-0.5" />
+                                <span className="italic">"{rsvp.message}"</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                  {(instance?.participations?.length === 0 && instance?.publicRSVPs?.length === 0) && (
+                    <div className="text-center py-4 text-gray-500 italic text-sm">
+                      No guests have been invited or RSVP'd yet.
+                    </div>
+                  )}
                 </div>
               </div>
 

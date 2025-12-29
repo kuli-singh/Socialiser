@@ -19,6 +19,7 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
 
     const [defaultLocation, setDefaultLocation] = useState('');
+    const [socialLocation, setSocialLocation] = useState('');
     const [systemPrompt, setSystemPrompt] = useState('');
     const [preferredModel, setPreferredModel] = useState('gemini-flash-latest');
     const [enableGoogleSearch, setEnableGoogleSearch] = useState(true);
@@ -33,6 +34,7 @@ export default function SettingsPage() {
             if (response.ok) {
                 const data = await response.json();
                 setDefaultLocation(data.defaultLocation || '');
+                setSocialLocation(data.socialLocation || '');
                 setSystemPrompt(data.systemPrompt || '');
                 setPreferredModel(data.preferredModel || 'gemini-flash-latest');
                 setEnableGoogleSearch(data.enableGoogleSearch !== undefined ? data.enableGoogleSearch : true);
@@ -57,6 +59,7 @@ export default function SettingsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     defaultLocation,
+                    socialLocation,
                     systemPrompt,
                     preferredModel,
                     enableGoogleSearch
@@ -100,17 +103,32 @@ export default function SettingsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-2">
-                            <Label htmlFor="defaultLocation">Default Location</Label>
-                            <Input
-                                id="defaultLocation"
-                                placeholder="e.g. London, UK"
-                                value={defaultLocation}
-                                onChange={(e) => setDefaultLocation(e.target.value)}
-                            />
-                            <p className="text-sm text-gray-500">
-                                This location will be used as the starting point for AI recommendations unless you specify otherwise in the chat.
-                            </p>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="defaultLocation">Home / Origin Location</Label>
+                                <Input
+                                    id="defaultLocation"
+                                    placeholder="e.g. Richmond, UK"
+                                    value={defaultLocation}
+                                    onChange={(e) => setDefaultLocation(e.target.value)}
+                                />
+                                <p className="text-sm text-gray-500">
+                                    Where you live. Used for local activities (hiking, walks) and as the <strong>starting point</strong> for travel.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="socialLocation">Social / Event Hub</Label>
+                                <Input
+                                    id="socialLocation"
+                                    placeholder="e.g. Central London, UK"
+                                    value={socialLocation}
+                                    onChange={(e) => setSocialLocation(e.target.value)}
+                                />
+                                <p className="text-sm text-gray-500">
+                                    Where you usually go out (Restaurants, Theatre, Cinema).
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
