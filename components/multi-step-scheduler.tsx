@@ -31,7 +31,10 @@ import {
   DollarSign,
   UserCheck,
   Plus,
-  ExternalLink
+  ExternalLink,
+  Settings,
+  Zap,
+  Bot
 } from 'lucide-react';
 import { getMinDateTime } from '@/lib/utils';
 
@@ -70,7 +73,7 @@ interface DiscoveredOption {
   url?: string;
 }
 
-type Step = 'activity-selection' | 'ai-discovery' | 'event-details' | 'finalize';
+type Step = 'activity-selection' | 'choice' | 'ai-discovery' | 'event-details' | 'finalize';
 
 interface MultiStepSchedulerProps {
   onBack: () => void;
@@ -103,7 +106,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
   const [currentStep, setCurrentStep] = useState<Step>(() => {
     if (aiSuggestion) return 'event-details';
     if (preselectedTemplate && isManualMode) return 'event-details';
-    if (preselectedTemplate) return 'ai-discovery';
+    if (preselectedTemplate) return 'choice';
     return 'activity-selection';
   });
 
@@ -261,7 +264,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
 
   const handleActivitySelect = (activity: Activity) => {
     setSelectedActivity(activity);
-    setCurrentStep('ai-discovery');
+    setCurrentStep('choice');
   };
 
   const handleOptionSelected = (option: DiscoveredOption) => {
@@ -454,8 +457,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     );
   }
 
-  // Step: AI Discovery
-  if (currentStep === 'ai-discovery') {
+  // Step: Choice (Manual vs AI)
+  if (currentStep === 'choice') {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
@@ -468,6 +471,89 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
           }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             {preselectedTemplate ? 'Back' : 'Select Template'}
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Create Event from Template</h2>
+            <p className="text-gray-600">Choose how to create your {selectedActivity?.name} event</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Manual Creation Option */}
+          <Card
+            className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300"
+            onClick={() => setCurrentStep('event-details')}
+          >
+            <CardContent className="py-8 text-center">
+              <div className="bg-blue-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Settings className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Create Event Manually</h3>
+              <p className="text-gray-600 mb-4">
+                Fill out the event details yourself - perfect when you know exactly what you want
+              </p>
+              <div className="space-y-2 mb-4 text-sm text-gray-600">
+                <div className="flex items-center justify-center">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Direct to event form
+                </div>
+                <div className="flex items-center justify-center">
+                  <Users className="h-4 w-4 mr-2" />
+                  Full control over details
+                </div>
+              </div>
+              <Button size="lg" className="w-full" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Manually
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* AI Discovery Option */}
+          <Card
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+            onClick={() => setCurrentStep('ai-discovery')}
+          >
+            <CardContent className="py-8 text-center">
+              <div className="bg-white/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 flex items-center justify-center">
+                Discover with AI
+                <Sparkles className="h-5 w-5 ml-2 text-yellow-300" />
+              </h3>
+              <p className="text-purple-100 mb-4">
+                Let AI suggest specific options, locations, and details for your {selectedActivity?.name.toLowerCase()} event
+              </p>
+              <div className="space-y-2 mb-4 text-sm text-purple-100">
+                <div className="flex items-center justify-center">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Smart suggestions
+                </div>
+                <div className="flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Location-aware options
+                </div>
+              </div>
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 w-full">
+                <Bot className="h-4 w-4 mr-2" />
+                Discover Specific Options with AI
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Step: AI Discovery
+  if (currentStep === 'ai-discovery') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="sm" onClick={() => setCurrentStep('choice')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Options
           </Button>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Discover Options with AI</h2>
@@ -493,7 +579,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         <AIActivityDiscovery
           selectedActivity={selectedActivity!}
           onOptionSelected={handleOptionSelected}
-          onBack={() => setCurrentStep('activity-selection')}
+          onBack={() => setCurrentStep('choice')}
         />
       </div>
     );
@@ -505,12 +591,12 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" onClick={() => {
-            if (preselectedTemplate && !selectedOption) {
-              onBack();
-            } else if (selectedOption) {
+            if (selectedOption) {
               setCurrentStep('ai-discovery');
+            } else if (isManualMode && preselectedTemplate) {
+              onBack();
             } else {
-              setCurrentStep('activity-selection');
+              setCurrentStep('choice');
             }
           }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
