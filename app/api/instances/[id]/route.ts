@@ -91,7 +91,12 @@ export async function GET(
             updatedAt: v.value?.updatedAt?.toISOString() ?? null
           }
         })) ?? []
-      }
+      },
+      publicRSVPs: instance.publicRSVPs?.map(rsvp => ({
+        ...rsvp,
+        friendId: (rsvp as any).friendId ?? null,
+        createdAt: rsvp.createdAt.toISOString()
+      })) ?? []
     };
 
     return NextResponse.json(serializedInstance);
@@ -219,7 +224,8 @@ export async function PUT(
           include: {
             friend: true
           }
-        }
+        },
+        publicRSVPs: true
       }
     });
 
@@ -242,7 +248,12 @@ export async function PUT(
             updatedAt: v.value?.updatedAt?.toISOString() ?? null
           }
         })) ?? []
-      }
+      },
+      publicRSVPs: instance.publicRSVPs?.map(rsvp => ({
+        ...rsvp,
+        friendId: (rsvp as any).friendId ?? null,
+        createdAt: rsvp.createdAt.toISOString()
+      })) ?? []
     };
 
     return NextResponse.json(serializedInstance);
