@@ -44,9 +44,15 @@ export async function GET(
           include: {
             friend: true
           }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
         }
       }
-    }) as ActivityInstanceWithRelations | null;
+    }) as unknown as ActivityInstanceWithRelations | null;
 
     if (!instance) {
       return NextResponse.json(
@@ -68,12 +74,12 @@ export async function GET(
     if (!instance.datetime) {
       return NextResponse.json({ error: 'Invalid event datetime' }, { status: 400 });
     }
-    
+
     const startDate = new Date(instance.datetime);
     if (isNaN(startDate.getTime())) {
       return NextResponse.json({ error: 'Invalid event datetime format' }, { status: 400 });
     }
-    
+
     // Handle end date - use provided endDate or default to 2 hours later
     let endDate: Date;
     if (instance.endDate) {
@@ -88,7 +94,7 @@ export async function GET(
     const isAllDay = instance.isAllDay || false;
 
     const eventTitle = instance.customTitle || instance.activity.name;
-    const eventLocation = instance.venue ? 
+    const eventLocation = instance.venue ?
       `${instance.venue}${instance.address ? `, ${instance.address}` : ''}${instance.city ? `, ${instance.city}` : ''}${instance.state ? `, ${instance.state}` : ''}${instance.zipCode ? ` ${instance.zipCode}` : ''}` :
       instance.location || '';
 

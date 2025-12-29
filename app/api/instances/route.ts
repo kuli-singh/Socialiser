@@ -61,6 +61,12 @@ export async function GET(request: NextRequest) {
           include: {
             friend: true
           }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
         }
       },
       orderBy: {
@@ -69,7 +75,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert Date objects to ISO strings to prevent serialization issues
-    const serializedInstances: SerializedActivityInstanceWithRelations[] = (instances as ActivityInstanceWithRelations[]).map((instance: ActivityInstanceWithRelations) => ({
+    const serializedInstances: SerializedActivityInstanceWithRelations[] = (instances as unknown as ActivityInstanceWithRelations[]).map((instance: ActivityInstanceWithRelations) => ({
       ...instance,
       datetime: instance.datetime?.toISOString() ?? null,
       endDate: instance.endDate?.toISOString() ?? null,
@@ -237,13 +243,19 @@ export async function POST(request: NextRequest) {
           include: {
             friend: true
           }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
         }
       }
     });
 
     // Serialize the response to prevent Date object issues
     const serializedInstance: SerializedActivityInstanceWithRelations = {
-      ...(instance as ActivityInstanceWithRelations),
+      ...(instance as unknown as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
       endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
