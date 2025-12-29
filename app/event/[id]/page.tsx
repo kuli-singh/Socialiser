@@ -353,9 +353,6 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         value={rsvpForm.name}
                         onChange={(e) => {
                           setRsvpForm({ ...rsvpForm, name: e.target.value })
-                          if (linkedFriend && e.target.value !== linkedFriend.name) {
-                            setLinkedFriend(null);
-                          }
                         }}
                         required
                         placeholder="Enter your full name"
