@@ -147,7 +147,7 @@ User Context:
 - Activities: ${JSON.stringify(userActivities)}
 - Core Values: ${JSON.stringify(userValues)}
 - Saved Locations: ${JSON.stringify(userLocations)}
-- Location Context: ${effectiveLocation}
+- Location Context: ${effectiveLocation} (This is the user's current location/origin. If the request implies travel/flights/weekend away, treat this as the Origin, not the Destination).
 
 User Request: "${message}"
 
@@ -156,8 +156,9 @@ Instructions:
 2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
 3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
 4. Prioritize saved locations/activities if relevant.
-5. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
-6. Follow this JSON structure:
+5. If the user request implies travel (e.g. "flight", "holiday", "getaway", "short haul"), suggest destinations or travel options DEPARTING FROM the Location Context, rather than events strictly INSIDE the Location Context.
+6. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
+7. Follow this JSON structure:
 {
   "message": "Friendly response to user...",
   "suggestedEvents": [
