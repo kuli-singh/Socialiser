@@ -211,7 +211,22 @@ ${instructions}
 }
     `;
 
-    const modelsToTry = [preferredModel];
+    // Models to try (Fallback logic)
+    let modelsToTry = [preferredModel];
+
+    // If Pro is preferred but fails, try Flash as fallback
+    if (preferredModel.includes('pro')) {
+      modelsToTry.push('gemini-1.5-flash'); // Fallback to Flash
+    } else if (preferredModel === 'gemini-1.5-flash') {
+      // If already Flash, maybe try legacy Pro? No, usually Flash is the safety net.
+    }
+
+    // Ensure strict naming for Flash fallback
+    modelsToTry = modelsToTry.map(m => {
+      if (m === 'gemini-1.5-flash') return 'gemini-1.5-flash'; // Or 'gemini-flash-latest' if supported
+      return m;
+    });
+
     let aiResponseText = null;
     let lastError = null;
 
