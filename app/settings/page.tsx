@@ -211,16 +211,21 @@ export default function SettingsPage() {
                                     <SelectValue placeholder="Select a model" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="gemini-flash-latest">Gemini Flash (Latest Stable)</SelectItem>
-                                    <SelectItem value="gemini-pro-latest">Gemini Pro (High Intelligence)</SelectItem>
-                                    <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</SelectItem>
+                                    <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Exp) - FASTEST & NEWEST</SelectItem>
+                                    <SelectItem value="gemini-flash-latest">Gemini 1.5 Flash (Stable) - Best for High Usage</SelectItem>
+                                    <SelectItem value="gemini-pro-latest">Gemini 1.5 Pro (Smarter) - Lower Limits</SelectItem>
+                                    <SelectItem value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B - Ultra Fast / Lean</SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-sm text-gray-500">
-                                <strong>Gemini Flash</strong> is the most stable and fast option.<br />
-                                <strong>Gemini Pro</strong> is smarter but may have lower rate limits.<br />
-                                <strong>Gemini 2.0 Flash</strong> is experimental.
+                                <strong>Tip:</strong> Flash models (2.0 and 1.5) have significantly higher "usage limits" than Pro.
                             </p>
+                            <div className="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-md">
+                                <p className="text-sm text-indigo-700 font-medium mb-1">Quota & Billing Note</p>
+                                <p className="text-xs text-indigo-600">
+                                    A consumer "Gemini Advanced" subscription does NOT apply to API usage. For high-volume use, consider enabling "Pay-as-you-go" billing in <a href="https://aistudio.google.com/" target="_blank" className="underline font-bold">Google AI Studio</a>.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="flex items-center justify-between space-x-2">

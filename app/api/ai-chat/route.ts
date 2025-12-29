@@ -215,11 +215,14 @@ ${instructions}
     let modelsToTry = [preferredModel];
 
     // If Pro is preferred but fails, try Flash as fallback
-    if (preferredModel.includes('pro')) {
+    if (preferredModel.includes('pro') || preferredModel.includes('Pro')) {
       modelsToTry.push('gemini-1.5-flash'); // Fallback to Flash
+      modelsToTry.push('gemini-1.5-flash-8b'); // Ultimate fallback
     } else if (preferredModel === 'gemini-1.5-flash') {
-      // If already Flash, maybe try legacy Pro? No, usually Flash is the safety net.
+      modelsToTry.push('gemini-1.5-flash-8b');
     }
+    // If already Flash, maybe try legacy Pro? No, usually Flash is the safety net.
+
 
     // Ensure strict naming for Flash fallback
     modelsToTry = modelsToTry.map(m => {
