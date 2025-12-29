@@ -370,16 +370,24 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   {(instance?.participations ?? []).map((p) => {
                     const matchedRSVP = instance?.publicRSVPs?.find(r =>
                       (r.friendId === p.friend.id) ||
-                      (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
-                      (p.friend.name.toLowerCase() === r.name.toLowerCase())
+                      (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
                     );
 
+                    const displayName = matchedRSVP ? matchedRSVP.name : p.friend.name;
+                    const internalName = p.friend.name;
+                    const showInternalName = matchedRSVP && matchedRSVP.name !== p.friend.name;
+
                     return (
-                      <div key={p.friend.id} className="flex flex-col p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div key={p.friend.id} className={`flex flex-col p-3 rounded-lg border ${matchedRSVP ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="font-medium text-gray-900 flex items-center">
-                              {p.friend.name}
+                              {displayName}
+                              {showInternalName && (
+                                <span className="ml-2 text-xs text-gray-500 font-normal">
+                                  ({internalName})
+                                </span>
+                              )}
                               <Badge variant="outline" className="ml-2 text-xs border-purple-200 text-purple-700 bg-purple-50">
                                 Friend
                               </Badge>

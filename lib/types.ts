@@ -271,6 +271,15 @@ export type SerializedActivityInstanceWithRelations = {
     name: string
     email: string
   }
+  publicRSVPs: {
+    id: string
+    name: string
+    email: string | null
+    phone: string | null
+    message: string | null
+    friendId: string | null
+    createdAt: string
+  }[]
   activity: {
     id: string
     userId: string
