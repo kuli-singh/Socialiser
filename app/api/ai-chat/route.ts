@@ -107,12 +107,20 @@ export async function POST(request: NextRequest) {
     const systemPrompt = userPreferences.systemPrompt || "";
     let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
 
-    // Fix legacy/unavailable model names from DB or update to latest stable aliases
-    if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-1.5-flash-latest";
-    if (preferredModel === "gemini-1.5-flash-8b") preferredModel = "gemini-1.5-flash-8b-latest";
-    if (preferredModel === "gemini-flash-latest") preferredModel = "gemini-1.5-flash-latest";
-    if (preferredModel === "gemini-pro-latest") preferredModel = "gemini-1.5-pro-latest";
-    if (preferredModel === "gemini-2.0-flash-exp") preferredModel = "gemini-2.0-flash-exp"; // Stable exp name
+    // Fix/Map model names to stable GA versions supported by both V1 and V1beta APIs
+    if (preferredModel.includes("flash") && preferredModel.includes("8b")) {
+      preferredModel = "gemini-1.5-flash-8b-001";
+    } else if (preferredModel.includes("flash")) {
+      if (preferredModel.includes("2.0")) {
+        preferredModel = "gemini-2.0-flash";
+      } else {
+        preferredModel = "gemini-1.5-flash-002";
+      }
+    } else if (preferredModel.includes("pro")) {
+      preferredModel = "gemini-1.5-pro-002";
+    } else {
+      preferredModel = "gemini-1.5-flash-002"; // Safe default
+    }
 
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
@@ -218,25 +226,16 @@ ${instructions}
 
     // If Pro is preferred but fails, try Flash as fallback
     if (preferredModel.includes('pro')) {
-      modelsToTry.push('gemini-1.5-flash-latest'); // Fallback to standard Flash
-      modelsToTry.push('gemini-1.5-flash-8b-latest'); // Ultimate fallback
+      modelsToTry.push('gemini-1.5-flash-002'); // Fallback to standard Flash
+      modelsToTry.push('gemini-1.5-flash-8b-001'); // Ultimate fallback
     } else if (preferredModel.includes('flash') && preferredModel.includes('8b')) {
-      modelsToTry.push('gemini-1.5-flash-latest'); // If 8B fails, try standard Flash
+      modelsToTry.push('gemini-1.5-flash-002'); // If 8B fails, try standard Flash
     } else if (preferredModel.includes('2.0')) {
-      modelsToTry.push('gemini-1.5-flash-latest'); // If 2.0 Exp fails, try stable 1.5 Flash
+      modelsToTry.push('gemini-1.5-flash-002'); // If 2.0 fails, try stable 1.5 Flash
     }
 
-    // Safety: ensure the list is unique and doesn't contain duplicates
+    // Ensure fallback list is unique
     modelsToTry = Array.from(new Set(modelsToTry));
-
-
-    // Ensure strict naming for Flash fallback
-    // Standardize all names to the most compatible format for the SDK
-    modelsToTry = modelsToTry.map(m => {
-      if (m === 'gemini-1.5-flash') return 'gemini-1.5-flash-latest';
-      if (m === 'gemini-1.5-flash-8b') return 'gemini-1.5-flash-8b-latest';
-      return m;
-    });
 
     let aiResponseText = null;
     let lastError = null;
