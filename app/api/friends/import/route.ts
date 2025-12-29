@@ -51,11 +51,11 @@ function validateRow(row: any, rowIndex: number): { isValid: boolean; error?: st
     isValid: true,
     data: {
       name: row.name.trim(),
-      email: row.email && typeof row.email === 'string' && row.email.trim() !== '' 
-        ? row.email.trim() 
+      email: row.email && typeof row.email === 'string' && row.email.trim() !== ''
+        ? row.email.trim()
         : undefined,
-      group: row.group && typeof row.group === 'string' && row.group.trim() !== '' 
-        ? row.group.trim() 
+      group: row.group && typeof row.group === 'string' && row.group.trim() !== ''
+        ? row.group.trim()
         : undefined
     }
   };
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (parseResult.errors.length > 0) {
-      return NextResponse.json({ 
-        error: 'CSV parsing failed', 
+      return NextResponse.json({
+        error: 'CSV parsing failed',
         details: parseResult.errors.map(err => err.message)
       }, { status: 400 });
     }
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Validate and check for duplicates
     parseResult.data.forEach((row, index) => {
       const validation = validateRow(row, index + 1);
-      
+
       if (!validation.isValid) {
         result.errors.push({
           row: index + 1,
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
       const importData = validRows.map(({ data }) => ({
         name: data.name,
         email: data.email || null, // Optional email field
-        phone: "000", // Always set dummy phone value for imports
+        notes: "Imported contact",
         group: data.group || null,
         userId: user.id
       }));

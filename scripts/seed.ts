@@ -9,7 +9,7 @@ async function main() {
 
   // Create test users
   const hashedPassword = await bcrypt.hash('johndoe123', 12);
-  
+
   const testUser = await prisma.user.upsert({
     where: { email: 'john@doe.com' },
     update: {},
@@ -25,7 +25,7 @@ async function main() {
   // Create Core Values using upsert to avoid duplicates
   const values = await Promise.all([
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Family Time'
@@ -39,7 +39,7 @@ async function main() {
       }
     }),
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Physical Health'
@@ -53,7 +53,7 @@ async function main() {
       }
     }),
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Learning'
@@ -67,7 +67,7 @@ async function main() {
       }
     }),
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Community'
@@ -81,7 +81,7 @@ async function main() {
       }
     }),
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Creativity'
@@ -95,7 +95,7 @@ async function main() {
       }
     }),
     prisma.coreValue.upsert({
-      where: { 
+      where: {
         userId_name: {
           userId: testUser.id,
           name: 'Adventure'
@@ -117,7 +117,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Sarah Johnson',
-        phone: '000',
+        notes: 'Close Friend',
         group: 'Close Friends',
         userId: testUser.id
       }
@@ -125,7 +125,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Mike Chen',
-        phone: '000',
+        notes: 'Work colleague',
         group: 'Work Friends',
         userId: testUser.id
       }
@@ -133,7 +133,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Emily Rodriguez',
-        phone: '000',
+        notes: 'Best friend from high school',
         group: 'Close Friends',
         userId: testUser.id
       }
@@ -141,7 +141,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'David Kim',
-        phone: '000',
+        notes: 'Gym partner',
         group: 'Gym Buddies',
         userId: testUser.id
       }
@@ -149,7 +149,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Lisa Thompson',
-        phone: '000',
+        notes: 'Met at book club',
         group: 'Book Club',
         userId: testUser.id
       }
@@ -157,7 +157,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Alex Morgan',
-        phone: '000',
+        notes: 'Next door neighbor',
         group: 'Neighbors',
         userId: testUser.id
       }
@@ -165,7 +165,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Rachel Green',
-        phone: '000',
+        notes: 'College roommate',
         group: 'College Friends',
         userId: testUser.id
       }
@@ -173,7 +173,7 @@ async function main() {
     prisma.friend.create({
       data: {
         name: 'Tom Wilson',
-        phone: '000',
+        notes: 'Cousin',
         group: 'Family',
         userId: testUser.id
       }
@@ -346,10 +346,10 @@ async function main() {
   const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   const nextWeek = new Date(now);
   nextWeek.setDate(nextWeek.getDate() + 7);
-  
+
   const nextMonth = new Date(now);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
 
