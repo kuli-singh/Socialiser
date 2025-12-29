@@ -18,12 +18,15 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [settings, setSettings] = useState({
+        name: '',
         googleApiKey: '',
         hasApiKey: false,
         preferences: {
             preferredModel: 'gemini-2.5-flash',
             enableGoogleSearch: true,
-            systemPrompt: ''
+            systemPrompt: '',
+            defaultLocation: '',
+            socialLocation: ''
         }
     });
 
@@ -37,12 +40,15 @@ export default function SettingsPage() {
             if (!response.ok) throw new Error('Failed to fetch settings');
             const data = await response.json();
             setSettings({
+                name: data.name || '',
                 googleApiKey: data.hasApiKey ? '••••••••' : '',
                 hasApiKey: data.hasApiKey,
                 preferences: {
                     preferredModel: data.preferences?.preferredModel || 'gemini-2.5-flash',
                     enableGoogleSearch: data.preferences?.enableGoogleSearch !== undefined ? data.preferences.enableGoogleSearch : true,
-                    systemPrompt: data.preferences?.systemPrompt || ''
+                    systemPrompt: data.preferences?.systemPrompt || '',
+                    defaultLocation: data.preferences?.defaultLocation || '',
+                    socialLocation: data.preferences?.socialLocation || ''
                 }
             });
         } catch (err) {
@@ -62,12 +68,14 @@ export default function SettingsPage() {
             });
 
             if (!response.ok) throw new Error('Failed to save settings');
+            const data = await response.json();
 
             toast.success('Settings saved successfully');
             setSettings(prev => ({
                 ...prev,
-                hasApiKey: settings.googleApiKey !== '' && settings.googleApiKey !== '••••••••',
-                googleApiKey: (settings.googleApiKey || prev.hasApiKey) ? '••••••••' : ''
+                hasApiKey: data.hasApiKey,
+                googleApiKey: data.hasApiKey ? '••••••••' : '',
+                name: data.name
             }));
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Failed to save settings');
@@ -89,25 +97,123 @@ export default function SettingsPage() {
     if (error) return <ErrorMessage message={error} />;
 
     return (
-        <div className="max-w-4xl mx-auto py-8 px-4 space-y-8 animate-in fade-in duration-500">
+        <div className="max-w-5xl mx-auto py-8 px-4 space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="flex flex-col space-y-2">
                 <h1 className="text-4xl font-bold tracking-tight text-gray-900 flex items-center gap-3">
                     <Bot className="h-10 w-10 text-blue-600" />
                     AI & System Settings
                 </h1>
                 <p className="text-gray-500 text-lg">
-                    Personalize your activity discovery and secure your API credentials.
+                    Personalize your identity, locations, and secure your AI credentials.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* API Key Section */}
-                <div className="md:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Main Settings Section */}
+                <div className="lg:col-span-2 space-y-8">
+
+                    {/* Identity & Personality Section */}
                     <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden ring-1 ring-gray-200">
-                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b pb-6">
+                        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b pb-6">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-blue-600 rounded-lg">
+                                    <Bot className="h-5 w-5 text-white" />
+                                </div>
+                                <CardTitle>Identity & Personality</CardTitle>
+                            </div>
+                            <CardDescription className="mt-2">
+                                Manage how you appear as a Host and how the AI should interact with you.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-8 space-y-6">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="userName" className="text-base font-semibold">Full Name (Host Name)</Label>
+                                    <Input
+                                        id="userName"
+                                        value={settings.name}
+                                        onChange={(e) => setSettings({ ...settings, name: e.target.value })}
+                                        placeholder="e.g. Kulwinder Singh"
+                                        className="h-12 border-gray-200 focus:ring-blue-500"
+                                    />
+                                    <p className="text-xs text-gray-500 italic">This name will be shown as the Host on all your public RSVP pages.</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="systemPrompt" className="text-base font-semibold">Custom AI System Prompt</Label>
+                                    <textarea
+                                        id="systemPrompt"
+                                        value={settings.preferences.systemPrompt}
+                                        onChange={(e) => setSettings({
+                                            ...settings,
+                                            preferences: { ...settings.preferences, systemPrompt: e.target.value }
+                                        })}
+                                        placeholder="e.g. You are a stylish Londoner who loves immersive theatre..."
+                                        className="w-full min-h-[120px] p-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition-all"
+                                    />
+                                    <p className="text-xs text-gray-500 italic">This manages the personality of the AI. (Core safety rules will still apply).</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Location Context Section */}
+                    <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden ring-1 ring-gray-200">
+                        <CardHeader className="bg-gradient-to-r from-cyan-50 to-teal-50 border-b pb-6">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-cyan-600 rounded-lg">
+                                    <Search className="h-5 w-5 text-white" />
+                                </div>
+                                <CardTitle>Location Context</CardTitle>
+                            </div>
+                            <CardDescription className="mt-2">
+                                Set your default origins for different types of activities.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="defaultLocation" className="text-base font-semibold text-blue-800 flex items-center gap-2">
+                                        HOME / ORIGIN
+                                    </Label>
+                                    <Input
+                                        id="defaultLocation"
+                                        value={settings.preferences.defaultLocation}
+                                        onChange={(e) => setSettings({
+                                            ...settings,
+                                            preferences: { ...settings.preferences, defaultLocation: e.target.value }
+                                        })}
+                                        placeholder="e.g. Balham, London"
+                                        className="h-12 border-gray-200 focus:ring-cyan-500"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Used for local nature, hiking, and travel departures.</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="socialLocation" className="text-base font-semibold text-purple-800 flex items-center gap-2">
+                                        SOCIAL HUB
+                                    </Label>
+                                    <Input
+                                        id="socialLocation"
+                                        value={settings.preferences.socialLocation}
+                                        onChange={(e) => setSettings({
+                                            ...settings,
+                                            preferences: { ...settings.preferences, socialLocation: e.target.value }
+                                        })}
+                                        placeholder="e.g. Soho, London"
+                                        className="h-12 border-gray-200 focus:ring-cyan-500"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Used for restaurants, theatre, and city social events.</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* API Key Section */}
+                    <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden ring-1 ring-gray-200">
+                        <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b pb-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-blue-600 rounded-lg">
+                                    <div className="p-2 bg-indigo-600 rounded-lg">
                                         <Key className="h-5 w-5 text-white" />
                                     </div>
                                     <CardTitle>Google AI Credentials</CardTitle>
@@ -119,9 +225,6 @@ export default function SettingsPage() {
                                     </div>
                                 )}
                             </div>
-                            <CardDescription className="mt-2">
-                                Save your Google Gemini API Key. It will be encrypted before storage and used ONLY for your requests.
-                            </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-8 space-y-6">
                             <div className="space-y-4">
@@ -162,9 +265,6 @@ export default function SettingsPage() {
                                         </Button>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-500 italic">
-                                    Tip: Keys are saved behind a master encryption layer. We never store them in plain text.
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
@@ -176,11 +276,8 @@ export default function SettingsPage() {
                                 <div className="p-2 bg-purple-600 rounded-lg">
                                     <Bot className="h-5 w-5 text-white" />
                                 </div>
-                                <CardTitle>AI Preferences</CardTitle>
+                                <CardTitle>AI Model & Integration</CardTitle>
                             </div>
-                            <CardDescription className="mt-2">
-                                Fine-tune how the AI behaves during chat and discovery.
-                            </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-8 space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -203,7 +300,7 @@ export default function SettingsPage() {
                                             <SelectItem value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Minimal Costs)</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <p className="text-xs text-gray-400">Flash models are recommended for daily use.</p>
+                                    <p className="text-[10px] text-gray-400">Flash models are recommended for daily use.</p>
                                 </div>
 
                                 <div className="flex flex-col space-y-3">
@@ -221,7 +318,7 @@ export default function SettingsPage() {
                                             })}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400">Allows AI to find REAL events and verify times/links.</p>
+                                    <p className="text-[10px] text-gray-400">Allows AI to find REAL events and verify times/links.</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -234,7 +331,7 @@ export default function SettingsPage() {
                         <CardContent className="p-6 space-y-4">
                             <h3 className="font-bold text-xl">Cloud Sync</h3>
                             <p className="text-blue-100 text-sm leading-relaxed">
-                                Your credentials are now "Portable". You can log in from any device and your AI features will work seamlessly without needing environment variables.
+                                Your settings are now "Portable". Everything from your API keys to your personal locations will follow you across devices.
                             </p>
                             <div className="pt-2 border-t border-blue-500/30 flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
@@ -246,28 +343,30 @@ export default function SettingsPage() {
                     <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl space-y-3 shadow-sm">
                         <h4 className="font-semibold text-orange-800 flex items-center gap-2 text-sm">
                             <ShieldCheck className="h-4 w-4" />
-                            Developer Security Note
+                            Security & Design
                         </h4>
                         <p className="text-xs text-orange-700/80 leading-relaxed">
-                            We use AES-256 encryption with a server-side salt. Your raw key is processed in memory only during the AI request and is never logged or exposed.
+                            Encryption uses AES-256 with a unique server salt. Your raw credentials never touch our logs.
                         </p>
                     </div>
 
-                    <Button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="w-full h-14 text-lg font-bold shadow-lg shadow-blue-500/25 bg-blue-600 hover:bg-blue-700 transition-all active:scale-[0.98]"
-                    >
-                        {saving ? (
-                            <span className="flex items-center gap-2">
-                                <LoadingSpinner /> Saving...
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-2">
-                                <Save className="h-5 w-5" /> Update All Settings
-                            </span>
-                        )}
-                    </Button>
+                    <div className="sticky top-6">
+                        <Button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="w-full h-14 text-lg font-bold shadow-lg shadow-blue-500/25 bg-blue-600 hover:bg-blue-700 transition-all active:scale-[0.98]"
+                        >
+                            {saving ? (
+                                <span className="flex items-center gap-2">
+                                    <LoadingSpinner /> Saving...
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-2">
+                                    <Save className="h-5 w-5" /> Save All Settings
+                                </span>
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

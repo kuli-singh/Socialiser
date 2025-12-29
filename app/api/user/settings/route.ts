@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         const userData = await prisma.user.findUnique({
             where: { id: user.id },
             select: {
+                name: true,
                 preferences: true,
                 googleApiKey: true
             }
@@ -36,9 +37,9 @@ export async function GET(request: NextRequest) {
 
         // Return masked API key info
         return NextResponse.json({
+            name: userData.name || '',
             preferences: userData.preferences || {},
             hasApiKey: !!userData.googleApiKey,
-            // For masking, we could return a placeholder if set
             maskedApiKey: userData.googleApiKey ? '••••••••' : ''
         });
 
@@ -56,13 +57,14 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { googleApiKey, preferences } = body;
+        const { googleApiKey, preferences, name } = body;
 
         const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
         if (preferences) updateData.preferences = preferences;
 
         // Only encrypt and save if a new key is provided
-        if (googleApiKey && googleApiKey !== '••••••••') {
+        if (googleApiKey && googleApiKey !== '••••••••' && googleApiKey !== '') {
             updateData.googleApiKey = encrypt(googleApiKey);
         } else if (googleApiKey === '') {
             // Allow clearing the key
@@ -76,7 +78,8 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            hasApiKey: !!updatedUser.googleApiKey
+            hasApiKey: !!updatedUser.googleApiKey,
+            name: updatedUser.name
         });
 
     } catch (error) {

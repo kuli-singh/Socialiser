@@ -306,7 +306,7 @@ USER REQUEST: "${message}"
     debugLog("Gemini response received", { length: aiResponseText.length });
 
     // Clean up potential markdown formatting (```json ... ```)
-    let text = aiResponseText.replace(/```json / g, '').replace(/```/g, '').trim();
+    let text = aiResponseText.replace(/```json /g, '').replace(/```/g, '').trim();
 
     // 7. Parse and Return
     let parsed;
