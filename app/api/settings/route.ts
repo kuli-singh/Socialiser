@@ -14,10 +14,16 @@ export async function GET() {
 
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
-            select: { preferences: true }
+            select: {
+                name: true,
+                preferences: true
+            }
         });
 
-        return NextResponse.json(user?.preferences || {});
+        return NextResponse.json({
+            ...(user?.preferences as object || {}),
+            name: user?.name || ''
+        });
     } catch (error) {
         console.error('Error fetching settings:', error);
         return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
@@ -32,13 +38,14 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await request.json();
-        const { defaultLocation, socialLocation, systemPrompt, preferredModel, enableGoogleSearch } = data;
+        const { name, defaultLocation, socialLocation, systemPrompt, preferredModel, enableGoogleSearch } = data;
 
         // Validate if needed, but strings are generally safe
 
         const updatedUser = await prisma.user.update({
             where: { id: session.user.id },
             data: {
+                name: name || undefined, // Only update if provided
                 preferences: {
                     defaultLocation: defaultLocation || '',
                     socialLocation: socialLocation || '',
@@ -47,10 +54,16 @@ export async function POST(request: NextRequest) {
                     enableGoogleSearch: enableGoogleSearch !== undefined ? enableGoogleSearch : true
                 }
             },
-            select: { preferences: true }
+            select: {
+                name: true,
+                preferences: true
+            }
         });
 
-        return NextResponse.json(updatedUser.preferences);
+        return NextResponse.json({
+            ...(updatedUser.preferences as object),
+            name: updatedUser.name
+        });
     } catch (error) {
         console.error('Error updating settings:', error);
         return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });

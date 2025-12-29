@@ -1,82 +1,72 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id         String    @id @default(cuid())
-  name       String
-  email      String    @unique
-  password   String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  
-  // Profile information
-  profilePicture String?
-  timezone       String?
-  preferences    Json?
-  
-  // Relationships
-  friends        Friend[]
-  coreValues     CoreValue[]
-  activities     Activity[]
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  password          String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  profilePicture    String?
+  timezone          String?
+  preferences       Json?
+  activities        Activity[]
   activityInstances ActivityInstance[]
-  participations Participation[]
-  locations      Location[]
-  
+  coreValues        CoreValue[]
+  friends           Friend[]
+  locations         Location[]
+  participations    Participation[]
+
   @@index([email])
 }
 
 model Friend {
-  id           String        @id @default(cuid())
-  userId       String
-  name         String
-  phone        String        @default("000")
-  email        String?       // Optional email field for invites
-  group        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  
-  // Relationships
+  id             String          @id @default(cuid())
+  userId         String
+  name           String
+  phone          String          @default("000")
+  group          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  email          String?
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   participations Participation[]
-  
+
   @@index([userId])
 }
 
 model CoreValue {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   userId      String
   name        String
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relationships
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   activities  ActivityValue[]
-  
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, name])
   @@index([userId])
 }
 
 model Activity {
-  id          String    @id @default(cuid())
+  id          String             @id @default(cuid())
   userId      String
   name        String
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relationships
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  values      ActivityValue[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   instances   ActivityInstance[]
-  
+  values      ActivityValue[]
+
   @@index([userId])
 }
 
@@ -84,67 +74,60 @@ model ActivityValue {
   id         String    @id @default(cuid())
   activityId String
   valueId    String
-  
   activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
   value      CoreValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
-  
+
   @@unique([activityId, valueId])
   @@index([activityId])
   @@index([valueId])
 }
 
 model ActivityInstance {
-  id         String    @id @default(cuid())
-  userId     String
-  datetime   DateTime
-  endDate    DateTime? // End date for multi-day events (optional)
-  isAllDay   Boolean   @default(false) // True for all-day events
-  location   String?
-  locationId String?
-  activityId String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  
-  // Rich instance fields
-  customTitle        String?    // Custom event title (e.g., "Thai Cooking Lesson at Cordon Bleu")
-  venue              String?    // Specific venue name
-  address            String?    // Full street address
-  eventUrl           String?    // URL to the event page or venue website
-  city               String?    // City
-  state              String?    // State/Province
-  zipCode            String?    // Postal/ZIP code
-  detailedDescription String?   // Rich description with specifics
-  requirements       String?    // What participants need to bring/know
-  contactInfo        String?    // Venue contact information
-  venueType          String?    // "indoor", "outdoor", "online", "hybrid"
-  priceInfo          String?    // Pricing details if applicable
-  capacity           Int?       // Maximum participants
-  
-  // Relationships
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activity      Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  id                  String          @id @default(cuid())
+  userId              String
+  datetime            DateTime
+  location            String?
+  activityId          String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  customTitle         String?
+  venue               String?
+  address             String?
+  city                String?
+  state               String?
+  zipCode             String?
+  detailedDescription String?
+  requirements        String?
+  contactInfo         String?
+  venueType           String?
+  priceInfo           String?
+  capacity            Int?
+  endDate             DateTime?
+  isAllDay            Boolean         @default(false)
+  hostAttending       Boolean         @default(true)
+  locationId          String?
+  eventUrl            String?
+  activity            Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  locationRef         Location?       @relation(fields: [locationId], references: [id])
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participations      Participation[]
+  publicRSVPs         PublicRSVP[]
 
-  locationRef   Location?       @relation(fields: [locationId], references: [id])
-  participations Participation[]
-  publicRSVPs   PublicRSVP[]
-  
   @@index([userId])
   @@index([activityId])
   @@index([datetime])
 }
 
 model Participation {
-  id                 String          @id @default(cuid())
+  id                 String           @id @default(cuid())
   userId             String
   friendId           String
   activityInstanceId String
-  createdAt          DateTime        @default(now())
-  
-  // Relationships
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  friend           Friend          @relation(fields: [friendId], references: [id], onDelete: Cascade)
-  activityInstance ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
-  
+  createdAt          DateTime         @default(now())
+  activityInstance   ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
+  friend             Friend           @relation(fields: [friendId], references: [id], onDelete: Cascade)
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([friendId, activityInstanceId])
   @@index([userId])
   @@index([friendId])
@@ -152,36 +135,33 @@ model Participation {
 }
 
 model PublicRSVP {
-  id                 String          @id @default(cuid())
+  id                 String           @id @default(cuid())
   activityInstanceId String
   name               String
   email              String?
   phone              String?
   message            String?
-  createdAt          DateTime        @default(now())
-  
-  // Relationships
-  activityInstance ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
-  
+  friendId           String?
+  createdAt          DateTime         @default(now())
+  activityInstance   ActivityInstance @relation(fields: [activityInstanceId], references: [id], onDelete: Cascade)
+
   @@index([activityInstanceId])
   @@index([createdAt])
 }
 
 model Location {
-  id          String    @id @default(cuid())
+  id          String             @id @default(cuid())
   userId      String
   name        String
-  type        String    @default("Venue") // Venue, Club, Organization, etc.
+  type        String             @default("Venue")
   address     String?
   description String?
   website     String?
   imageUrl    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relationships
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
   events      ActivityInstance[]
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

@@ -12,6 +12,9 @@ export async function GET(
     const instance = await prisma.activityInstance.findUnique({
       where: { id: params.id },
       include: {
+        user: {
+          select: { name: true }
+        },
         activity: {
           include: {
             values: {
@@ -42,6 +45,19 @@ export async function GET(
       );
     }
 
+    // Determine participants
+    const participants = instance.participations?.map(p => ({
+      name: p?.friend?.name,
+      id: p?.friend?.id
+    })).filter(p => !!p.name) ?? [];
+
+    if (instance.hostAttending && instance.user?.name) {
+      participants.unshift({
+        name: `${instance.user.name} (Host)`,
+        id: 'host'
+      });
+    }
+
     // Sanitize data for public consumption
     const publicInstance = {
       id: instance.id,
@@ -70,8 +86,12 @@ export async function GET(
           }
         })) ?? []
       },
-      participantCount: instance.participations?.length ?? 0,
-      participantNames: instance.participations?.map(p => p?.friend?.name).filter(Boolean) ?? []
+      participantCount: participants.length,
+      participantNames: participants.map(p => p.name),
+      invitedFriends: instance.participations?.map(p => ({
+        id: p.friendId,
+        name: p.friend.name
+      })) ?? [] // For Smart Matching
     };
 
     return NextResponse.json(publicInstance);

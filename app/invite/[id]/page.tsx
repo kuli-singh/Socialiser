@@ -70,6 +70,7 @@ interface ActivityInstance {
     email: string | null;
     phone: string | null;
     message: string | null;
+    friendId: string | null;
     createdAt: string;
   }>;
 }
@@ -339,6 +340,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   {/* 1. Internal Friends (Matched with RSVPs) */}
                   {(instance?.participations ?? []).map((p) => {
                     const matchedRSVP = instance?.publicRSVPs?.find(r =>
+                      (r.friendId === p.friend.id) ||
                       (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
                       (p.friend.name.toLowerCase() === r.name.toLowerCase())
                     );

@@ -10,17 +10,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  Calendar,
+  MapPin,
+  Users,
   Heart,
   CheckCircle,
   Clock,
   Mail,
   Phone,
-  MessageSquare
+  MessageSquare,
+  Check,
+  X
 } from 'lucide-react';
+
+interface InvitedFriend {
+  id: string;
+  name: string;
+}
 
 interface PublicActivityInstance {
   id: string;
@@ -51,6 +58,7 @@ interface PublicActivityInstance {
   };
   participantCount: number;
   participantNames: string[];
+  invitedFriends?: InvitedFriend[];
 }
 
 interface RSVP {
@@ -76,6 +84,8 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
     message: ''
   });
 
+  const [linkedFriend, setLinkedFriend] = useState<InvitedFriend | null>(null);
+
   useEffect(() => {
     fetchEventData();
   }, [params.id]);
@@ -86,14 +96,14 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
         fetch(`/api/public-events/${params.id}`),
         fetch(`/api/public-events/${params.id}/rsvp`)
       ]);
-      
+
       if (!eventResponse.ok) {
         throw new Error('Event not found');
       }
-      
+
       const eventData = await eventResponse.json();
       setInstance(eventData);
-      
+
       if (rsvpResponse.ok) {
         const rsvpData = await rsvpResponse.json();
         setRsvps(rsvpData);
@@ -115,7 +125,10 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(rsvpForm),
+        body: JSON.stringify({
+          ...rsvpForm,
+          friendId: linkedFriend?.id
+        }),
       });
 
       if (!response.ok) {
@@ -168,6 +181,18 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
   const { date, time } = formatDateTime(instance.datetime);
 
+  const getSuggestions = () => {
+    if (!instance?.invitedFriends || !rsvpForm.name || linkedFriend) return [];
+    if (rsvpForm.name.length < 2) return [];
+
+    return instance.invitedFriends.filter(f =>
+      f.name.toLowerCase().includes(rsvpForm.name.toLowerCase()) &&
+      !rsvps.some(r => r.name === f.name)
+    ).slice(0, 3);
+  };
+
+  const suggestions = getSuggestions();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -207,7 +232,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     </div>
                   </div>
                 )}
-                
+
                 {(instance.address || instance.city || instance.state) && (
                   <div className="flex items-start text-gray-700 ml-10">
                     <div>
@@ -220,7 +245,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     </div>
                   </div>
                 )}
-                
+
                 {!instance.venue && !instance.address && instance.location && (
                   <div className="flex items-center text-gray-700">
                     <MapPin className="h-6 w-6 mr-4 text-green-600" />
@@ -323,12 +348,60 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Your Name *
                     </label>
-                    <Input
-                      value={rsvpForm.name}
-                      onChange={(e) => setRsvpForm({...rsvpForm, name: e.target.value})}
-                      required
-                      placeholder="Enter your full name"
-                    />
+                    <div className="relative">
+                      <Input
+                        value={rsvpForm.name}
+                        onChange={(e) => {
+                          setRsvpForm({ ...rsvpForm, name: e.target.value })
+                          if (linkedFriend && e.target.value !== linkedFriend.name) {
+                            setLinkedFriend(null);
+                          }
+                        }}
+                        required
+                        placeholder="Enter your full name"
+                        className={linkedFriend ? "border-green-500 pr-10" : ""}
+                      />
+                      {linkedFriend && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
+                          <CheckCircle className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+
+                    {!linkedFriend && suggestions.length > 0 && (
+                      <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2 animate-in fade-in slide-in-from-top-1">
+                        <p className="text-xs text-blue-800 mb-2 font-medium">Are you one of these invited guests?</p>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestions.map(s => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => {
+                                setLinkedFriend(s);
+                                setRsvpForm(prev => ({ ...prev, name: s.name }));
+                              }}
+                              className="text-sm bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors flex items-center"
+                            >
+                              {s.name}
+                              <Check className="h-3 w-3 ml-1" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {linkedFriend && (
+                      <p className="text-xs text-green-600 mt-1 flex items-center">
+                        <Check className="h-3 w-3 mr-1" />
+                        Linked to invitation for <strong>{linkedFriend.name}</strong>
+                        <button
+                          type="button"
+                          onClick={() => { setLinkedFriend(null); setRsvpForm(prev => ({ ...prev, name: '' })); }}
+                          className="ml-2 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -337,7 +410,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     <Input
                       type="email"
                       value={rsvpForm.email}
-                      onChange={(e) => setRsvpForm({...rsvpForm, email: e.target.value})}
+                      onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
                       placeholder="your.email@example.com"
                     />
                   </div>
@@ -350,7 +423,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                   <Input
                     type="tel"
                     value={rsvpForm.phone}
-                    onChange={(e) => setRsvpForm({...rsvpForm, phone: e.target.value})}
+                    onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
                     placeholder="(555) 123-4567"
                   />
                   <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
@@ -362,15 +435,15 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                   </label>
                   <Textarea
                     value={rsvpForm.message}
-                    onChange={(e) => setRsvpForm({...rsvpForm, message: e.target.value})}
+                    onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
                     placeholder="Any special requests or questions?"
                     rows={3}
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
                 >
                   {submitting ? (

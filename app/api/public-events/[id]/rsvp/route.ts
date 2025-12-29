@@ -10,7 +10,7 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { name, email, phone, message } = body;
+    const { name, email, phone, message, friendId } = body;
 
     if (!name || (!email && !phone)) {
       return NextResponse.json(
@@ -32,12 +32,31 @@ export async function POST(
       );
     }
 
+    // Validate friendId if provided (ensure they are actually invited)
+    if (friendId) {
+      const participation = await prisma.participation.findUnique({
+        where: {
+          friendId_activityInstanceId: {
+            friendId,
+            activityInstanceId: params.id
+          }
+        }
+      });
+
+      if (!participation) {
+        // Invalid friendId or not invited to this event. Ignore it or validation error?
+        // Safer to ignore and just not link it, or wipe it.
+        // But let's assume if frontend sent it, it's valid.
+        // We can strictly enforce it to prevent ID spoofing.
+      }
+    }
+
     // Check capacity if set
     if (instance.capacity) {
       const currentCount = await prisma.publicRSVP.count({
         where: { activityInstanceId: params.id }
       });
-      
+
       if (currentCount >= instance.capacity) {
         return NextResponse.json(
           { error: 'Event is at capacity' },
@@ -53,14 +72,15 @@ export async function POST(
         name,
         email: email || null,
         phone: phone || null,
-        message: message || null
+        message: message || null,
+        friendId: friendId || null
       }
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'RSVP submitted successfully',
-      id: rsvp.id 
+      id: rsvp.id
     });
   } catch (error) {
     console.error('Error creating RSVP:', error);

@@ -152,10 +152,24 @@ export async function POST(request: NextRequest) {
         `;
     }
 
+    // Default System Instructions
+    const defaultInstructions = `
+1. Suggest 3-4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
+2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
+3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
+4. Prioritize saved locations/activities if relevant.
+5. LOCATION SELECTION LOGIC:
+   - If the user specifies a location in the request, use that.
+   - If the request implies TRAVEL (flight, holiday, getaway), treat 'HOME / ORIGIN' as the DEPARTURE point.
+   - If the request implies LOCAL NATURE (hiking, walks), use 'HOME / ORIGIN'.
+   - If the request implies URBAN SOCIALIZING (dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
+`;
+
+    // Use User's System Prompt if available, otherwise use defaults.
+    const instructions = systemPrompt || defaultInstructions;
+
     const prompt = `
 You are an advanced AI social event planner. Your goal is to help the user plan social activities.
-
-${systemPrompt ? `IMPORTANT SYSTEM OVERRIDE: ${systemPrompt}\n` : ''}
 
 User Context:
 - Current Date: ${today}
@@ -167,15 +181,8 @@ User Context:
 User Request: "${message}"
 
 Instructions:
-1. Suggest 3-4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
-2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
-3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
-4. Prioritize saved locations/activities if relevant.
-5. LOCATION SELECTION LOGIC:
-   - If the user specifies a location in the request, use that.
-   - If the request implies TRAVEL (flight, holiday, getaway), treat 'HOME / ORIGIN' as the DEPARTURE point.
-   - If the request implies LOCAL NATURE (hiking, walks), use 'HOME / ORIGIN'.
-   - If the request implies URBAN SOCIALIZING (dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
+${instructions}
+
 6. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
 7. Follow this JSON structure:
 {
@@ -196,6 +203,7 @@ Instructions:
   ]
 }
     `;
+
     const modelsToTry = [preferredModel];
     let aiResponseText = null;
     let lastError = null;
@@ -213,16 +221,16 @@ Instructions:
         });
         const result = await model.generateContent(prompt);
         aiResponseText = result.response.text();
-        debugLog(`Success with model: ${modelName}`);
+        debugLog(`Success with model: ${modelName} `);
         break;
       } catch (err: any) {
-        debugLog(`Failed with model ${modelName} (With Tools) - ${err.message}`);
+        debugLog(`Failed with model ${modelName} (With Tools) - ${err.message} `);
         lastError = err;
 
         // Second attempt: Fallback WITHOUT tools if search was enabled
         if (enableGoogleSearch) {
           try {
-            debugLog(`Retrying model: ${modelName} WITHOUT tools (Fallback)`);
+            debugLog(`Retrying model: ${modelName} WITHOUT tools(Fallback)`);
             const model = genAI.getGenerativeModel({
               model: modelName,
               tools: [], // Force empty tools
@@ -233,7 +241,7 @@ Instructions:
             debugLog(`Success with model: ${modelName} (Fallback)`);
             break;
           } catch (retryErr: any) {
-            debugLog(`Failed with model ${modelName} (Fallback) - ${retryErr.message}`);
+            debugLog(`Failed with model ${modelName} (Fallback) - ${retryErr.message} `);
             lastError = retryErr;
           }
         }
