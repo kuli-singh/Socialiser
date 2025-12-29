@@ -225,7 +225,6 @@ export default function FriendsPage() {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Notes</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Added</th>
                         <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
                       </tr>
@@ -235,9 +234,6 @@ export default function FriendsPage() {
                         <tr key={friend.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4">
                             <div className="font-medium text-gray-900">{friend.name}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-sm text-gray-600 truncate max-w-xs">{friend.notes || 'No Notes'}</div>
                           </td>
                           <td className="py-3 px-4 text-gray-600">
                             {(() => {

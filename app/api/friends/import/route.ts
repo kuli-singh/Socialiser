@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
       const importData = validRows.map(({ data }) => ({
         name: data.name,
         email: data.email || null, // Optional email field
-        notes: "Imported contact",
+        notes: null,
         group: data.group || null,
         userId: user.id
       }));

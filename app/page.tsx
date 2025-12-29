@@ -26,10 +26,8 @@ import {
   Bot,
   Zap,
   MessageCircle,
-  UserPlus,
-  Target,
-  Trash2,
-  ExternalLink
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
 
@@ -407,19 +405,6 @@ export default function DashboardPage() {
                       <span>{getParticipantCount(instance)} participants</span>
                     </div>
 
-                    {instance.eventUrl && (
-                      <div className="pt-1">
-                        <a
-                          href={instance.eventUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit Event Website
-                        </a>
-                      </div>
-                    )}
 
                     {/* Values */}
                     {(instance?.activity?.values?.length ?? 0) > 0 && (
@@ -484,7 +469,7 @@ export default function DashboardPage() {
                         className="flex-1"
                       >
                         <Button size="sm" variant="outline" className="w-full">
-                          <Users className="h-3 w-3 mr-1" />
+                          <Eye className="h-3 w-3 mr-1" />
                           Details
                         </Button>
                       </Link>

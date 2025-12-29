@@ -229,19 +229,6 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
                     <span>{getParticipantCount(instance)} participants</span>
                 </div>
 
-                {instance.eventUrl && (
-                    <div className="pt-2">
-                        <a
-                            href={instance.eventUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
-                        >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Visit Event Website
-                        </a>
-                    </div>
-                )}
 
                 <div className="flex space-x-2 pt-2">
                     <Link href={`/invite/${instance.id}`} className="flex-1">
@@ -250,6 +237,19 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
                             Details
                         </Button>
                     </Link>
+                    {instance.eventUrl && (
+                        <a
+                            href={instance.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1"
+                        >
+                            <Button size="sm" variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Website
+                            </Button>
+                        </a>
+                    )}
                     <Link href={`/schedule?edit=true&id=${instance.id}`} className="flex-1">
                         <Button size="sm" className="w-full">
                             <Edit className="h-3 w-3 mr-1" />
