@@ -217,6 +217,16 @@ export type ActivityInstanceWithRelations = {
       updatedAt: Date
     }
   }[]
+  publicRSVPs: {
+    id: string
+    name: string
+    email: string | null
+    phone: string | null
+    message: string | null
+    friendId: string | null
+    activityInstanceId: string
+    createdAt: Date
+  }[]
 }
 
 export type SerializedActivityWithValues = {
