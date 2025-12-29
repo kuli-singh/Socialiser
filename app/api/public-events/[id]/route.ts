@@ -75,6 +75,7 @@ export async function GET(
       venueType: instance.venueType,
       priceInfo: instance.priceInfo,
       capacity: instance.capacity,
+      eventUrl: instance.eventUrl,
       activity: {
         id: instance.activity.id,
         name: instance.activity.name,

@@ -139,7 +139,8 @@ export async function POST(request: NextRequest) {
       venueType,
       priceInfo,
       capacity,
-      locationId
+      locationId,
+      eventUrl
     } = body;
 
     if (!activityId || !datetime) {
@@ -228,6 +229,7 @@ export async function POST(request: NextRequest) {
         venueType,
         priceInfo,
         capacity,
+        eventUrl,
         participations: friendIds ? {
           create: (friendIds as string[]).map((friendId: string) => ({
             friendId,

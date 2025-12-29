@@ -66,6 +66,10 @@ export type ActivityInstance = {
   venueType?: string
   priceInfo?: string
   capacity?: number
+  endDate?: Date
+  isAllDay: boolean
+  locationId?: string
+  eventUrl?: string
 
   // Relations
   user?: User
@@ -93,6 +97,10 @@ export type ActivityInstanceFormData = {
   venueType?: string
   priceInfo?: string
   capacity?: number
+  endDate?: string
+  isAllDay?: boolean
+  locationId?: string
+  eventUrl?: string
 }
 
 // AI suggestion data structure
@@ -174,6 +182,8 @@ export type ActivityInstanceWithRelations = {
   venueType: string | null
   priceInfo: string | null
   capacity: number | null
+  locationId: string | null
+  eventUrl: string | null
   hostAttending: boolean
   user: {
     name: string
@@ -276,6 +286,8 @@ export type SerializedActivityInstanceWithRelations = {
   venueType: string | null
   priceInfo: string | null
   capacity: number | null
+  locationId: string | null
+  eventUrl: string | null
   hostAttending: boolean
   user: {
     name: string

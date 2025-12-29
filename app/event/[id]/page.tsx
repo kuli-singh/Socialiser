@@ -19,6 +19,8 @@ import {
   Heart,
   CheckCircle,
   Clock,
+  ExternalLink,
+  Sparkles,
   Mail,
   Phone,
   MessageSquare,
@@ -47,6 +49,7 @@ interface PublicActivityInstance {
   venueType: string | null;
   priceInfo: string | null;
   capacity: number | null;
+  eventUrl: string | null; // Added eventUrl
   activity: {
     id: string;
     name: string;
@@ -416,7 +419,22 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         </div>
                       </div>
                     )}
-                    {linkedFriend && (
+
+                    {instance.eventUrl && (
+                      <div className="flex items-center text-blue-600">
+                        <ExternalLink className="h-4 w-4 mr-3" />
+                        <a
+                          href={instance.eventUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium hover:underline"
+                        >
+                          Visit Event Website
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  {linkedFriend && (
                       <p className="text-xs text-green-600 mt-1 flex items-center">
                         <Check className="h-3 w-3 mr-1" />
                         Linked to invitation for <strong>{linkedFriend.name}</strong>
@@ -487,40 +505,40 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                 </Button>
               </form>
             )}
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
-        {/* Recent RSVPs */}
-        {(rsvps?.length ?? 0) > 0 && (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl">Recent RSVPs</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(rsvps ?? []).slice(0, 5).map((rsvp) => (
-                <div key={rsvp.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-medium text-gray-900">{rsvp.name}</div>
-                      {rsvp.message && (
-                        <p className="text-sm text-gray-600 mt-1">{rsvp.message}</p>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(rsvp.createdAt).toLocaleDateString()}
-                    </div>
+      {/* Recent RSVPs */}
+      {(rsvps?.length ?? 0) > 0 && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Recent RSVPs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(rsvps ?? []).slice(0, 5).map((rsvp) => (
+              <div key={rsvp.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{rsvp.name}</div>
+                    {rsvp.message && (
+                      <p className="text-sm text-gray-600 mt-1">{rsvp.message}</p>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(rsvp.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Footer */}
-        <div className="text-center text-gray-500 text-sm">
-          <p>Powered by Social Organizer</p>
-        </div>
+      {/* Footer */}
+      <div className="text-center text-gray-500 text-sm">
+        <p>Powered by Social Organizer</p>
       </div>
     </div>
+    </div >
   );
 }

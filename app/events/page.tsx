@@ -9,18 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import {
-    Calendar,
-    MapPin,
-    Users,
-    Clock,
-    Plus,
-    Layers,
-    CalendarCheck,
-    Eye,
-    Edit,
-    Trash2
-} from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Edit, ExternalLink, Eye, Trash2, Plus, Search, Filter, SortAsc, SortDesc, Layers, CalendarCheck } from 'lucide-react';
 import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
 
 interface ActivityInstance {
@@ -39,6 +28,7 @@ interface ActivityInstance {
     venueType: string | null;
     priceInfo: string | null;
     capacity: number | null;
+    eventUrl: string | null;
     activity: {
         id: string;
         name: string;
@@ -238,6 +228,20 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
                     <Users className="h-4 w-4 mr-2 text-purple-600" />
                     <span>{getParticipantCount(instance)} participants</span>
                 </div>
+
+                {instance.eventUrl && (
+                    <div className="pt-2">
+                        <a
+                            href={instance.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                        >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Visit Event Website
+                        </a>
+                    </div>
+                )}
 
                 <div className="flex space-x-2 pt-2">
                     <Link href={`/invite/${instance.id}`} className="flex-1">

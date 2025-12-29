@@ -405,6 +405,20 @@ export default function DashboardPage() {
                       <span>{getParticipantCount(instance)} participants</span>
                     </div>
 
+                    {instance.eventUrl && (
+                      <div className="pt-1">
+                        <a
+                          href={instance.eventUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Visit Event Website
+                        </a>
+                      </div>
+                    )}
+
                     {/* Values */}
                     {(instance?.activity?.values?.length ?? 0) > 0 && (
                       <div className="flex flex-wrap gap-1">
@@ -450,6 +464,19 @@ export default function DashboardPage() {
                         <Calendar className="h-3 w-3 mr-1" />
                         Export
                       </Button>
+                      {instance.eventUrl && (
+                        <a
+                          href={instance.eventUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1"
+                        >
+                          <Button size="sm" variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Website
+                          </Button>
+                        </a>
+                      )}
                       <Link
                         href={`/invite/${instance.id}`}
                         className="flex-1"
