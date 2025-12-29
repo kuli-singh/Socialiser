@@ -199,11 +199,11 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
         eventUrl: aiSuggestion.url || '',
       }));
 
-      // Only fetch friends for AI suggestions
-      fetchFriends();
+      // Fetch friends and locations for AI suggestions
+      Promise.all([fetchFriends(), fetchLocations()]);
     } else if (preselectedTemplate) {
       // If template is preselected, fetch friends and set title
-      fetchFriends();
+      Promise.all([fetchFriends(), fetchLocations()]);
       setFormData(prev => ({
         ...prev,
         customTitle: prev.customTitle || preselectedTemplate.name
