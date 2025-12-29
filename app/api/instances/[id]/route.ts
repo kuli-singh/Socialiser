@@ -41,6 +41,12 @@ export async function GET(
         userId: user.id
       },
       include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
         activity: {
           include: {
             values: {
@@ -68,7 +74,7 @@ export async function GET(
 
     // Serialize the response to prevent Date object issues
     const serializedInstance: SerializedActivityInstanceWithRelations = {
-      ...(instance as ActivityInstanceWithRelations),
+      ...(instance as unknown as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
       endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,
@@ -194,6 +200,12 @@ export async function PUT(
         } : undefined
       },
       include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
         activity: {
           include: {
             values: {
@@ -213,7 +225,7 @@ export async function PUT(
 
     // Serialize the response to prevent Date object issues
     const serializedInstance: SerializedActivityInstanceWithRelations = {
-      ...(instance as ActivityInstanceWithRelations),
+      ...(instance as unknown as ActivityInstanceWithRelations),
       datetime: instance.datetime?.toISOString() ?? null,
       endDate: instance.endDate?.toISOString() ?? null,
       createdAt: instance.createdAt?.toISOString() ?? null,

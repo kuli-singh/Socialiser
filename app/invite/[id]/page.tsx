@@ -46,6 +46,11 @@ interface ActivityInstance {
   venueType: string | null;
   priceInfo: string | null;
   capacity: number | null;
+  hostAttending: boolean;
+  user?: {
+    name: string;
+    email: string;
+  };
   activity: {
     id: string;
     name: string;
@@ -331,12 +336,36 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                     <Users className="h-5 w-5 mr-2 text-purple-600" />
                     Guest List ({(
                       (instance?.participations?.length ?? 0) +
-                      (instance?.publicRSVPs?.filter(r => !instance.participations.some(p => p.friend.email === r.email)).length ?? 0)
+                      (instance?.publicRSVPs?.filter(r => !instance.participations.some(p => p.friend.email === r.email) && !r.friendId).length ?? 0) +
+                      (instance?.hostAttending ? 1 : 0)
                     )})
                   </div>
                 </div>
 
                 <div className="space-y-3">
+                  {/* Host Card */}
+                  {instance?.hostAttending && instance.user && (
+                    <div className="flex flex-col p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium text-gray-900 flex items-center">
+                            {instance.user.name} (You)
+                            <Badge variant="outline" className="ml-2 text-xs border-indigo-300 text-indigo-700 bg-white">
+                              Host
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-gray-500">{instance.user.email}</div>
+                        </div>
+                        <div>
+                          <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Confirmed
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 1. Internal Friends (Matched with RSVPs) */}
                   {(instance?.participations ?? []).map((p) => {
                     const matchedRSVP = instance?.publicRSVPs?.find(r =>

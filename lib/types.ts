@@ -52,7 +52,7 @@ export type ActivityInstance = {
   activityId: string
   createdAt: Date
   updatedAt: Date
-  
+
   // Rich instance fields
   customTitle?: string
   venue?: string
@@ -66,7 +66,7 @@ export type ActivityInstance = {
   venueType?: string
   priceInfo?: string
   capacity?: number
-  
+
   // Relations
   user?: User
   activity?: Activity
@@ -79,7 +79,7 @@ export type ActivityInstanceFormData = {
   datetime: string
   location?: string
   friendIds?: string[]
-  
+
   // Rich instance fields
   customTitle?: string
   venue?: string
@@ -114,7 +114,7 @@ export type AISuggestion = {
 // Venue types
 export const VENUE_TYPES = [
   'indoor',
-  'outdoor', 
+  'outdoor',
   'online',
   'hybrid'
 ] as const
@@ -174,6 +174,11 @@ export type ActivityInstanceWithRelations = {
   venueType: string | null
   priceInfo: string | null
   capacity: number | null
+  hostAttending: boolean
+  user: {
+    name: string
+    email: string
+  }
   activity: {
     id: string
     userId: string
@@ -261,6 +266,11 @@ export type SerializedActivityInstanceWithRelations = {
   venueType: string | null
   priceInfo: string | null
   capacity: number | null
+  hostAttending: boolean
+  user: {
+    name: string
+    email: string
+  }
   activity: {
     id: string
     userId: string
