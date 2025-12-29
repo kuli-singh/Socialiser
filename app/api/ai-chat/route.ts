@@ -107,19 +107,15 @@ export async function POST(request: NextRequest) {
     const systemPrompt = userPreferences.systemPrompt || "";
     let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
 
-    // Fix/Map model names to stable GA versions supported by both V1 and V1beta APIs
-    if (preferredModel.includes("flash") && preferredModel.includes("8b")) {
-      preferredModel = "gemini-1.5-flash-8b-001";
-    } else if (preferredModel.includes("flash")) {
-      if (preferredModel.includes("2.0")) {
-        preferredModel = "gemini-2.0-flash";
-      } else {
-        preferredModel = "gemini-1.5-flash-002";
-      }
+    // Fix/Map model names to verified GA versions (Gemini 2.5/2.0 series)
+    if (preferredModel.includes("8b") || preferredModel.includes("lite")) {
+      preferredModel = "gemini-2.5-flash-lite";
     } else if (preferredModel.includes("pro")) {
-      preferredModel = "gemini-1.5-pro-002";
+      preferredModel = "gemini-2.5-pro";
+    } else if (preferredModel.includes("2.0")) {
+      preferredModel = "gemini-2.0-flash";
     } else {
-      preferredModel = "gemini-1.5-flash-002"; // Safe default
+      preferredModel = "gemini-2.5-flash"; // Standard stable default
     }
 
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
@@ -226,12 +222,12 @@ ${instructions}
 
     // If Pro is preferred but fails, try Flash as fallback
     if (preferredModel.includes('pro')) {
-      modelsToTry.push('gemini-1.5-flash-002'); // Fallback to standard Flash
-      modelsToTry.push('gemini-1.5-flash-8b-001'); // Ultimate fallback
-    } else if (preferredModel.includes('flash') && preferredModel.includes('8b')) {
-      modelsToTry.push('gemini-1.5-flash-002'); // If 8B fails, try standard Flash
+      modelsToTry.push('gemini-2.5-flash'); // Fallback to standard Flash
+      modelsToTry.push('gemini-2.5-flash-lite'); // Ultimate fallback
+    } else if (preferredModel.includes('flash') && (preferredModel.includes('8b') || preferredModel.includes('lite'))) {
+      modelsToTry.push('gemini-2.5-flash'); // If lite fails, try standard Flash
     } else if (preferredModel.includes('2.0')) {
-      modelsToTry.push('gemini-1.5-flash-002'); // If 2.0 fails, try stable 1.5 Flash
+      modelsToTry.push('gemini-2.5-flash'); // If 2.0 fails, try stable 2.5 Flash
     }
 
     // Ensure fallback list is unique
