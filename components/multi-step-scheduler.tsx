@@ -512,7 +512,11 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
           {/* AI Discovery Option */}
           <Card
             className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-            onClick={() => setCurrentStep('ai-discovery')}
+            onClick={() => {
+              if (selectedActivity) {
+                router.push(`/ai-discovery?templateId=${selectedActivity.id}&templateName=${encodeURIComponent(selectedActivity.name)}`);
+              }
+            }}
           >
             <CardContent className="py-8 text-center">
               <div className="bg-white/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
