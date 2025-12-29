@@ -612,10 +612,10 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium text-blue-900 mb-1">Want to skip AI suggestions?</h4>
-                <p className="text-sm text-blue-800">Create your event manually with full control over all details</p>
+                <p className="text-sm text-blue-800">{initialInstance ? 'Update' : 'Create'} your event manually with full control over all details</p>
               </div>
               <Button variant="outline" onClick={handleSkipAI}>
-                Skip AI & Create Manually
+                Skip AI & {initialInstance ? 'Update' : 'Create'} Manually
               </Button>
             </div>
           </CardContent>
@@ -648,8 +648,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
             Back
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
-            <p className="text-gray-600">Complete the details for your {selectedActivity?.name} event</p>
+            <h2 className="text-2xl font-bold text-gray-900">{initialInstance ? 'Update' : 'Event'} Details</h2>
+            <p className="text-gray-600">{initialInstance ? 'Modify' : 'Complete'} the details for your {selectedActivity?.name} event</p>
           </div>
         </div>
 
@@ -967,7 +967,9 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
 
           < div className="flex space-x-4" >
             <Button type="submit" disabled={submitting} size="lg">
-              {submitting ? 'Creating Event...' : 'Create Event'}
+              {submitting
+                ? (initialInstance ? 'Updating Event...' : 'Creating Event...')
+                : (initialInstance ? 'Update Event' : 'Create Event')}
             </Button>
             <Button type="button" variant="outline" onClick={onBack}>
               Cancel
@@ -984,8 +986,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
       <div className="space-y-6">
         <div className="text-center">
           <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Created Successfully!</h2>
-          <p className="text-gray-600">Your {selectedActivity?.name} event has been scheduled</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Event {initialInstance ? 'Updated' : 'Created'} Successfully!</h2>
+          <p className="text-gray-600">Your {selectedActivity?.name} event has been {initialInstance ? 'updated' : 'scheduled'}</p>
         </div>
 
         {/* Calendar Export */}
