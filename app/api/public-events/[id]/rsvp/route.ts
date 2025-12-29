@@ -102,6 +102,7 @@ export async function GET(
         id: true,
         name: true,
         message: true,
+        friendId: true,
         createdAt: true
         // Don't expose email/phone publicly
       },

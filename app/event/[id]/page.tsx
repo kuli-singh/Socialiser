@@ -65,6 +65,7 @@ interface RSVP {
   id: string;
   name: string;
   message: string | null;
+  friendId?: string | null;
   createdAt: string;
 }
 
@@ -317,9 +318,20 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
             <div className="flex items-start text-gray-700">
               <Users className="h-5 w-5 mr-3 mt-1 text-purple-600" />
               <div>
-                <div className="font-semibold">{instance.participantCount + (rsvps?.length ?? 0)} people attending</div>
+                <div className="font-semibold">
+                  {(instance.participantCount + rsvps.filter(r =>
+                    !r.friendId &&
+                    !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                  ).length)} people attending
+                </div>
                 <div className="text-sm text-gray-600 mt-1">
-                  {[...instance.participantNames, ...(rsvps?.map(r => r.name) ?? [])].join(', ')}
+                  {[
+                    ...instance.participantNames,
+                    ...rsvps.filter(r =>
+                      !r.friendId &&
+                      !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                    ).map(r => r.name)
+                  ].join(', ')}
                 </div>
               </div>
             </div>

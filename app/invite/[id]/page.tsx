@@ -370,7 +370,8 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   {(instance?.participations ?? []).map((p) => {
                     const matchedRSVP = instance?.publicRSVPs?.find(r =>
                       (r.friendId === p.friend.id) ||
-                      (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
+                      (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase()) ||
+                      (r.name.toLowerCase() === p.friend.name.toLowerCase())
                     );
 
                     const displayName = matchedRSVP ? matchedRSVP.name : p.friend.name;
@@ -430,6 +431,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   {/* 2. External RSVPs (Unmatched) */}
                   {(instance?.publicRSVPs ?? [])
                     .filter(r => !instance?.participations?.some(p =>
+                      (r.friendId === p.friend.id) ||
                       (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
                       (p.friend.name.toLowerCase() === r.name.toLowerCase())
                     ))
