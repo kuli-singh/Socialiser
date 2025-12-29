@@ -183,6 +183,13 @@ User Request: "${message}"
 Instructions:
 ${instructions}
 
+8. STRICT RELEVANCE GUARDRAIL:
+   - You MUST identify the "Activity Type" requested by the user (e.g., "Gig", "Concert", "Dinner", "Hike").
+   - ALL suggestions must strictly match this requested Activity Type.
+   - Do NOT suggest "Dinner" if the user asked for a "Gig".
+   - Do NOT suggest "Hike" if the user asked for "Dinner".
+   - If no Saved Locations match the specific Activity Type, you MUST search for external events/venues. Do not fallback to irrelevant Saved Locations.
+
 6. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
 7. Follow this JSON structure:
 {
