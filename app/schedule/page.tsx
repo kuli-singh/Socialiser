@@ -26,6 +26,8 @@ function ScheduleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
+  const isEditMode = searchParams.get('edit') === 'true';
+  const editInstanceId = searchParams.get('id');
 
   // Check for AI suggestion parameters
   const isAISuggestion = searchParams.get('aiSuggestion') === 'true';
@@ -43,20 +45,21 @@ function ScheduleContent() {
   const aiVenueType = searchParams.get('venueType');
 
   const [selectedTemplate, setSelectedTemplate] = useState<ActivityTemplate | null>(null);
+  const [editInstance, setEditInstance] = useState<any>(null);
   const [showScheduler, setShowScheduler] = useState(true);
-  const [loading, setLoading] = useState(!!(templateId || aiTemplateId));
+  const [loading, setLoading] = useState(!!(templateId || aiTemplateId || (isEditMode && editInstanceId)));
   const [aiSuggestionData, setAiSuggestionData] = useState<any>(null);
 
   useEffect(() => {
-    if (templateId) {
+    if (isEditMode && editInstanceId) {
+      fetchEditInstance(editInstanceId);
+    } else if (templateId) {
       fetchTemplate(templateId);
     } else if (isAISuggestion) {
-      // Handle AI suggestion
+      // ... existing AI logic ...
       if (aiTemplateId) {
-        // If AI suggestion has a template, load it
         fetchTemplate(aiTemplateId);
       } else if (aiTemplateName) {
-        // Create a temporary template object from AI data
         setSelectedTemplate({
           id: 'ai-generated',
           name: aiTemplateName,
@@ -66,7 +69,6 @@ function ScheduleContent() {
         setLoading(false);
       }
 
-      // Set up AI suggestion data
       setAiSuggestionData({
         eventName: aiEventName,
         venue: aiVenue,
@@ -80,7 +82,25 @@ function ScheduleContent() {
         venueType: aiVenueType
       });
     }
-  }, [templateId, isAISuggestion, aiTemplateId, aiTemplateName]);
+  }, [templateId, isAISuggestion, aiTemplateId, aiTemplateName, isEditMode, editInstanceId]);
+
+  const fetchEditInstance = async (id: string) => {
+    try {
+      const response = await fetch(`/api/instances/${id}`);
+      if (response.ok) {
+        const instance = await response.json();
+        setEditInstance(instance);
+        setSelectedTemplate(instance.activity);
+      } else {
+        console.error('Failed to fetch instance for editing');
+        router.push('/events'); // Redirect if not found
+      }
+    } catch (error) {
+      console.error('Error fetching instance for editing:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTemplate = async (id: string) => {
     try {
@@ -174,9 +194,10 @@ function ScheduleContent() {
 
       {/* Multi-Step Scheduler */}
       <MultiStepScheduler
-        onBack={() => router.push('/')}
+        onBack={() => router.push(isEditMode ? '/events' : '/')}
         preselectedTemplate={selectedTemplate}
         aiSuggestion={aiSuggestionData}
+        initialInstance={editInstance}
       />
     </div>
   );

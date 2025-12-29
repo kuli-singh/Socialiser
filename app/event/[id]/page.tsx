@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
+import { CalendarIntegration } from '@/components/calendar-integration';
+import { QRCodeGenerator } from '@/components/qr-code-generator';
 import {
   Calendar,
   MapPin,
@@ -182,6 +184,10 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
   const { date, time } = formatDateTime(instance.datetime);
 
+  const eventUrl = typeof window !== 'undefined'
+    ? window.location.href
+    : '';
+
   const getSuggestions = () => {
     if (!instance?.invitedFriends || !rsvpForm.name || linkedFriend) return [];
     if (rsvpForm.name.length < 2) return [];
@@ -337,6 +343,18 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
             </div>
           </CardContent>
         </Card>
+
+        {/* Guest Tools Hub */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CalendarIntegration
+            instanceId={instance.id}
+            activityName={instance.customTitle || instance.activity.name}
+          />
+          <QRCodeGenerator
+            url={eventUrl}
+            eventTitle={instance.customTitle || instance.activity.name}
+          />
+        </div>
 
         {/* RSVP Section */}
         <Card className="shadow-lg">

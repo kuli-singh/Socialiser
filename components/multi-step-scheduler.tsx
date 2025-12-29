@@ -96,14 +96,16 @@ interface MultiStepSchedulerProps {
     capacity?: string;
     url?: string;
   };
+  initialInstance?: any;
 }
 
-export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }: MultiStepSchedulerProps) {
+export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, initialInstance }: MultiStepSchedulerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isManualMode = searchParams.get('mode') === 'manual';
 
   const [currentStep, setCurrentStep] = useState<Step>(() => {
+    if (initialInstance) return 'event-details';
     if (aiSuggestion) return 'event-details';
     if (preselectedTemplate && isManualMode) return 'event-details';
     if (preselectedTemplate) return 'choice';
@@ -144,6 +146,36 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
     capacity: '',
     eventUrl: '',
   });
+
+  // Initialize with initialInstance if provided
+  useEffect(() => {
+    if (initialInstance) {
+      setFormData({
+        datetime: initialInstance.datetime ? initialInstance.datetime.slice(0, 16) : '',
+        endDate: initialInstance.endDate ? initialInstance.endDate.slice(0, 16) : '',
+        isAllDay: initialInstance.isAllDay || false,
+        location: initialInstance.location || '',
+        locationId: initialInstance.locationId || undefined,
+        friendIds: initialInstance.participations?.map((p: any) => p.friendId) || [],
+        customTitle: initialInstance.customTitle || '',
+        venue: initialInstance.venue || '',
+        address: initialInstance.address || '',
+        city: initialInstance.city || '',
+        state: initialInstance.state || '',
+        zipCode: initialInstance.zipCode || '',
+        detailedDescription: initialInstance.detailedDescription || '',
+        requirements: initialInstance.requirements || '',
+        contactInfo: initialInstance.contactInfo || '',
+        venueType: initialInstance.venueType || '',
+        priceInfo: initialInstance.priceInfo || '',
+        capacity: initialInstance.capacity?.toString() || '',
+        eventUrl: initialInstance.eventUrl || '',
+      });
+      if (initialInstance.activity) {
+        setSelectedActivity(initialInstance.activity);
+      }
+    }
+  }, [initialInstance]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch initial data
@@ -343,8 +375,11 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion }
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/instances', {
-        method: 'POST',
+      const url = initialInstance ? `/api/instances/${initialInstance.id}` : '/api/instances';
+      const method = initialInstance ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },

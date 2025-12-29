@@ -454,9 +454,18 @@ export default function DashboardPage() {
                         href={`/invite/${instance.id}`}
                         className="flex-1"
                       >
-                        <Button size="sm" className="w-full">
+                        <Button size="sm" variant="outline" className="w-full">
                           <Users className="h-3 w-3 mr-1" />
                           Details
+                        </Button>
+                      </Link>
+                      <Link
+                        href={`/schedule?edit=true&id=${instance.id}`}
+                        className="flex-1"
+                      >
+                        <Button size="sm" className="w-full">
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
                         </Button>
                       </Link>
                       <Button

@@ -18,6 +18,7 @@ import {
     Layers,
     CalendarCheck,
     Eye,
+    Edit,
     Trash2
 } from 'lucide-react';
 import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
@@ -240,9 +241,15 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
 
                 <div className="flex space-x-2 pt-2">
                     <Link href={`/invite/${instance.id}`} className="flex-1">
-                        <Button size="sm" className="w-full">
+                        <Button size="sm" variant="outline" className="w-full">
                             <Eye className="h-3 w-3 mr-1" />
                             Details
+                        </Button>
+                    </Link>
+                    <Link href={`/schedule?edit=true&id=${instance.id}`} className="flex-1">
+                        <Button size="sm" className="w-full">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
                         </Button>
                     </Link>
                     <Button
