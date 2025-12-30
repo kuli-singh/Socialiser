@@ -312,12 +312,12 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                 {/* Values */}
                 {(instance?.activity?.values?.length ?? 0) > 0 && (
                   <div className="flex items-start text-gray-700">
-                    <Heart className="h-5 w-5 mr-3 mt-1 text-red-600" />
+                    <Heart className="h-5 w-5 mr-3 mt-1 text-red-500" />
                     <div>
                       <div className="font-semibold mb-2">What We Value</div>
                       <div className="flex flex-wrap gap-2">
                         {(instance?.activity?.values ?? []).map((av) => (
-                          <Badge key={av?.value?.id} variant="outline">
+                          <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100 hover:bg-red-100">
                             {av?.value?.name}
                           </Badge>
                         ))}
@@ -328,22 +328,41 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                 {/* Participants */}
                 <div className="flex items-start text-gray-700">
-                  <Users className="h-5 w-5 mr-3 mt-1 text-purple-600" />
+                  <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
                   <div>
-                    <div className="font-semibold">
+                    <div className="font-semibold mb-2">
                       {(instance.participantCount + rsvps.filter(r =>
                         !r.friendId &&
                         !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
                       ).length)} people attending
                     </div>
-                    <div className="text-sm text-gray-600 mt-1">
+                    <div className="flex flex-wrap gap-2">
                       {[
                         ...instance.participantNames,
                         ...rsvps.filter(r =>
                           !r.friendId &&
                           !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
                         ).map(r => r.name)
-                      ].join(', ')}
+                      ].map((name, idx) => {
+                        const isHost = name.includes('(Host)');
+                        const displayName = name.replace('(Host)', '').trim();
+
+                        return (
+                          <div key={idx} className="flex items-center">
+                            <span className={`text-sm ${isHost ? 'font-bold text-gray-900' : 'text-gray-600'}`}>
+                              {displayName}
+                            </span>
+                            {isHost && (
+                              <Badge className="ml-1 bg-indigo-100 text-indigo-700 border-indigo-200 text-[10px] h-4 px-1">
+                                Host
+                              </Badge>
+                            )}
+                            {idx < (instance.participantNames.length + rsvps.length - 1) && (
+                              <span className="mx-1 text-gray-300">•</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
