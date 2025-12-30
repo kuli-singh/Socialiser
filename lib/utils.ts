@@ -67,11 +67,15 @@ export function getTimeUntil(datetime: string | Date | null | undefined): string
 
     if (diffMs < 0) return 'Past Event';
 
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays < 7) return `In ${diffDays} days`;
+    // Check if it's today by comparing calendar dates
+    const isToday = eventDate.toDateString() === now.toDateString();
+    const isTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString() === eventDate.toDateString();
+
+    if (isToday) return 'Today';
+    if (isTomorrow) return 'Tomorrow';
+    if (diffDays < 7) return `In ${diffDays + 1} days`;
     if (diffDays < 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
     return `In ${Math.ceil(diffDays / 30)} months`;
   } catch {
@@ -133,11 +137,11 @@ export function getParticipantCount(instance: any): number {
 export function getEventParticipantStats(instance: any) {
   if (!instance) return { invited: 0, confirmed: 0 };
 
-  const invitedCount = instance.participations?.length ?? 0;
-  const confirmedCount = instance.publicRSVPs?.length ?? 0;
+  // "Invited" in the funnel sense means "Everyone on the list"
+  const invited = getParticipantCount(instance);
 
-  return {
-    invited: invitedCount,
-    confirmed: confirmedCount + (instance.hostAttending ? 1 : 0)
-  };
+  // "Confirmed" are those who actually RSVP'd plus the host (if attending)
+  const confirmed = (instance.publicRSVPs?.length ?? 0) + (instance.hostAttending ? 1 : 0);
+
+  return { invited, confirmed };
 }

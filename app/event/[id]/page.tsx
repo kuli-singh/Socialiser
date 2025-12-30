@@ -365,46 +365,73 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       <div>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-left">Who's Joining</p>
                         <div className="font-semibold text-gray-900 mb-3 text-lg text-left">
-                          {(instance?.invitedFriends?.length ?? 0)} invited • {(rsvps.length + (instance.participantNames.some(n => n.includes('(Host)')) ? 0 : 0) + (instance.participantNames.length > 0 ? instance.participantNames.filter(n => n.includes('(Host)')).length : 0))} confirmed
+                          {(() => {
+                            // Calculate External RSVPs (not in invitedFriends)
+                            const externalRSVPs = rsvps.filter(r =>
+                              !r.friendId &&
+                              !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                            );
+                            const totalInvited = (instance.invitedFriends?.length ?? 0) + 1 + externalRSVPs.length;
+                            const totalConfirmed = rsvps.length + 1;
+                            return `${totalInvited} invited • ${totalConfirmed} confirmed`;
+                          })()}
                         </div>
                         <div className="space-y-3">
-                          {[
-                            ...instance.participantNames.map(name => {
-                              const isHost = name.includes('(Host)');
-                              const displayName = name.replace('(Host)', '').trim();
-                              // Check if this invited person has an RSVP
-                              const hasRSVP = isHost || rsvps.some(r => r.name.toLowerCase() === displayName.toLowerCase());
+                          {/* 1. Host (Always Confirmed) */}
+                          <div className="flex items-center justify-between group">
+                            <div className="flex items-center">
+                              <span className="text-base font-bold text-indigo-900">
+                                {instance.participantNames.find(n => n.includes('(Host)'))?.replace('(Host)', '').trim() || 'Host'}
+                              </span>
+                              <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                Host
+                              </Badge>
+                            </div>
+                            <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                              Confirmed
+                            </Badge>
+                          </div>
 
-                              return {
-                                name: displayName,
-                                isHost,
-                                isConfirmed: hasRSVP
-                              };
-                            }),
-                            ...rsvps.filter(r =>
-                              !instance.participantNames.some(n => n.replace('(Host)', '').trim().toLowerCase() === r.name.toLowerCase())
-                            ).map(r => ({
-                              name: r.name,
-                              isHost: false,
-                              isConfirmed: true
-                            }))
-                          ].map((person, idx) => (
-                            <div key={idx} className="flex items-center justify-between group">
-                              <div className="flex items-center">
-                                <span className={`text-base ${person.isHost ? 'font-bold text-indigo-900' : 'text-gray-700'}`}>
-                                  {person.name}
+                          {/* 2. Invited Friends */}
+                          {(instance.invitedFriends ?? []).map((friend) => {
+                            const matchedRSVP = rsvps.find(r =>
+                              (r.friendId === friend.id) ||
+                              (r.name.toLowerCase() === friend.name.toLowerCase())
+                            );
+
+                            return (
+                              <div key={friend.id} className="flex items-center justify-between group">
+                                <span className="text-base text-gray-700">
+                                  {friend.name}
                                 </span>
-                                {person.isHost && (
-                                  <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                                    Host
+                                {matchedRSVP ? (
+                                  <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                    Confirmed
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-400 border-gray-100 text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                    Pending
                                   </Badge>
                                 )}
                               </div>
-                              {person.isConfirmed && (
-                                <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                                  Confirmed
+                            );
+                          })}
+
+                          {/* 3. External Guest RSVPs */}
+                          {rsvps.filter(r =>
+                            !r.friendId &&
+                            !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                          ).map((rsvp) => (
+                            <div key={rsvp.id} className="flex items-center justify-between group">
+                              <div className="flex items-center">
+                                <span className="text-base text-gray-700">{rsvp.name}</span>
+                                <Badge className="ml-2 bg-blue-50 text-blue-600 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                  Guest
                                 </Badge>
-                              )}
+                              </div>
+                              <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                Confirmed
+                              </Badge>
                             </div>
                           ))}
                         </div>
