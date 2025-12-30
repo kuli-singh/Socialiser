@@ -109,15 +109,21 @@ export async function POST(request: NextRequest) {
     const systemPrompt = userPreferences.systemPrompt || "";
     let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
 
-    // Fix/Map model names to verified GA versions (Gemini 2.5/2.0 series)
-    if (preferredModel.includes("8b") || preferredModel.includes("lite")) {
-      preferredModel = "gemini-2.5-flash-lite";
-    } else if (preferredModel.includes("pro")) {
+    // Explicit mapping for model IDs based on settings choice
+    if (preferredModel === "gemini-1.5-pro") {
+      preferredModel = "gemini-1.5-pro";
+    } else if (preferredModel === "gemini-1.5-flash") {
+      preferredModel = "gemini-1.5-flash";
+    } else if (preferredModel === "gemini-2.5-pro") {
       preferredModel = "gemini-2.5-pro";
-    } else if (preferredModel.includes("2.0")) {
+    } else if (preferredModel === "gemini-2.0-flash") {
       preferredModel = "gemini-2.0-flash";
+    } else if (preferredModel.includes("lite")) {
+      preferredModel = "gemini-2.5-flash-lite";
+    } else if (preferredModel === "gemini-2.5-flash") {
+      preferredModel = "gemini-2.5-flash";
     } else {
-      preferredModel = "gemini-2.5-flash"; // Standard stable default
+      preferredModel = "gemini-1.5-flash-latest"; // Safest, highest-quota functional default
     }
 
     const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
@@ -239,14 +245,18 @@ USER REQUEST: "${message}"
     // Models to try (Fallback logic)
     let modelsToTry = [preferredModel];
 
-    // If Pro is preferred but fails, try Flash as fallback
-    if (preferredModel.includes('pro')) {
-      modelsToTry.push('gemini-2.5-flash'); // Fallback to standard Flash
-      modelsToTry.push('gemini-2.5-flash-lite'); // Ultimate fallback
-    } else if (preferredModel.includes('flash') && (preferredModel.includes('8b') || preferredModel.includes('lite'))) {
-      modelsToTry.push('gemini-2.5-flash'); // If lite fails, try standard Flash
-    } else if (preferredModel.includes('2.0')) {
-      modelsToTry.push('gemini-2.5-flash'); // If 2.0 fails, try stable 2.5 Flash
+    // Priority Fallback Chain
+    // Always include gemini-1.5-flash as the ultimate safety net due to its high quota
+    const robustFallback = "gemini-1.5-flash-latest";
+
+    if (preferredModel !== robustFallback) {
+      // If we are using a "Pro" model, try 1.5 Pro as a smarter fallback before Flash
+      if (preferredModel.includes('pro') && preferredModel !== 'gemini-1.5-pro') {
+        modelsToTry.push('gemini-1.5-pro');
+      }
+
+      // Finally, add the most reliable Flash model
+      modelsToTry.push(robustFallback);
     }
 
     // Ensure fallback list is unique
@@ -347,7 +357,7 @@ USER REQUEST: "${message}"
     let userMessage = "I'm having trouble connecting to my brain right now.";
 
     if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-      userMessage = "I've hit my usage limit for this AI model. Please go to Settings and try switching to 'Gemini Flash (Latest Stable)'.";
+      userMessage = "The selected AI model is currently hitting its usage limit. Please go to Settings and switch to 'Gemini 1.5 Flash (Highly Reliable)' for the best experience.";
     } else {
       userMessage += ` Error details: ${errorMessage}`;
     }

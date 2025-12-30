@@ -535,9 +535,68 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
           </Card>
         )}
 
+        {/* Branding & CTA Section */}
+        <Card className="border-none shadow-2xl bg-white overflow-hidden ring-1 ring-gray-200">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white relative overflow-hidden">
+            {/* Decorative Sparkle Background */}
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Sparkles className="h-48 w-48 rotate-12" />
+            </div>
+
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight">Plan with Socialiser</h2>
+              </div>
+
+              <div className="space-y-4 max-w-2xl">
+                <p className="text-blue-50 text-lg leading-relaxed">
+                  This event was organized using <span className="font-bold underline decoration-blue-400">Socialiser</span>,
+                  an AI-driven platform by <strong>Kuli Singh</strong> designed to take the friction out of meeting up.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="flex items-center gap-2 text-sm text-blue-100">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    AI-Powered Event Discovery
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-blue-100">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    Seamless RSVP Management
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-blue-100">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    Smart Calendar Integration
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-blue-100">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    Personalized Social Hubs
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div>
+                  <p className="font-semibold text-white">Want to plan your own events?</p>
+                  <p className="text-sm text-blue-200">Join thousands of people using AI to organize their lives.</p>
+                </div>
+                <Link href="/register">
+                  <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 font-bold px-8 h-14 text-lg shadow-xl hover:scale-105 transition-all">
+                    Get Started for Free
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* Footer */}
-        <div className="text-center text-gray-500 text-sm">
-          <p>Powered by Social Organizer</p>
+        <div className="text-center py-8">
+          <p className="text-gray-400 text-xs font-medium uppercase tracking-[0.2em]">
+            SOCIALISER BY KULI SINGH • © 2025
+          </p>
         </div>
       </div>
     </div >
