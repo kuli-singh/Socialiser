@@ -318,70 +318,56 @@ export default function DashboardPage() {
               ].filter(Boolean).join(', ');
 
               return (
-                <Card key={instance.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white ring-1 ring-gray-100 overflow-hidden">
+                <Card key={instance.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white ring-1 ring-gray-100 overflow-hidden flex flex-col">
                   <div className="h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />
-                  <CardHeader className="pb-3 px-5 pt-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        {/* Custom Title - Primary */}
-                        <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
-                          {instance.customTitle || instance.activity.name}
-                        </CardTitle>
 
-                        {/* Template Name - Secondary */}
-                        <div className="flex items-center text-xs text-gray-500 font-medium mb-3">
-                          <span className="uppercase tracking-wider">Template: {instance.activity.name}</span>
-                          {safeParseDate(instance.datetime)! < new Date() ? (
-                            <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600 border-none text-[10px] font-bold">
-                              STARTED
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="ml-2 bg-blue-50 text-blue-600 border-none text-[10px] font-bold">
-                              UPCOMING
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Time Until */}
-                        <div className="flex items-center text-sm font-semibold text-indigo-600 bg-indigo-50/50 w-fit px-2 py-1 rounded-md">
-                          <Clock className="h-4 w-4 mr-1.5" />
+                  <CardHeader className="pb-2 px-5 pt-5">
+                    <div className="space-y-3">
+                      {/* Status & Time Row */}
+                      <div className="flex items-center justify-between">
+                        {safeParseDate(instance.datetime)! < new Date() ? (
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none text-[10px] font-bold">
+                            STARTED
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[10px] font-bold">
+                            UPCOMING
+                          </Badge>
+                        )}
+                        <div className="flex items-center text-[10px] font-bold text-blue-500 uppercase tracking-wider bg-blue-50/50 px-2 py-0.5 rounded-full">
+                          <Clock className="h-3 w-3 mr-1" />
                           {getTimeUntil(instance.datetime)}
                         </div>
                       </div>
+
+                      {/* Title */}
+                      <CardTitle className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {instance.customTitle || instance.activity.name}
+                      </CardTitle>
                     </div>
                   </CardHeader>
 
-                  <CardContent className="px-5 pb-5 space-y-4">
-                    {/* Details Row */}
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      {/* Date & Time */}
-                      <div className="flex items-center text-xs text-gray-600">
-                        <Calendar className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                        <span className="truncate">{date}</span>
-                      </div>
-
-                      {/* Participants */}
-                      <div className="flex items-center text-xs text-gray-600">
-                        <Users className="h-3.5 w-3.5 mr-2 text-purple-500" />
-                        <span>{getParticipantCount(instance)} joined</span>
-                      </div>
+                  <CardContent className="px-5 pb-5 space-y-4 flex-1 flex flex-col">
+                    {/* Date & Time Badge */}
+                    <div className="flex items-center text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 w-fit px-2.5 py-1.5 rounded-lg shadow-sm">
+                      <Calendar className="h-3.5 w-3.5 mr-2 text-blue-500" />
+                      <span>{date} at {time}</span>
                     </div>
 
                     {/* Rich Location */}
                     {(instance.venue || fullAddress || instance.location) && (
-                      <div className="bg-gray-50/50 rounded-lg p-3 space-y-1.5 border border-gray-100/50">
+                      <div className="bg-gray-50/50 rounded-xl p-3 space-y-1.5 border border-gray-100/30">
                         {instance.venue && (
                           <div className="flex items-center text-sm text-gray-900 font-bold truncate">
                             <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
                             <span className="truncate">{instance.venue}</span>
                           </div>
                         )}
-                        {fullAddress && (
-                          <div className="text-xs text-gray-500 ml-5 pl-0.5 line-clamp-1">
+                        {fullAddress ? (
+                          <div className="text-[11px] text-gray-500 ml-5.5 pl-0.5 line-clamp-1 italic">
                             {fullAddress}
                           </div>
-                        )}
-                        {!instance.venue && !fullAddress && instance.location && (
+                        ) : instance.location && (
                           <div className="flex items-center text-sm text-gray-700">
                             <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
                             <span className="truncate">{instance.location}</span>
@@ -390,31 +376,52 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    {/* Values & Badges */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        {instance.venueType && instance.venueType !== 'undefined' && (
-                          <Badge variant="outline" className="bg-white text-[10px] border-blue-100 text-blue-600 px-1.5 py-0">
-                            {instance.venueType}
-                          </Badge>
-                        )}
-                        {instance.priceInfo && instance.priceInfo !== 'undefined' && (
-                          <Badge variant="outline" className="bg-white text-[10px] border-green-100 text-green-600 px-1.5 py-0">
-                            {instance.priceInfo}
-                          </Badge>
-                        )}
+                    {/* Social Row: Joining vs Values */}
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                      {/* Left: Who's Joining */}
+                      <div className="space-y-1 border-r border-gray-100 pr-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Who's Joining</p>
+                        <div className="flex items-center text-sm text-gray-900 font-bold">
+                          <div className="bg-indigo-50 p-1 rounded-md mr-2">
+                            <Users className="h-3.5 w-3.5 text-indigo-600" />
+                          </div>
+                          <span>{getParticipantCount(instance)} joined</span>
+                        </div>
                       </div>
 
-                      {(instance?.activity?.values?.length ?? 0) > 0 && (
-                        <div className="flex items-center text-xs text-red-600 font-medium whitespace-nowrap">
-                          <Heart className="h-3 w-3 mr-1 fill-red-100" />
-                          {instance?.activity?.values?.[0]?.value?.name}
+                      {/* Right: Our Values */}
+                      <div className="space-y-1 pl-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-right">Our Values</p>
+                        <div className="flex items-center justify-end text-sm text-gray-900 font-bold">
+                          <span className="truncate mr-2">
+                            {instance?.activity?.values?.[0]?.value?.name || 'Connection'}
+                          </span>
+                          <div className="bg-red-50 p-1 rounded-md">
+                            <Heart className="h-3.5 w-3.5 text-red-500 fill-red-100" />
+                          </div>
                         </div>
-                      )}
+                      </div>
+                    </div>
+
+                    <div className="flex-1" />
+
+                    {/* Template Playbook Section - Bottom of Content */}
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between -mx-5 px-5 py-2.5 bg-slate-50/80 mt-auto">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                          <Sparkles className="h-3 w-3 text-blue-500" />
+                        </div>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          Socialiser Playbook
+                        </span>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-500 bg-white px-1.5 py-0 uppercase">
+                        {instance.activity.name}
+                      </Badge>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="pt-4 space-y-2 border-t border-gray-100">
+                    <div className="pt-3 space-y-2">
                       {/* Primary Actions Row */}
                       <div className="flex gap-2">
                         <Link
@@ -442,7 +449,7 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="flex-1 text-[10px] h-8 font-bold uppercase tracking-wider text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                          className="flex-1 text-[10px] h-8 font-bold uppercase tracking-wider text-gray-400 hover:text-blue-600 hover:bg-blue-50"
                           onClick={async () => {
                             try {
                               const response = await fetch(`/api/calendar/${instance.id}`);
@@ -473,7 +480,7 @@ export default function DashboardPage() {
                             rel="noopener noreferrer"
                             className="flex-1"
                           >
-                            <Button size="sm" variant="ghost" className="w-full text-[10px] h-8 font-bold uppercase tracking-wider text-gray-500 hover:text-green-600 hover:bg-green-50">
+                            <Button size="sm" variant="ghost" className="w-full text-[10px] h-8 font-bold uppercase tracking-wider text-gray-400 hover:text-green-600 hover:bg-green-50">
                               <ExternalLink className="h-3 w-3 mr-1.5 shrink-0" />
                               Website
                             </Button>
@@ -483,7 +490,7 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="flex-1 text-[10px] h-8 font-bold uppercase tracking-wider text-red-400 hover:text-red-600 hover:bg-red-50"
+                          className="flex-1 text-[10px] h-8 font-bold uppercase tracking-wider text-red-300 hover:text-red-500 hover:bg-red-50"
                           onClick={() => deleteInstance(instance.id, instance.customTitle || instance.activity.name)}
                           disabled={deletingInstanceId === instance.id}
                         >
