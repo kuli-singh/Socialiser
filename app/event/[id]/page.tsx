@@ -365,37 +365,48 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       <div>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-left">Who's Joining</p>
                         <div className="font-semibold text-gray-900 mb-3 text-lg text-left">
-                          {(instance?.invitedFriends?.length ?? 0)} invited • {(instance.participantCount + rsvps.filter(r =>
-                            !r.friendId &&
-                            !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                          ).length)} confirmed
+                          {(instance?.invitedFriends?.length ?? 0)} invited • {(rsvps.length + (instance.participantNames.some(n => n.includes('(Host)')) ? 0 : 0) + (instance.participantNames.length > 0 ? instance.participantNames.filter(n => n.includes('(Host)')).length : 0))} confirmed
                         </div>
                         <div className="space-y-3">
                           {[
-                            ...instance.participantNames,
-                            ...rsvps.filter(r =>
-                              !r.friendId &&
-                              !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                            ).map(r => r.name)
-                          ].map((name, idx) => {
-                            const isHost = name.includes('(Host)');
-                            const displayName = name.replace('(Host)', '').trim();
+                            ...instance.participantNames.map(name => {
+                              const isHost = name.includes('(Host)');
+                              const displayName = name.replace('(Host)', '').trim();
+                              // Check if this invited person has an RSVP
+                              const hasRSVP = isHost || rsvps.some(r => r.name.toLowerCase() === displayName.toLowerCase());
 
-                            return (
-                              <div key={idx} className="flex items-center justify-between group">
-                                <div className="flex items-center">
-                                  <span className={`text-base ${isHost ? 'font-bold text-indigo-900' : 'text-gray-700'}`}>
-                                    {displayName}
-                                  </span>
-                                  {isHost && (
-                                    <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                                      Host
-                                    </Badge>
-                                  )}
-                                </div>
+                              return {
+                                name: displayName,
+                                isHost,
+                                isConfirmed: hasRSVP
+                              };
+                            }),
+                            ...rsvps.filter(r =>
+                              !instance.participantNames.some(n => n.replace('(Host)', '').trim().toLowerCase() === r.name.toLowerCase())
+                            ).map(r => ({
+                              name: r.name,
+                              isHost: false,
+                              isConfirmed: true
+                            }))
+                          ].map((person, idx) => (
+                            <div key={idx} className="flex items-center justify-between group">
+                              <div className="flex items-center">
+                                <span className={`text-base ${person.isHost ? 'font-bold text-indigo-900' : 'text-gray-700'}`}>
+                                  {person.name}
+                                </span>
+                                {person.isHost && (
+                                  <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                    Host
+                                  </Badge>
+                                )}
                               </div>
-                            );
-                          })}
+                              {person.isConfirmed && (
+                                <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                  Confirmed
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>

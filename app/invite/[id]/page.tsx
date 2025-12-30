@@ -361,34 +361,66 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       </div>
                     )}
 
-                    {/* Internal Friends & External RSVPs mapped below ... */}
-                    {(instance?.participations ?? []).slice(0, 3).map((p) => {
+                    {/* Internal Friends matched with RSVPs */}
+                    {(instance?.participations ?? []).map((p) => {
                       const matchedRSVP = instance?.publicRSVPs?.find(r =>
                         (r.friendId === p.friend.id) ||
                         (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
                       );
                       return (
-                        <div key={p.friend.id} className="flex items-center justify-between p-2 rounded-lg border border-gray-50 bg-white shadow-sm">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs mr-3">
-                              {p.friend.name.charAt(0)}
+                        <div key={p.friend.id} className="flex flex-col p-3 rounded-lg border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs mr-3">
+                                {p.friend.name.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="text-sm font-bold text-gray-900">{p.friend.name}</div>
+                                <div className="text-[10px] text-gray-500">Invited Friend</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="text-sm font-bold text-gray-900">{p.friend.name}</div>
-                              <div className="text-[10px] text-gray-500">Friend</div>
-                            </div>
+                            {matchedRSVP ? (
+                              <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Confirmed</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-400 border-gray-200 text-[8px] font-black uppercase">Pending</Badge>
+                            )}
                           </div>
-                          {matchedRSVP ? (
-                            <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Joined</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-gray-400 border-gray-200 text-[8px] font-black uppercase">Invited</Badge>
+                          {matchedRSVP?.message && (
+                            <div className="mt-2 text-[11px] text-gray-600 bg-gray-50 p-2 rounded italic border-l-2 border-gray-200">
+                              "{matchedRSVP.message}"
+                            </div>
                           )}
                         </div>
                       );
                     })}
-                    {getParticipantCount(instance) > 4 && (
-                      <p className="text-[10px] text-center text-gray-400 font-medium">+ {getParticipantCount(instance) - 4} more guests</p>
-                    )}
+
+                    {/* External RSVPs (people who RSVP'd but weren't in the invited friend list) */}
+                    {(instance?.publicRSVPs ?? [])
+                      .filter(r => !instance?.participations?.some(p =>
+                        (r.friendId === p.friend.id) ||
+                        (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
+                      ))
+                      .map((rsvp) => (
+                        <div key={rsvp.id} className="flex flex-col p-3 rounded-lg border border-blue-50 bg-blue-50/20 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold text-xs mr-3">
+                                {rsvp.name.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="text-sm font-bold text-gray-900">{rsvp.name}</div>
+                                <div className="text-[10px] text-blue-600">External Guest</div>
+                              </div>
+                            </div>
+                            <Badge className="bg-blue-600 text-white border-none text-[8px] font-black uppercase">Confirmed</Badge>
+                          </div>
+                          {rsvp.message && (
+                            <div className="mt-2 text-[11px] text-gray-600 bg-white/50 p-2 rounded italic border-l-2 border-blue-200">
+                              "{rsvp.message}"
+                            </div>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 </div>
 
