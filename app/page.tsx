@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -29,7 +29,7 @@ import {
   ExternalLink,
   Trash2
 } from 'lucide-react';
-import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
+import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount, getEventParticipantStats } from '@/lib/utils';
 
 interface ActivityInstance {
   id: string;
@@ -385,7 +385,9 @@ export default function DashboardPage() {
                           <div className="bg-indigo-50 p-1 rounded-md mr-2">
                             <Users className="h-3.5 w-3.5 text-indigo-600" />
                           </div>
-                          <span>{getParticipantCount(instance)} joined</span>
+                          <span>
+                            {getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed
+                          </span>
                         </div>
                       </div>
 
@@ -404,21 +406,6 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex-1" />
-
-                    {/* Template Playbook Section - Bottom of Content */}
-                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between -mx-5 px-5 py-2.5 bg-slate-50/80 mt-auto">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
-                          <Sparkles className="h-3 w-3 text-blue-500" />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                          Socialiser Playbook
-                        </span>
-                      </div>
-                      <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-500 bg-white px-1.5 py-0 uppercase">
-                        {instance.activity.name}
-                      </Badge>
-                    </div>
 
                     {/* Action Buttons */}
                     <div className="pt-3 space-y-2">
@@ -504,6 +491,21 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </CardContent>
+
+                  {/* Template Playbook Footer - Absolute Bottom */}
+                  <CardFooter className="pt-3 pb-4 px-5 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                        <Sparkles className="h-3 w-3 text-blue-500" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Socialiser Playbook
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-500 bg-white px-1.5 py-0 uppercase">
+                      {instance.activity.name}
+                    </Badge>
+                  </CardFooter>
                 </Card>
               );
             })}

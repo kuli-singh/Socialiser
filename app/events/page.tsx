@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { Calendar, Clock, MapPin, Users, Edit, ExternalLink, Eye, Trash2, Plus, Search, Filter, SortAsc, SortDesc, Layers, CalendarCheck } from 'lucide-react';
-import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount } from '@/lib/utils';
+import { Calendar, Clock, MapPin, Users, Edit, ExternalLink, Eye, Trash2, Plus, Search, Filter, SortAsc, SortDesc, Layers, CalendarCheck, Heart, Sparkles, ArrowLeft } from 'lucide-react';
+import { formatDateTime, getTimeUntil, safeParseDate, getParticipantCount, getEventParticipantStats } from '@/lib/utils';
 
 interface ActivityInstance {
     id: string;
@@ -33,6 +33,11 @@ interface ActivityInstance {
         id: string;
         name: string;
         description: string | null;
+        values: Array<{
+            value: {
+                name: string;
+            };
+        }>;
     };
     participations: Array<{
         friend: {
@@ -187,86 +192,154 @@ function EventCard({ instance, isUpcoming, onDelete, deletingId }: {
     const title = instance.customTitle || instance.activity.name;
 
     return (
-        <Card className={`hover:shadow-lg transition-shadow border-l-4 ${isUpcoming ? 'border-l-blue-500 bg-blue-50' : 'border-l-slate-400 bg-slate-50'}`}>
-            <CardHeader className="pb-3 text-left">
-                <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                        <CardTitle className={`text-lg font-semibold mb-1 ${isUpcoming ? 'text-blue-900' : 'text-slate-900'}`}>
-                            {title}
-                        </CardTitle>
-                        <div className="flex items-center text-sm text-blue-600 mb-2">
-                            <Layers className="h-3 w-3 mr-1" />
-                            {instance.activity.name}
-                        </div>
+        <Card className="group hover:shadow-xl transition-all duration-300 border-none bg-white ring-1 ring-gray-100 overflow-hidden flex flex-col">
+            <div className={`h-1.5 bg-gradient-to-r ${isUpcoming ? 'from-blue-500 to-indigo-600' : 'from-slate-400 to-slate-500'}`} />
+
+            <CardHeader className="pb-2 px-5 pt-5">
+                <div className="space-y-3">
+                    {/* Status & Time Row */}
+                    <div className="flex items-center justify-between">
+                        {isUpcoming ? (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[10px] font-bold">
+                                UPCOMING
+                            </Badge>
+                        ) : (
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none text-[10px] font-bold">
+                                COMPLETED
+                            </Badge>
+                        )}
                         {isUpcoming && (
-                            <div className="flex items-center text-xs font-medium text-blue-700">
+                            <div className="flex items-center text-[10px] font-bold text-blue-500 uppercase tracking-wider bg-blue-50/50 px-2 py-0.5 rounded-full">
                                 <Clock className="h-3 w-3 mr-1" />
                                 {getTimeUntil(instance.datetime)}
                             </div>
                         )}
                     </div>
+
+                    {/* Title */}
+                    <CardTitle className={`text-xl font-black group-hover:text-blue-600 transition-colors line-clamp-1 ${isUpcoming ? 'text-gray-900' : 'text-slate-700'}`}>
+                        {title}
+                    </CardTitle>
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 text-left">
-                <div className="flex items-center text-sm text-gray-700">
-                    <Calendar className="h-4 w-4 mr-2 text-blue-600" />
+            <CardContent className="px-5 pb-5 space-y-4 flex-1 flex flex-col">
+                {/* Date & Time Badge */}
+                <div className="flex items-center text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 w-fit px-2.5 py-1.5 rounded-lg shadow-sm">
+                    <Calendar className="h-3.5 w-3.5 mr-2 text-blue-500" />
                     <span>{date} at {time}</span>
                 </div>
 
+                {/* Rich Location */}
                 {(instance.venue || fullAddress || instance.location) && (
-                    <div className="flex items-start text-sm text-gray-700">
-                        <MapPin className="h-4 w-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
-                        <div className="truncate">
-                            {instance.venue && <div className="font-medium">{instance.venue}</div>}
-                            <div className="text-gray-600 text-xs">{fullAddress || instance.location}</div>
-                        </div>
+                    <div className="bg-gray-50/50 rounded-xl p-3 space-y-1.5 border border-gray-100/30">
+                        {instance.venue && (
+                            <div className="flex items-center text-sm text-gray-900 font-bold truncate">
+                                <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
+                                <span className="truncate">{instance.venue}</span>
+                            </div>
+                        )}
+                        {fullAddress ? (
+                            <div className="text-[11px] text-gray-500 ml-5.5 pl-0.5 line-clamp-1 italic text-left">
+                                {fullAddress}
+                            </div>
+                        ) : instance.location && (
+                            <div className="flex items-center text-sm text-gray-700">
+                                <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
+                                <span className="truncate">{instance.location}</span>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                <div className="flex items-center text-sm text-gray-700">
-                    <Users className="h-4 w-4 mr-2 text-purple-600" />
-                    <span>{getParticipantCount(instance)} participants</span>
+                {/* Social Row: Joining vs Values */}
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                    {/* Left: Who's Joining */}
+                    <div className="space-y-1 border-r border-gray-100 pr-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-left">Who's Joining</p>
+                        <div className="flex items-center text-sm text-gray-900 font-bold">
+                            <div className="bg-indigo-50 p-1 rounded-md mr-2">
+                                <Users className="h-3.5 w-3.5 text-indigo-600" />
+                            </div>
+                            <span>
+                                {getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Right: Our Values */}
+                    <div className="space-y-1 pl-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-right">Our Values</p>
+                        <div className="flex items-center justify-end text-sm text-gray-900 font-bold">
+                            <span className="truncate mr-2">
+                                {instance?.activity?.values?.[0]?.value?.name || 'Connection'}
+                            </span>
+                            <div className="bg-red-50 p-1 rounded-md">
+                                <Heart className="h-3.5 w-3.5 text-red-500 fill-red-100" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-
-                <div className="flex space-x-2 pt-2">
-                    <Link href={`/invite/${instance.id}`} className="flex-1">
-                        <Button size="sm" variant="outline" className="w-full">
-                            <Eye className="h-3 w-3 mr-1" />
-                            Details
-                        </Button>
-                    </Link>
-                    {instance.eventUrl && (
-                        <a
-                            href={instance.eventUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1"
-                        >
-                            <Button size="sm" variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                Website
+                {/* Action Buttons */}
+                <div className="pt-3 space-y-2">
+                    <div className="flex gap-2">
+                        <Link href={`/invite/${instance.id}`} className="flex-[2]">
+                            <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 font-bold shadow-sm">
+                                <Eye className="h-3.5 w-3.5 mr-2" />
+                                View Invite
                             </Button>
-                        </a>
-                    )}
-                    <Link href={`/schedule?edit=true&id=${instance.id}`} className="flex-1">
-                        <Button size="sm" className="w-full">
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
+                        </Link>
+                        <Link href={`/schedule?edit=true&id=${instance.id}`} className="flex-1">
+                            <Button size="sm" variant="outline" className="w-full font-semibold border-gray-200 hover:bg-gray-50">
+                                <Edit className="h-3.5 w-3.5 mr-1" />
+                                Edit
+                            </Button>
+                        </Link>
+                    </div>
+
+                    <div className="flex gap-2">
+                        {instance.eventUrl && (
+                            <a
+                                href={instance.eventUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1"
+                            >
+                                <Button size="sm" variant="ghost" className="w-full text-[10px] h-8 font-bold uppercase tracking-wider text-gray-400 hover:text-green-600 hover:bg-green-50">
+                                    <ExternalLink className="h-3 w-3 mr-1.5 shrink-0" />
+                                    Website
+                                </Button>
+                            </a>
+                        )}
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="flex-1 text-[10px] h-8 font-bold uppercase tracking-wider text-red-300 hover:text-red-500 hover:bg-red-50"
+                            onClick={() => onDelete(instance.id, title)}
+                            disabled={deletingId === instance.id}
+                        >
+                            {deletingId === instance.id ? <LoadingSpinner /> : <Trash2 className="h-3 w-3 mr-1.5 shrink-0" />}
+                            Delete
                         </Button>
-                    </Link>
-                    <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex-none px-3"
-                        onClick={() => onDelete(instance.id, title)}
-                        disabled={deletingId === instance.id}
-                    >
-                        {deletingId === instance.id ? <LoadingSpinner /> : <Trash2 className="h-3 w-3" />}
-                    </Button>
+                    </div>
                 </div>
             </CardContent>
+
+            {/* Template Playbook Footer - Absolute Bottom */}
+            <CardFooter className="pt-3 pb-4 px-5 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-2">
+                    <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                        <Sparkles className="h-3 w-3 text-blue-500" />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Socialiser Playbook
+                    </span>
+                </div>
+                <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-500 bg-white px-1.5 py-0 uppercase">
+                    {instance.activity.name}
+                </Badge>
+            </CardFooter>
         </Card>
     );
 }

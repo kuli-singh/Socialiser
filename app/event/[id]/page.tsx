@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
@@ -220,22 +220,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
           <div className="lg:col-span-2 space-y-8">
             {/* Event Details Card */}
             <Card className="border-l-4 border-l-blue-500 shadow-lg">
-              <CardContent className="p-0">
-                {/* Template Attribution Header */}
-                <div className="bg-slate-50/80 border-b border-slate-100 p-6 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-white p-2 rounded-lg shadow-sm">
-                      <Layers className="h-5 w-5 text-slate-600" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em]">Created from Template</p>
-                      <h3 className="text-base font-bold text-slate-900">{instance.activity.name}</h3>
-                    </div>
-                  </div>
-                  <Badge className="bg-indigo-600 text-white border-none shadow-sm px-3 py-1">
-                    Socialiser Playbook
-                  </Badge>
-                </div>
+              <CardContent className="p-0 flex flex-col">
 
                 <div className="p-8 space-y-8">
                   {/* Date & Time */}
@@ -374,33 +359,16 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                   )}
 
                   <div className="pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Values */}
-                    {(instance?.activity?.values?.length ?? 0) > 0 && (
-                      <div className="flex items-start text-gray-700">
-                        <Heart className="h-5 w-5 mr-3 mt-1 text-red-500" />
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Our Vibe</p>
-                          <div className="flex flex-wrap gap-2">
-                            {(instance?.activity?.values ?? []).map((av) => (
-                              <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100">
-                                {av?.value?.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
                     {/* Participants */}
-                    <div className="flex items-start text-gray-700 leading-relaxed">
+                    <div className="flex items-start text-gray-700 leading-relaxed border-r border-gray-100 pr-4">
                       <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
                       <div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Who's Joining</p>
-                        <div className="font-semibold text-gray-900 mb-3 text-lg">
-                          {(instance.participantCount + rsvps.filter(r =>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-left">Who's Joining</p>
+                        <div className="font-semibold text-gray-900 mb-3 text-lg text-left">
+                          {(instance?.invitedFriends?.length ?? 0)} invited • {(instance.participantCount + rsvps.filter(r =>
                             !r.friendId &&
                             !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                          ).length)} people attending
+                          ).length)} confirmed
                         </div>
                         <div className="space-y-3">
                           {[
@@ -431,8 +399,40 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         </div>
                       </div>
                     </div>
+
+                    {/* Values */}
+                    {(instance?.activity?.values?.length ?? 0) > 0 && (
+                      <div className="flex items-start text-gray-700 justify-end">
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Our Values</p>
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            {(instance?.activity?.values ?? []).map((av) => (
+                              <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100">
+                                {av?.value?.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <Heart className="h-5 w-5 ml-3 mt-1 text-red-500" />
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Template Playbook Footer */}
+                <CardFooter className="pt-4 pb-4 px-8 border-t border-gray-100 flex items-center justify-between bg-slate-50/50 mt-auto">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                      <Sparkles className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                      Socialiser Playbook
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-500 bg-white px-2 py-0.5 uppercase">
+                    {instance.activity.name}
+                  </Badge>
+                </CardFooter>
               </CardContent>
             </Card>
 

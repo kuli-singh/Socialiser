@@ -6,22 +6,12 @@ import { useState, useEffect } from 'react';
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Clock, 
-  Heart,
-  CalendarCheck,
-  Plus,
-  Eye,
-  Layers
-} from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Edit, ExternalLink, Eye, Trash2, Plus, Search, Filter, SortAsc, SortDesc, Layers, CalendarCheck, Heart, Sparkles, ArrowLeft } from 'lucide-react';
+import { getTimeUntil, getEventParticipantStats } from '@/lib/utils';
 
 interface ActivityInstance {
   id: string;
@@ -72,7 +62,7 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
     try {
       const response = await fetch(`/api/activities/${params.id}?include=instances`);
       if (!response.ok) throw new Error('Activity template not found');
-      
+
       const data = await response.json();
       setTemplate(data);
     } catch (err) {
@@ -92,7 +82,7 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
     }
 
     const date = new Date(datetime);
-    
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
       return {
@@ -124,18 +114,18 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
 
     const now = new Date();
     const eventDate = new Date(datetime);
-    
+
     // Check if the date is valid
     if (isNaN(eventDate.getTime())) {
       return { status: 'unknown', label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
     }
-    
+
     if (eventDate < now) {
       return { status: 'completed', label: 'Completed', color: 'bg-green-100 text-green-800' };
     } else {
       const diffMs = eventDate.getTime() - now.getTime();
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 0) return { status: 'today', label: 'Today', color: 'bg-red-100 text-red-800' };
       if (diffDays === 1) return { status: 'tomorrow', label: 'Tomorrow', color: 'bg-orange-100 text-orange-800' };
       if (diffDays <= 7) return { status: 'upcoming', label: `In ${diffDays} days`, color: 'bg-blue-100 text-blue-800' };
@@ -301,7 +291,7 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
               </Button>
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingEvents.map((instance) => {
               const { date, time } = formatDateTime(instance.datetime);
@@ -312,98 +302,117 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
                 instance.state,
                 instance.zipCode
               ].filter(Boolean).join(', ');
-              
+
               return (
-                <Card key={instance.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500 bg-blue-50">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Badge className={color}>{label}</Badge>
-                        </div>
-                        
-                        {/* Custom Title - Primary */}
-                        <CardTitle className="text-lg font-semibold text-blue-900 mb-1">
-                          {instance.customTitle || template.name}
-                        </CardTitle>
-                        
-                        {/* Template Reference - Secondary */}
-                        <div className="text-sm text-blue-600">
-                          Template: {template.name}
+                <Card key={instance.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white ring-1 ring-gray-100 overflow-hidden flex flex-col">
+                  <div className="h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />
+
+                  <CardHeader className="pb-2 px-5 pt-5">
+                    <div className="space-y-3">
+                      {/* Status & Time Row */}
+                      <div className="flex items-center justify-between">
+                        <Badge className={`${color} border-none text-[10px] font-bold uppercase`}>{label}</Badge>
+                        <div className="flex items-center text-[10px] font-bold text-blue-500 uppercase tracking-wider bg-blue-50/50 px-2 py-0.5 rounded-full">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {getTimeUntil(instance.datetime)}
                         </div>
                       </div>
+
+                      {/* Title */}
+                      <CardTitle className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {instance.customTitle || template.name}
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    {/* Date & Time */}
-                    <div className="flex items-center text-sm text-gray-700">
-                      <Calendar className="h-4 w-4 mr-2 text-blue-600" />
-                      <div>
-                        <div className="font-medium">{date}</div>
-                        <div className="text-gray-600">{time}</div>
-                      </div>
+
+                  <CardContent className="px-5 pb-5 space-y-4 flex-1 flex flex-col">
+                    {/* Date & Time Badge */}
+                    <div className="flex items-center text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 w-fit px-2.5 py-1.5 rounded-lg shadow-sm text-left">
+                      <Calendar className="h-3.5 w-3.5 mr-2 text-blue-500" />
+                      <span>{date} at {time}</span>
                     </div>
 
                     {/* Rich Location */}
                     {(instance.venue || fullAddress || instance.location) && (
-                      <div className="space-y-1">
+                      <div className="bg-gray-50/50 rounded-xl p-3 space-y-1.5 border border-gray-100/30">
                         {instance.venue && (
-                          <div className="flex items-center text-sm text-gray-900 font-medium">
-                            <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                            <span>{instance.venue}</span>
+                          <div className="flex items-center text-sm text-gray-900 font-bold truncate">
+                            <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
+                            <span className="truncate">{instance.venue}</span>
                           </div>
                         )}
-                        {fullAddress && (
-                          <div className="text-sm text-gray-600 ml-6">
+                        {fullAddress ? (
+                          <div className="text-[11px] text-gray-500 ml-5.5 pl-0.5 line-clamp-1 italic text-left">
                             {fullAddress}
                           </div>
-                        )}
-                        {!instance.venue && !fullAddress && instance.location && (
+                        ) : instance.location && (
                           <div className="flex items-center text-sm text-gray-700">
-                            <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                            <span>{instance.location}</span>
+                            <MapPin className="h-3.5 w-3.5 mr-2 text-green-600 shrink-0" />
+                            <span className="truncate">{instance.location}</span>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Rich Details Badges */}
-                    <div className="flex flex-wrap gap-2">
-                      {instance.venueType && (
-                        <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
-                          {instance.venueType}
-                        </Badge>
-                      )}
-                      {instance.priceInfo && (
-                        <Badge variant="outline" className="text-xs border-green-300 text-green-700">
-                          {instance.priceInfo}
-                        </Badge>
-                      )}
-                      {instance.capacity && (
-                        <Badge variant="outline" className="text-xs border-purple-300 text-purple-700">
-                          Max {instance.capacity}
-                        </Badge>
-                      )}
+                    {/* Social Row: Joining vs Values */}
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                      {/* Left: Who's Joining */}
+                      <div className="space-y-1 border-r border-gray-100 pr-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-left">Who's Joining</p>
+                        <div className="flex items-center text-sm text-gray-900 font-bold">
+                          <div className="bg-indigo-50 p-1 rounded-md mr-2">
+                            <Users className="h-3.5 w-3.5 text-indigo-600" />
+                          </div>
+                          <span>
+                            {getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Our Values */}
+                      <div className="space-y-1 pl-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-right">Our Values</p>
+                        <div className="flex items-center justify-end text-sm text-gray-900 font-bold">
+                          <span className="truncate mr-2">
+                            {template?.values?.[0]?.value?.name || 'Connection'}
+                          </span>
+                          <div className="bg-red-50 p-1 rounded-md">
+                            <Heart className="h-3.5 w-3.5 text-red-500 fill-red-100" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Participants */}
-                    <div className="flex items-center text-sm text-gray-700">
-                      <Users className="h-4 w-4 mr-2 text-purple-600" />
-                      <span>{instance.participations.length} participants</span>
-                    </div>
+                    <div className="flex-1" />
 
-                    {/* View Details Link */}
+                    {/* Action Buttons */}
                     <div className="pt-2">
                       <Link
                         href={`/invite/${instance.id}`}
-                        className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700"
+                        className="w-full"
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details & Manage
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 font-bold shadow-sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details & Manage
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
+
+                  {/* Template Playbook Footer - Absolute Bottom */}
+                  <CardFooter className="pt-3 pb-4 px-5 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                        <Sparkles className="h-3 w-3 text-blue-500" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Socialiser Playbook
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-500 bg-white px-1.5 py-0 uppercase">
+                      {template.name}
+                    </Badge>
+                  </CardFooter>
                 </Card>
               );
             })}
@@ -418,7 +427,7 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
             <Calendar className="h-5 w-5 text-green-600 mr-2" />
             Past Events
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {pastEvents.map((instance) => {
               const { date, time } = formatDateTime(instance.datetime);
@@ -428,96 +437,113 @@ export default function TemplateEventsPage({ params }: { params: { id: string } 
                 instance.state,
                 instance.zipCode
               ].filter(Boolean).join(', ');
-              
+
               return (
-                <Card key={instance.id} className="hover:shadow-md transition-shadow border-l-4 border-l-green-500 bg-green-50 opacity-90">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <Badge className="bg-green-100 text-green-800 mb-2">Completed</Badge>
-                        
-                        {/* Custom Title - Primary */}
-                        <CardTitle className="text-lg font-semibold text-green-900 mb-1">
-                          {instance.customTitle || template.name}
-                        </CardTitle>
-                        
-                        {/* Template Reference - Secondary */}
-                        <div className="text-sm text-green-600">
-                          Template: {template.name}
-                        </div>
+                <Card key={instance.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white ring-1 ring-gray-100 overflow-hidden flex flex-col opacity-90">
+                  <div className="h-1.5 bg-gradient-to-r from-slate-400 to-slate-500" />
+
+                  <CardHeader className="pb-2 px-5 pt-5">
+                    <div className="space-y-3">
+                      {/* Status Row */}
+                      <div className="flex items-center justify-between">
+                        <Badge className="bg-slate-100 text-slate-600 border-none text-[10px] font-bold uppercase">Completed</Badge>
                       </div>
+
+                      {/* Title */}
+                      <CardTitle className="text-xl font-black text-slate-700 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {instance.customTitle || template.name}
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    {/* Date & Time */}
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 mr-2 text-green-600" />
-                      <div>
-                        <div className="font-medium">{date}</div>
-                        <div className="text-gray-500">{time}</div>
-                      </div>
+
+                  <CardContent className="px-5 pb-5 space-y-4 flex-1 flex flex-col">
+                    {/* Date & Time Badge */}
+                    <div className="flex items-center text-xs font-bold text-gray-500 bg-gray-50 border border-gray-100 w-fit px-2.5 py-1.5 rounded-lg shadow-sm text-left">
+                      <Calendar className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                      <span>{date} at {time}</span>
                     </div>
 
                     {/* Rich Location */}
                     {(instance.venue || fullAddress || instance.location) && (
-                      <div className="space-y-1">
+                      <div className="bg-gray-50/50 rounded-xl p-3 space-y-1.5 border border-gray-100/30">
                         {instance.venue && (
-                          <div className="flex items-center text-sm text-gray-800 font-medium">
-                            <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                            <span>{instance.venue}</span>
+                          <div className="flex items-center text-sm text-gray-600 font-bold truncate">
+                            <MapPin className="h-3.5 w-3.5 mr-2 text-slate-400 shrink-0" />
+                            <span className="truncate">{instance.venue}</span>
                           </div>
                         )}
-                        {fullAddress && (
-                          <div className="text-sm text-gray-600 ml-6">
+                        {fullAddress ? (
+                          <div className="text-[11px] text-gray-500 ml-5.5 pl-0.5 line-clamp-1 italic text-left">
                             {fullAddress}
                           </div>
-                        )}
-                        {!instance.venue && !fullAddress && instance.location && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                            <span>{instance.location}</span>
+                        ) : instance.location && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <MapPin className="h-3.5 w-3.5 mr-2 text-slate-400 shrink-0" />
+                            <span className="truncate">{instance.location}</span>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Rich Details Badges */}
-                    <div className="flex flex-wrap gap-2">
-                      {instance.venueType && (
-                        <Badge variant="outline" className="text-xs border-green-300 text-green-700 opacity-80">
-                          {instance.venueType}
-                        </Badge>
-                      )}
-                      {instance.priceInfo && (
-                        <Badge variant="outline" className="text-xs border-gray-300 text-gray-600 opacity-80">
-                          {instance.priceInfo}
-                        </Badge>
-                      )}
-                      {instance.capacity && (
-                        <Badge variant="outline" className="text-xs border-purple-300 text-purple-600 opacity-80">
-                          Max {instance.capacity}
-                        </Badge>
-                      )}
+                    {/* Social Row: Joining vs Values */}
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                      {/* Left: WhoJoined */}
+                      <div className="space-y-1 border-r border-gray-100 pr-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-left">Who Attended</p>
+                        <div className="flex items-center text-sm text-gray-600 font-bold">
+                          <div className="bg-slate-100 p-1 rounded-md mr-2">
+                            <Users className="h-3.5 w-3.5 text-slate-500" />
+                          </div>
+                          <span>
+                            {getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Our Values */}
+                      <div className="space-y-1 pl-2">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest text-right">Our Values</p>
+                        <div className="flex items-center justify-end text-sm text-gray-600 font-bold">
+                          <span className="truncate mr-2">
+                            {template?.values?.[0]?.value?.name || 'Connection'}
+                          </span>
+                          <div className="bg-slate-50 p-1 rounded-md">
+                            <Heart className="h-3.5 w-3.5 text-slate-400" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Participants */}
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>{instance.participations.length} participants</span>
-                    </div>
+                    <div className="flex-1" />
 
                     {/* View Details Link */}
                     <div className="pt-2">
                       <Link
                         href={`/invite/${instance.id}`}
-                        className="inline-flex items-center text-gray-600 text-sm hover:text-gray-800"
+                        className="w-full"
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details
+                        <Button variant="outline" className="w-full font-bold shadow-sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
+
+                  {/* Template Playbook Footer - Absolute Bottom */}
+                  <CardFooter className="pt-3 pb-4 px-5 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                        <Sparkles className="h-3 w-3 text-slate-400" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Socialiser Playbook
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[9px] font-bold border-slate-200 text-slate-400 bg-white px-1.5 py-0 uppercase">
+                      {template.name}
+                    </Badge>
+                  </CardFooter>
                 </Card>
               );
             })}

@@ -4,14 +4,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
 import { CalendarIntegration } from '@/components/calendar-integration';
 import { QRCodeGenerator } from '@/components/qr-code-generator';
 import { CopyToClipboardHub } from '@/components/copy-to-clipboard-hub';
-import { getParticipantCount } from '@/lib/utils';
+import { getParticipantCount, getEventParticipantStats } from '@/lib/utils';
 import {
   ArrowLeft,
   Calendar,
@@ -255,16 +255,9 @@ export default function InvitePage({ params }: { params: { id: string } }) {
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader>
               <div>
-                <CardTitle className="text-xl font-bold text-blue-900 mb-2">
+                <CardTitle className="text-2xl font-black text-blue-900 mb-2">
                   {instance.customTitle || instance.activity.name}
                 </CardTitle>
-
-                <div className="flex items-center text-sm text-blue-600 mb-2">
-                  <span>Template: {instance.activity.name}</span>
-                  <Badge className="ml-2 bg-blue-100 text-blue-800 text-xs">
-                    Event
-                  </Badge>
-                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -331,189 +324,114 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 )}
               </div>
 
-              {/* Detailed Guest List */}
-              <div className="pt-4 border-t border-gray-200">
-                <div className="font-medium text-gray-900 mb-3 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 mr-2 text-purple-600" />
-                    Guest List ({getParticipantCount(instance)})
+              {/* Social Row: Joining vs Values */}
+              <div className="pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left: Who's Joining */}
+                <div className="space-y-4 border-r border-gray-100 pr-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="bg-indigo-50 p-1.5 rounded-lg mr-3">
+                        <Users className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5 text-left">Who's Joining</p>
+                        <h4 className="text-lg font-bold text-gray-900 text-left">{getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed</h4>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Host Card */}
+                    {instance?.hostAttending && instance.user && (
+                      <div className="flex flex-col p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-bold text-gray-900 flex items-center text-sm">
+                              {instance.user.name} (You)
+                              <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                Host
+                              </Badge>
+                            </div>
+                            <div className="text-[11px] text-gray-500">{instance.user.email}</div>
+                          </div>
+                          <Badge className="bg-indigo-100 text-indigo-800 border-none text-[9px] font-bold">
+                            CONFIRMED
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Internal Friends & External RSVPs mapped below ... */}
+                    {(instance?.participations ?? []).slice(0, 3).map((p) => {
+                      const matchedRSVP = instance?.publicRSVPs?.find(r =>
+                        (r.friendId === p.friend.id) ||
+                        (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
+                      );
+                      return (
+                        <div key={p.friend.id} className="flex items-center justify-between p-2 rounded-lg border border-gray-50 bg-white shadow-sm">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs mr-3">
+                              {p.friend.name.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">{p.friend.name}</div>
+                              <div className="text-[10px] text-gray-500">Friend</div>
+                            </div>
+                          </div>
+                          {matchedRSVP ? (
+                            <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Joined</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-400 border-gray-200 text-[8px] font-black uppercase">Invited</Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {getParticipantCount(instance) > 4 && (
+                      <p className="text-[10px] text-center text-gray-400 font-medium">+ {getParticipantCount(instance) - 4} more guests</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {/* Host Card */}
-                  {instance?.hostAttending && instance.user && (
-                    <div className="flex flex-col p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium text-gray-900 flex items-center">
-                            {instance.user.name} (You)
-                            <Badge variant="outline" className="ml-2 text-xs border-indigo-300 text-indigo-700 bg-white">
-                              Host
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-gray-500">{instance.user.email}</div>
-                        </div>
-                        <div>
-                          <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Confirmed
-                          </Badge>
-                        </div>
-                      </div>
+                {/* Right: Our Values */}
+                <div className="pl-6 space-y-4">
+                  <div className="flex items-center justify-end">
+                    <div className="text-right mr-3">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Our Values</p>
+                      <h4 className="text-lg font-bold text-gray-900">Experience Vibe</h4>
                     </div>
-                  )}
+                    <div className="bg-red-50 p-1.5 rounded-lg">
+                      <Heart className="h-5 w-5 text-red-500 fill-red-50" />
+                    </div>
+                  </div>
 
-                  {/* 1. Internal Friends (Matched with RSVPs) */}
-                  {(instance?.participations ?? []).map((p) => {
-                    const matchedRSVP = instance?.publicRSVPs?.find(r =>
-                      (r.friendId === p.friend.id) ||
-                      (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase()) ||
-                      (r.name.toLowerCase() === p.friend.name.toLowerCase())
-                    );
-
-                    const displayName = matchedRSVP ? matchedRSVP.name : p.friend.name;
-                    const internalName = p.friend.name;
-                    const showInternalName = matchedRSVP && matchedRSVP.name !== p.friend.name;
-
-                    return (
-                      <div key={p.friend.id} className={`flex flex-col p-3 rounded-lg border ${matchedRSVP ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-gray-900 flex items-center">
-                              {displayName}
-                              {showInternalName && (
-                                <span className="ml-2 text-xs text-gray-500 font-normal">
-                                  ({internalName})
-                                </span>
-                              )}
-                              <Badge variant="outline" className="ml-2 text-xs border-purple-200 text-purple-700 bg-purple-50">
-                                Friend
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-gray-500">{p.friend.email || 'No email'}</div>
-                          </div>
-                          <div>
-                            {matchedRSVP ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Confirmed
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-gray-500 border-gray-300">
-                                Invited
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        {matchedRSVP && (matchedRSVP.message || matchedRSVP.phone) && (
-                          <div className="mt-2 text-sm text-gray-600 bg-white p-2 rounded border border-gray-100">
-                            {matchedRSVP.phone && (
-                              <div className="flex items-center mb-1">
-                                <Phone className="h-3 w-3 mr-2" />
-                                {matchedRSVP.phone}
-                              </div>
-                            )}
-                            {matchedRSVP.message && (
-                              <div className="flex items-start">
-                                <MessageSquare className="h-3 w-3 mr-2 mt-0.5" />
-                                <span className="italic">"{matchedRSVP.message}"</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* 2. External RSVPs (Unmatched) */}
-                  {(instance?.publicRSVPs ?? [])
-                    .filter(r => !instance?.participations?.some(p =>
-                      (r.friendId === p.friend.id) ||
-                      (p.friend.email && r.email && p.friend.email.toLowerCase() === r.email.toLowerCase()) ||
-                      (p.friend.name.toLowerCase() === r.name.toLowerCase())
-                    ))
-                    .map((rsvp) => (
-                      <div key={rsvp.id} className="flex flex-col p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-gray-900 flex items-center">
-                              {rsvp.name}
-                              <Badge variant="outline" className="ml-2 text-xs border-blue-200 text-blue-700 bg-white">
-                                Guest
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {rsvp.email && <div className="flex items-center"><Mail className="h-3 w-3 mr-1" /> {rsvp.email}</div>}
-                            </div>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Confirmed (RSVP)
-                          </Badge>
-                        </div>
-                        {(rsvp.phone || rsvp.message) && (
-                          <div className="mt-2 text-sm text-gray-600 bg-white p-2 rounded border border-blue-100">
-                            {rsvp.phone && (
-                              <div className="flex items-center mb-1">
-                                <Phone className="h-3 w-3 mr-2" />
-                                {rsvp.phone}
-                              </div>
-                            )}
-                            {rsvp.message && (
-                              <div className="flex items-start">
-                                <MessageSquare className="h-3 w-3 mr-2 mt-0.5" />
-                                <span className="italic">"{rsvp.message}"</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    {(instance?.activity?.values ?? []).map((av) => (
+                      <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100 font-bold px-3 py-1">
+                        {av?.value?.name}
+                      </Badge>
                     ))}
-
-                  {(instance?.participations?.length === 0 && instance?.publicRSVPs?.length === 0) && (
-                    <div className="text-center py-4 text-gray-500 italic text-sm">
-                      No guests have been invited or RSVP'd yet.
-                    </div>
-                  )}
+                    {(instance?.activity?.values?.length ?? 0) === 0 && (
+                      <p className="text-xs text-gray-400 italic">No values specified for this template</p>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {/* Rich Description */}
-              {(instance.detailedDescription || instance.activity.description) && (
-                <div className="pt-2 border-t border-gray-200">
-                  <div className="font-medium text-gray-900 mb-1">About This Event</div>
-                  <p className="text-sm text-gray-700">
-                    {instance.detailedDescription || instance.activity.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Requirements */}
-              {instance.requirements && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <div className="font-medium text-amber-900 mb-1">What to Bring/Know</div>
-                  <p className="text-sm text-amber-800">{instance.requirements}</p>
-                </div>
-              )}
-
-              {/* Values */}
-              {(instance?.activity?.values?.length ?? 0) > 0 && (
-                <div className="flex items-start text-gray-700">
-                  <Heart className="h-4 w-4 mr-3 mt-1 text-red-600" />
-                  <div>
-                    <div className="font-medium">Core Values (from template)</div>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {(instance?.activity?.values ?? []).map((av) => (
-                        <Badge key={av?.value?.id} variant="outline">
-                          {av?.value?.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
+
+            {/* Template Playbook Footer */}
+            <CardFooter className="pt-4 pb-4 px-8 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                </div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Socialiser Playbook
+                </span>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-500 bg-white px-2 py-0.5 uppercase">
+                {instance.activity.name}
+              </Badge>
+            </CardFooter>
           </Card>
 
           {/* Modern Invite Hub */}

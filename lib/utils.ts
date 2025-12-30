@@ -129,3 +129,15 @@ export function getParticipantCount(instance: any): number {
 
   return invitedCount + externalRSVPCount + hostCount;
 }
+
+export function getEventParticipantStats(instance: any) {
+  if (!instance) return { invited: 0, confirmed: 0 };
+
+  const invitedCount = instance.participations?.length ?? 0;
+  const confirmedCount = instance.publicRSVPs?.length ?? 0;
+
+  return {
+    invited: invitedCount,
+    confirmed: confirmedCount + (instance.hostAttending ? 1 : 0)
+  };
+}
