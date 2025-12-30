@@ -25,7 +25,8 @@ import {
   Phone,
   MessageSquare,
   Check,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 
 interface InvitedFriend {
@@ -308,6 +309,20 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     <p className="text-blue-800">{instance.contactInfo}</p>
                   </div>
                 )}
+
+                {/* Template Connection */}
+                <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
+                  <Layers className="h-6 w-6 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Created from Template</p>
+                    <div className="flex items-center mt-1">
+                      <span className="text-lg font-bold text-slate-900">{instance.activity.name}</span>
+                      <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-800 border-slate-200 text-[10px] h-5">
+                        Template
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Values */}
                 {(instance?.activity?.values?.length ?? 0) > 0 && (
