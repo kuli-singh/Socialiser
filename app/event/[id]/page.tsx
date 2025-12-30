@@ -220,164 +220,175 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
           <div className="lg:col-span-2 space-y-8">
             {/* Event Details Card */}
             <Card className="border-l-4 border-l-blue-500 shadow-lg">
-              <CardContent className="p-8 space-y-6">
-                {/* Date & Time */}
-                <div className="flex items-center text-gray-700">
-                  <Calendar className="h-6 w-6 mr-4 text-blue-600" />
-                  <div>
-                    <div className="text-xl font-semibold">{date}</div>
-                    <div className="text-lg text-gray-600">{time}</div>
-                  </div>
-                </div>
-
-                {/* Location */}
-                {(instance.venue || instance.address || instance.location) && (
-                  <div className="space-y-2">
-                    {instance.venue && (
-                      <div className="flex items-center text-gray-900">
-                        <MapPin className="h-6 w-6 mr-4 text-green-600" />
-                        <div>
-                          <div className="text-lg font-semibold">{instance.venue}</div>
-                          {instance.venueType && (
-                            <Badge variant="outline" className="mt-1 border-green-300 text-green-700">
-                              {instance.venueType}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {(instance.address || instance.city || instance.state) && (
-                      <div className="flex items-start text-gray-700 ml-10">
-                        <div>
-                          {instance.address && <div className="text-base">{instance.address}</div>}
-                          {(instance.city || instance.state || instance.zipCode) && (
-                            <div className="text-base">
-                              {[instance.city, instance.state, instance.zipCode].filter(Boolean).join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {!instance.venue && !instance.address && instance.location && (
-                      <div className="flex items-center text-gray-700">
-                        <MapPin className="h-6 w-6 mr-4 text-green-600" />
-                        <span className="text-lg">{instance.location}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Description */}
-                {(instance.detailedDescription || instance.activity.description) && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">About This Event</h3>
-                    <p className="text-gray-700 leading-relaxed">
-                      {instance.detailedDescription || instance.activity.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Requirements */}
-                {instance.requirements && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-amber-900 mb-2">What to Bring/Know</h4>
-                    <p className="text-amber-800">{instance.requirements}</p>
-                  </div>
-                )}
-
-                {/* Additional Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {instance.capacity && (
-                    <div className="flex items-center text-gray-700">
-                      <Users className="h-5 w-5 mr-3 text-purple-600" />
-                      <span>Max {instance.capacity} people</span>
+              <CardContent className="p-0">
+                {/* Template Attribution Header */}
+                <div className="bg-slate-50/80 border-b border-slate-100 p-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <Layers className="h-5 w-5 text-slate-600" />
                     </div>
-                  )}
-                  {instance.priceInfo && (
-                    <Badge variant="outline" className="border-green-300 text-green-700 w-fit">
-                      {instance.priceInfo}
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Contact Info */}
-                {instance.contactInfo && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-900 mb-2">Contact Information</h4>
-                    <p className="text-blue-800">{instance.contactInfo}</p>
-                  </div>
-                )}
-
-                {/* Template Connection */}
-                <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
-                  <Layers className="h-6 w-6 text-slate-500" />
-                  <div>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Created from Template</p>
-                    <div className="flex items-center mt-1">
-                      <span className="text-lg font-bold text-slate-900">{instance.activity.name}</span>
-                      <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-800 border-slate-200 text-[10px] h-5">
-                        Template
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Values */}
-                {(instance?.activity?.values?.length ?? 0) > 0 && (
-                  <div className="flex items-start text-gray-700">
-                    <Heart className="h-5 w-5 mr-3 mt-1 text-red-500" />
                     <div>
-                      <div className="font-semibold mb-2">What We Value</div>
-                      <div className="flex flex-wrap gap-2">
-                        {(instance?.activity?.values ?? []).map((av) => (
-                          <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100 hover:bg-red-100">
-                            {av?.value?.name}
-                          </Badge>
-                        ))}
-                      </div>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em]">Created from Template</p>
+                      <h3 className="text-base font-bold text-slate-900">{instance.activity.name}</h3>
                     </div>
                   </div>
-                )}
+                  <Badge className="bg-indigo-600 text-white border-none shadow-sm px-3 py-1">
+                    Socialiser Playbook
+                  </Badge>
+                </div>
 
-                {/* Participants */}
-                <div className="flex items-start text-gray-700">
-                  <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
-                  <div>
-                    <div className="font-semibold mb-2">
-                      {(instance.participantCount + rsvps.filter(r =>
-                        !r.friendId &&
-                        !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                      ).length)} people attending
+                <div className="p-8 space-y-8">
+                  {/* Date & Time */}
+                  <div className="flex items-center text-gray-700">
+                    <Calendar className="h-6 w-6 mr-4 text-blue-600" />
+                    <div>
+                      <div className="text-xl font-semibold">{date}</div>
+                      <div className="text-lg text-gray-600">{time}</div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        ...instance.participantNames,
-                        ...rsvps.filter(r =>
-                          !r.friendId &&
-                          !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                        ).map(r => r.name)
-                      ].map((name, idx) => {
-                        const isHost = name.includes('(Host)');
-                        const displayName = name.replace('(Host)', '').trim();
+                  </div>
 
-                        return (
-                          <div key={idx} className="flex items-center">
-                            <span className={`text-sm ${isHost ? 'font-bold text-gray-900' : 'text-gray-600'}`}>
-                              {displayName}
-                            </span>
-                            {isHost && (
-                              <Badge className="ml-1 bg-indigo-100 text-indigo-700 border-indigo-200 text-[10px] h-4 px-1">
-                                Host
+                  {/* Location */}
+                  {(instance.venue || instance.address || instance.location) && (
+                    <div className="space-y-2">
+                      {instance.venue && (
+                        <div className="flex items-center text-gray-900">
+                          <MapPin className="h-6 w-6 mr-4 text-green-600" />
+                          <div>
+                            <div className="text-lg font-semibold">{instance.venue}</div>
+                            {instance.venueType && (
+                              <Badge variant="outline" className="mt-1 border-green-300 text-green-700">
+                                {instance.venueType}
                               </Badge>
                             )}
-                            {idx < (instance.participantNames.length + rsvps.length - 1) && (
-                              <span className="mx-1 text-gray-300">•</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {(instance.address || instance.city || instance.state) && (
+                        <div className="flex items-start text-gray-700 ml-10">
+                          <div>
+                            {instance.address && <div className="text-base">{instance.address}</div>}
+                            {(instance.city || instance.state || instance.zipCode) && (
+                              <div className="text-base">
+                                {[instance.city, instance.state, instance.zipCode].filter(Boolean).join(', ')}
+                              </div>
                             )}
                           </div>
-                        );
-                      })}
+                        </div>
+                      )}
+
+                      {!instance.venue && !instance.address && instance.location && (
+                        <div className="flex items-center text-gray-700">
+                          <MapPin className="h-6 w-6 mr-4 text-green-600" />
+                          <span className="text-lg">{instance.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {(instance.detailedDescription || instance.activity.description) && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">About This Event</h3>
+                      <p className="text-gray-700 leading-relaxed text-lg">
+                        {instance.detailedDescription || instance.activity.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Requirements & Additional Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {instance.requirements && (
+                      <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5">
+                        <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">What to Bring/Know</h4>
+                        <p className="text-amber-900 text-sm whitespace-pre-wrap">{instance.requirements}</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      {instance.capacity && (
+                        <div className="flex items-center text-gray-700 bg-purple-50/50 border border-purple-100 rounded-xl p-4">
+                          <Users className="h-5 w-5 mr-3 text-purple-600" />
+                          <span className="text-sm font-medium">Limited to {instance.capacity} guests</span>
+                        </div>
+                      )}
+
+                      {instance.priceInfo && (
+                        <div className="flex items-center text-gray-700 bg-green-50/50 border border-green-100 rounded-xl p-4">
+                          <Badge variant="outline" className="bg-white border-green-200 text-green-700 px-3 py-1">
+                            {instance.priceInfo}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Contact Info */}
+                  {instance.contactInfo && (
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
+                      <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Contact Info</h4>
+                      <p className="text-blue-900 text-sm">{instance.contactInfo}</p>
+                    </div>
+                  )}
+
+                  <div className="pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Values */}
+                    {(instance?.activity?.values?.length ?? 0) > 0 && (
+                      <div className="flex items-start text-gray-700">
+                        <Heart className="h-5 w-5 mr-3 mt-1 text-red-500" />
+                        <div>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Our Vibe</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(instance?.activity?.values ?? []).map((av) => (
+                              <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100">
+                                {av?.value?.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Participants */}
+                    <div className="flex items-start text-gray-700">
+                      <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Who's Joining</p>
+                        <div className="font-semibold text-gray-900 mb-2">
+                          {(instance.participantCount + rsvps.filter(r =>
+                            !r.friendId &&
+                            !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                          ).length)} attending
+                        </div>
+                        <div className="flex flex-wrap gap-x-2 gap-y-1">
+                          {[
+                            ...instance.participantNames,
+                            ...rsvps.filter(r =>
+                              !r.friendId &&
+                              !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                            ).map(r => r.name)
+                          ].map((name, idx) => {
+                            const isHost = name.includes('(Host)');
+                            const displayName = name.replace('(Host)', '').trim();
+
+                            return (
+                              <div key={idx} className="flex items-center">
+                                <span className={`text-sm ${isHost ? 'font-bold text-indigo-900 underline decoration-indigo-200 underline-offset-4' : 'text-gray-600'}`}>
+                                  {displayName}
+                                </span>
+                                {isHost && (
+                                  <Badge className="ml-1.5 bg-indigo-600 text-white border-none text-[8px] h-3.5 px-1 leading-none font-black uppercase">
+                                    Host
+                                  </Badge>
+                                )}
+                                {idx < (instance.participantNames.length + rsvps.length - 1) && (
+                                  <span className="ml-2 text-gray-300">•</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
