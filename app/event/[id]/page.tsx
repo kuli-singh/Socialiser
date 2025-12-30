@@ -552,18 +552,35 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
                       </p>
 
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-2 text-xs text-blue-100">
-                          <CheckCircle className="h-3 w-3 text-green-400 mt-0.5" />
-                          AI Event Discovery
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-start gap-3 text-xs text-blue-50">
+                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                            <Users className="h-3 w-3 text-white" />
+                          </div>
+                          <div>
+                            <span className="font-bold block text-white">Build Your Circle</span>
+                            Add your friends and organize group activities without the back-and-forth.
+                          </div>
                         </div>
-                        <div className="flex items-start gap-2 text-xs text-blue-100">
-                          <CheckCircle className="h-3 w-3 text-green-400 mt-0.5" />
-                          Smart RSVP Sync
+
+                        <div className="flex items-start gap-3 text-xs text-blue-50">
+                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                            <Sparkles className="h-3 w-3 text-white" />
+                          </div>
+                          <div>
+                            <span className="font-bold block text-white">Create Custom Playbooks</span>
+                            Save your favorite activity templates—from casual drinks to epic weekend trips.
+                          </div>
                         </div>
-                        <div className="flex items-start gap-2 text-xs text-blue-100">
-                          <CheckCircle className="h-3 w-3 text-green-400 mt-0.5" />
-                          Calendar Integration
+
+                        <div className="flex items-start gap-3 text-xs text-blue-50">
+                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                            <Calendar className="h-3 w-3 text-white" />
+                          </div>
+                          <div>
+                            <span className="font-bold block text-white">Launch Events in Seconds</span>
+                            Pick a template, and let our AI handle the logistics and invite sync.
+                          </div>
                         </div>
                       </div>
                     </div>
