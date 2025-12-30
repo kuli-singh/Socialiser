@@ -249,12 +249,22 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                   {/* Location */}
                   {(instance.venue || instance.address || instance.location) && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {instance.venue && (
-                        <div className="flex items-center text-gray-900">
+                        <div className="flex items-center text-gray-900 group">
                           <MapPin className="h-6 w-6 mr-4 text-green-600" />
                           <div>
-                            <div className="text-lg font-semibold">{instance.venue}</div>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${instance.venue} ${instance.address || ''} ${instance.city || ''}`.trim()
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-lg font-semibold hover:text-green-600 transition-colors flex items-center group-hover:underline"
+                            >
+                              {instance.venue}
+                              <ExternalLink className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </a>
                             {instance.venueType && (
                               <Badge variant="outline" className="mt-1 border-green-300 text-green-700">
                                 {instance.venueType}
@@ -266,21 +276,36 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                       {(instance.address || instance.city || instance.state) && (
                         <div className="flex items-start text-gray-700 ml-10">
-                          <div>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${instance.address || ''} ${instance.city || ''} ${instance.state || ''}`.trim()
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-green-600 hover:underline transition-colors"
+                          >
                             {instance.address && <div className="text-base">{instance.address}</div>}
                             {(instance.city || instance.state || instance.zipCode) && (
                               <div className="text-base">
                                 {[instance.city, instance.state, instance.zipCode].filter(Boolean).join(', ')}
                               </div>
                             )}
-                          </div>
+                          </a>
                         </div>
                       )}
 
                       {!instance.venue && !instance.address && instance.location && (
-                        <div className="flex items-center text-gray-700">
+                        <div className="flex items-center text-gray-700 group">
                           <MapPin className="h-6 w-6 mr-4 text-green-600" />
-                          <span className="text-lg">{instance.location}</span>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(instance.location)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg hover:text-green-600 hover:underline transition-colors flex items-center"
+                          >
+                            {instance.location}
+                            <ExternalLink className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </a>
                         </div>
                       )}
                     </div>
@@ -288,11 +313,28 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                   {/* Description */}
                   {(instance.detailedDescription || instance.activity.description) && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">About This Event</h3>
+                    <div className="pt-4 border-t border-gray-100 space-y-4">
+                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">About This Event</h3>
                       <p className="text-gray-700 leading-relaxed text-lg">
                         {instance.detailedDescription || instance.activity.description}
                       </p>
+
+                      {instance.eventUrl && (
+                        <div className="flex items-center pt-2">
+                          <ExternalLink className="h-5 w-5 mr-3 text-blue-600" />
+                          <a
+                            href={instance.eventUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 font-bold hover:underline group flex items-center"
+                          >
+                            Visit Event Website
+                            <span className="ml-1 opacity-0 group-hover:opacity-100 transition-all opacity-0 transform translate-x-1 group-hover:translate-x-0">
+                              →
+                            </span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -350,17 +392,17 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     )}
 
                     {/* Participants */}
-                    <div className="flex items-start text-gray-700">
+                    <div className="flex items-start text-gray-700 leading-relaxed">
                       <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
                       <div>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Who's Joining</p>
-                        <div className="font-semibold text-gray-900 mb-2">
+                        <div className="font-semibold text-gray-900 mb-3 text-lg">
                           {(instance.participantCount + rsvps.filter(r =>
                             !r.friendId &&
                             !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                          ).length)} attending
+                          ).length)} people attending
                         </div>
-                        <div className="flex flex-wrap gap-x-2 gap-y-1">
+                        <div className="space-y-3">
                           {[
                             ...instance.participantNames,
                             ...rsvps.filter(r =>
@@ -372,18 +414,17 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                             const displayName = name.replace('(Host)', '').trim();
 
                             return (
-                              <div key={idx} className="flex items-center">
-                                <span className={`text-sm ${isHost ? 'font-bold text-indigo-900 underline decoration-indigo-200 underline-offset-4' : 'text-gray-600'}`}>
-                                  {displayName}
-                                </span>
-                                {isHost && (
-                                  <Badge className="ml-1.5 bg-indigo-600 text-white border-none text-[8px] h-3.5 px-1 leading-none font-black uppercase">
-                                    Host
-                                  </Badge>
-                                )}
-                                {idx < (instance.participantNames.length + rsvps.length - 1) && (
-                                  <span className="ml-2 text-gray-300">•</span>
-                                )}
+                              <div key={idx} className="flex items-center justify-between group">
+                                <div className="flex items-center">
+                                  <span className={`text-base ${isHost ? 'font-bold text-indigo-900' : 'text-gray-700'}`}>
+                                    {displayName}
+                                  </span>
+                                  {isHost && (
+                                    <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
+                                      Host
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
@@ -456,20 +497,6 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                           </div>
                         )}
 
-                        {instance.eventUrl && (
-                          <div className="flex items-center text-blue-600 mt-3">
-                            <ExternalLink className="h-4 w-4 mr-3" />
-                            <a
-                              href={instance.eventUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-medium hover:underline"
-                            >
-                              Visit Event Website
-                            </a>
-                          </div>
-                        )}
-
                         {linkedFriend && (
                           <p className="text-xs text-green-600 mt-1 flex items-center">
                             <Check className="h-3 w-3 mr-1" />
@@ -485,7 +512,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         )}
                       </div>
 
-                      <div>
+                      <div> {/* This div is for the Email field */}
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Email
                         </label>
