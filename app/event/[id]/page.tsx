@@ -351,8 +351,32 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                   <div className="pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Participants */}
                     <div className="flex items-start text-gray-700 leading-relaxed border-r border-gray-100 pr-4">
-                      return `${totalInvited} invited • ${totalConfirmed} confirmed`;
+                      <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-left">Who's Joining</p>
+                        <h4 className="text-lg font-bold text-gray-900 text-left">
+                          {(() => {
+                            // Calculate External RSVPs (not in invitedFriends)
+                            const externalRSVPs = rsvps.filter(r =>
+                              !r.friendId &&
+                              !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
+                            );
+                            const totalInvited = (instance.invitedFriends?.length ?? 0) + 1 + externalRSVPs.length;
+                            const totalConfirmed = rsvps.length + 1;
+                            return `${totalInvited} invited • ${totalConfirmed} confirmed`;
                           })()}
+                        </h4>
+
+                        {/* Guest Policy Indicator */}
+                        <div className="mt-1">
+                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${instance.allowExternalGuests
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : "bg-gray-50 text-gray-500 border-gray-200"
+                            }`}>
+                            {instance.allowExternalGuests ? "EXTERNAL GUESTS ALLOWED" : "INVITE ONLY"}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-3">
                       {/* 1. Host (Always Confirmed) */}
