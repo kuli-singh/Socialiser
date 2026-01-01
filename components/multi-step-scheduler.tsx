@@ -919,8 +919,8 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="All">All Categories</SelectItem>
-                        {Array.from(new Set(friends.map(f => f.group).filter(Boolean))).sort().map(category => (
-                          <SelectItem key={category as string} value={category as string}>
+                        {Array.from(new Set(friends.map(f => f.group || 'No Group'))).sort().map(category => (
+                          <SelectItem key={category} value={category}>
                             {category}
                           </SelectItem>
                         ))}
@@ -930,7 +930,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                     {(friends ?? [])
-                      .filter(friend => selectedCategory === 'All' || friend.group === selectedCategory)
+                      .filter(friend => selectedCategory === 'All' || (friend.group || 'No Group') === selectedCategory)
                       .map((friend) => (
                         <label
                           key={friend.id}

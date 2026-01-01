@@ -99,16 +99,16 @@ export default function FriendsPage() {
   };
 
   // Extract unique categories (Memoized or derived during render is fine if inside body)
-  const categories = ['All', ...Array.from(new Set(friends.map(f => f.group || 'No Group')))].sort();
+  const categories = ['All', ...Array.from(new Set(friends.map(f => f.group?.trim() || 'No Group')))].sort();
 
   // Filter friends based on selection
   const filteredFriends = selectedCategory === 'All'
     ? friends
-    : friends.filter(f => (f.group || 'No Group') === selectedCategory);
+    : friends.filter(f => (f.group?.trim() || 'No Group') === selectedCategory);
 
   // Group filtered friends by group
   const groupedFriends = (filteredFriends ?? []).reduce((acc, friend) => {
-    const group = friend?.group || 'No Group';
+    const group = friend?.group?.trim() || 'No Group';
     if (!acc[group]) acc[group] = [];
     acc[group].push(friend);
     return acc;
