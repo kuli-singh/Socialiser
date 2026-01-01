@@ -192,8 +192,6 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
   const eventUrl = typeof window !== 'undefined'
     ? window.location.href
     : '';
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
@@ -370,8 +368,8 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                         {/* Guest Policy Indicator */}
                         <div className="mt-1">
                           <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${instance.allowExternalGuests
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-gray-50 text-gray-500 border-gray-200"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-gray-50 text-gray-500 border-gray-200"
                             }`}>
                             {instance.allowExternalGuests ? "EXTERNAL GUESTS ALLOWED" : "INVITE ONLY"}
                           </Badge>
@@ -789,9 +787,6 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
           </p>
         </div>
       </div>
-      </div >
-    </div >
-      </div >
     </div >
   );
 }
