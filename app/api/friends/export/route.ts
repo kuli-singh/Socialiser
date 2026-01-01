@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db';
 type FriendExportData = {
   name: string;
   email: string | null;
+  phoneNumber: string | null;
   group: string | null;
 };
 
@@ -38,12 +39,13 @@ export async function GET(request: NextRequest) {
       select: {
         name: true,
         email: true,
+        phoneNumber: true,
         group: true
       }
     });
 
     // Generate CSV content
-    const csvHeader = 'name,email,group\n';
+    const csvHeader = 'name,email,phone,group\n';
     const csvRows = friends.map((friend: FriendExportData) => {
       // Escape commas and quotes in CSV fields
       const escapeCsvField = (field: string | null) => {
@@ -57,6 +59,7 @@ export async function GET(request: NextRequest) {
       return [
         escapeCsvField(friend.name),
         escapeCsvField(friend.email),
+        escapeCsvField(friend.phoneNumber),
         escapeCsvField(friend.group)
       ].join(',');
     }).join('\n');

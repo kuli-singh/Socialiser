@@ -48,6 +48,7 @@ model CoreValue {
   id          String          @id @default(cuid())
   userId      String
   name        String
+  phoneNumber String?
   description String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt

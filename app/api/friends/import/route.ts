@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 interface CSVRow {
   name: string;
   email?: string;
+  phone?: string;
   group?: string;
 }
 
@@ -30,6 +31,7 @@ interface ImportResult {
   importedFriends: Array<{
     name: string;
     email: string | null;
+    phone: string | null;
     group: string | null;
   }>;
 }
@@ -53,6 +55,9 @@ function validateRow(row: any, rowIndex: number): { isValid: boolean; error?: st
       name: row.name.trim(),
       email: row.email && typeof row.email === 'string' && row.email.trim() !== ''
         ? row.email.trim()
+        : undefined,
+      phone: (row.phone || row.phoneNumber) && typeof (row.phone || row.phoneNumber) === 'string' && (row.phone || row.phoneNumber).trim() !== ''
+        ? (row.phone || row.phoneNumber).trim()
         : undefined,
       group: row.group && typeof row.group === 'string' && row.group.trim() !== ''
         ? row.group.trim()
@@ -91,7 +96,12 @@ export async function POST(request: NextRequest) {
     const parseResult = Papa.parse<CSVRow>(csvText, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header: string) => header.toLowerCase().trim()
+      transformHeader: (header: string) => {
+        const h = header.toLowerCase().trim();
+        // Normalize headers
+        if (h === 'phone number' || h === 'mobile' || h === 'cell') return 'phone';
+        return h;
+      }
     });
 
     if (parseResult.errors.length > 0) {
@@ -171,6 +181,7 @@ export async function POST(request: NextRequest) {
       const importData = validRows.map(({ data }) => ({
         name: data.name,
         email: data.email || null, // Optional email field
+        phoneNumber: data.phone || null,
         notes: null,
         group: data.group || null,
         userId: user.id
@@ -181,7 +192,7 @@ export async function POST(request: NextRequest) {
       });
 
       result.successfulImports = importedFriends.count;
-      result.importedFriends = importData.map(({ name, email, group }) => ({ name, email, group }));
+      result.importedFriends = importData.map(({ name, email, phoneNumber, group }) => ({ name, email, phone: phoneNumber, group }));
     }
 
     result.success = result.successfulImports > 0;

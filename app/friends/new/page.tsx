@@ -33,6 +33,7 @@ export default function NewFriendPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phoneNumber: '',
     group: '',
     notes: '',
   });
@@ -99,7 +100,7 @@ export default function NewFriendPage() {
               <Input
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="Enter their full name"
+                placeholder="Jane Doe"
                 required
               />
             </FormField>
@@ -109,14 +110,20 @@ export default function NewFriendPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="their.email@example.com"
+                placeholder="jane@example.com"
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Optional: Add email to enable invite sending via email
-              </p>
             </FormField>
 
-            <FormField label="Group" error={errors.group}>
+            <FormField label="Phone Number" error={errors.phoneNumber}>
+              <Input
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => handleChange('phoneNumber', e.target.value)}
+                placeholder="(555) 123-4567"
+              />
+            </FormField>
+
+            <FormField label="Group (Optional)">
               <GroupSelector
                 value={formData.group}
                 onValueChange={(val: string) => handleChange('group', val)}

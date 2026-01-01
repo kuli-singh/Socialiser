@@ -13,6 +13,8 @@ interface Friend {
   name: string;
   notes: string | null;
   group: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
   createdAt: string;
 }
 
@@ -225,6 +227,7 @@ export default function FriendsPage() {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/4">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/4">Contact</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/3">Notes</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Added</th>
                         <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
@@ -235,6 +238,23 @@ export default function FriendsPage() {
                         <tr key={friend.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4 align-top">
                             <div className="font-medium text-gray-900">{friend.name}</div>
+                          </td>
+                          <td className="py-3 px-4 align-top">
+                            <div className="space-y-1">
+                              {friend.email && (
+                                <div className="text-sm text-gray-600 truncate max-w-[200px]" title={friend.email}>
+                                  {friend.email}
+                                </div>
+                              )}
+                              {friend.phoneNumber && (
+                                <div className="text-sm text-gray-600">
+                                  {friend.phoneNumber}
+                                </div>
+                              )}
+                              {!friend.email && !friend.phoneNumber && (
+                                <span className="text-sm text-gray-400 italic">No contact info</span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-4 text-gray-600 align-top">
                             <div className="text-sm line-clamp-2" title={friend.notes || ''}>

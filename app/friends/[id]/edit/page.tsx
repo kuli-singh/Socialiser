@@ -18,6 +18,7 @@ interface Friend {
   id: string;
   name: string;
   email: string | null;
+  phoneNumber: string | null;
   notes: string | null;
   group: string | null;
 }
@@ -31,6 +32,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phoneNumber: '',
     group: '',
     notes: '',
   });
@@ -63,6 +65,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
       setFormData({
         name: data.name,
         email: data.email || '',
+        phoneNumber: data.phoneNumber || '',
         group: data.group || '',
         notes: data.notes || '',
       });
@@ -150,9 +153,15 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="their.email@example.com"
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Optional: Add email to enable invite sending via email
-              </p>
+            </FormField>
+
+            <FormField label="Phone Number" error={errors.phoneNumber}>
+              <Input
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => handleChange('phoneNumber', e.target.value)}
+                placeholder="(555) 123-4567"
+              />
             </FormField>
 
             <FormField label="Group" error={errors.group}>
