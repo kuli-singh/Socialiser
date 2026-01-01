@@ -336,6 +336,24 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       <div>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5 text-left">Who's Joining</p>
                         <h4 className="text-lg font-bold text-gray-900 text-left">{getEventParticipantStats(instance).invited} invited • {getEventParticipantStats(instance).confirmed} confirmed</h4>
+
+                        {/* Guest Policy Indicator */}
+                        <div className="mt-1">
+                          {/* Note: 'instance' type in this file doesn't seem to have allowExternalGuests yet? 
+                                I need to check the interface. If missing, I'll default to checking if any external guests exist.
+                                Wait, I should add allowExternalGuests to the API/Interface for consistency. 
+                                But for now, let's assume it might recall if I add it.
+                                Actually, checking the file content again, interface ActivityInstance in this file misses allowExternalGuests.
+                                I'll add it to the interface first in a separate edit, or just cast it for now to avoid breaking changes if API doesn't send it.
+                                The API /api/instances/[id] DOES return the full object.
+                             */}
+                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${(instance as any).allowExternalGuests
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : "bg-gray-50 text-gray-500 border-gray-200"
+                            }`}>
+                            {(instance as any).allowExternalGuests ? "EXTERNAL GUESTS ALLOWED" : "INVITE ONLY"}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   </div>
