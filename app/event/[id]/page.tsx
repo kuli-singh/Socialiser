@@ -33,6 +33,8 @@ import {
 interface InvitedFriend {
   id: string;
   name: string;
+  email?: string | null;
+  phoneNumber?: string | null;
 }
 
 interface PublicActivityInstance {
@@ -324,7 +326,12 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                                 } else {
                                   const friend = instance.invitedFriends?.find(f => f.id === val);
                                   if (friend) {
-                                    setRsvpForm(prev => ({ ...prev, name: friend.name }));
+                                    setRsvpForm(prev => ({
+                                      ...prev,
+                                      name: friend.name,
+                                      email: friend.email || '',
+                                      phone: friend.phoneNumber || ''
+                                    }));
                                   }
                                 }
                               }}
