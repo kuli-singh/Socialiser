@@ -30,7 +30,8 @@ export async function GET(
               select: {
                 id: true,
                 name: true,
-                // Don't expose phone/email in public view
+                email: true,
+                phoneNumber: true
               }
             }
           }

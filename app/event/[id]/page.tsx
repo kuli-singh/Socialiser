@@ -320,11 +320,13 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                             <Select
                               value={selectedFriendId}
                               onValueChange={(val) => {
+                                console.log('Selected friend ID:', val);
                                 setSelectedFriendId(val);
                                 if (val === 'external') {
                                   setRsvpForm(prev => ({ ...prev, name: '' }));
                                 } else {
                                   const friend = instance.invitedFriends?.find(f => f.id === val);
+                                  console.log('Found friend:', friend);
                                   if (friend) {
                                     setRsvpForm(prev => ({
                                       ...prev,
