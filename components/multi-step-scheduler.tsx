@@ -407,6 +407,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
           priceInfo: formData.priceInfo || null,
           capacity: formData.capacity ? parseInt(formData.capacity) : null,
           eventUrl: formData.eventUrl || null,
+          allowExternalGuests: formData.allowExternalGuests,
         }),
       });
 

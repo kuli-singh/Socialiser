@@ -70,6 +70,7 @@ export type ActivityInstance = {
   isAllDay: boolean
   locationId?: string
   eventUrl?: string
+  allowExternalGuests: boolean
 
   // Relations
   user?: User
@@ -101,6 +102,7 @@ export type ActivityInstanceFormData = {
   isAllDay?: boolean
   locationId?: string
   eventUrl?: string
+  allowExternalGuests?: boolean
 }
 
 // AI suggestion data structure
@@ -184,6 +186,7 @@ export type ActivityInstanceWithRelations = {
   capacity: number | null
   locationId: string | null
   eventUrl: string | null
+  allowExternalGuests: boolean
   hostAttending: boolean
   user: {
     name: string
@@ -288,6 +291,7 @@ export type SerializedActivityInstanceWithRelations = {
   capacity: number | null
   locationId: string | null
   eventUrl: string | null
+  allowExternalGuests: boolean
   hostAttending: boolean
   user: {
     name: string
