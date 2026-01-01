@@ -171,6 +171,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
         priceInfo: initialInstance.priceInfo || '',
         capacity: initialInstance.capacity?.toString() || '',
         eventUrl: initialInstance.eventUrl || '',
+        allowExternalGuests: initialInstance.allowExternalGuests !== undefined ? initialInstance.allowExternalGuests : true,
       });
       if (initialInstance.activity) {
         setSelectedActivity(initialInstance.activity);
