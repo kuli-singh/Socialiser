@@ -22,7 +22,7 @@ export async function POST(
     // Check if event exists
     const instance = await prisma.activityInstance.findUnique({
       where: { id: params.id },
-      select: { id: true, capacity: true, allowExternalGuests: true }
+      select: { id: true, capacity: true, allowExternalGuests: true, hostAttending: true }
     });
 
     if (!instance) {
@@ -70,7 +70,9 @@ export async function POST(
         where: { activityInstanceId: params.id }
       });
 
-      if (currentCount >= instance.capacity) {
+      const hostCount = instance.hostAttending ? 1 : 0;
+
+      if (currentCount + hostCount >= instance.capacity) {
         return NextResponse.json(
           { error: 'Event is at capacity' },
           { status: 400 }
