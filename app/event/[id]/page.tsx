@@ -535,7 +535,14 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                     {/* Invitee Dropdown */}
                     {(instance.invitedFriends?.length > 0 || instance.allowExternalGuests) && (
-                      <div className="space-y-3">
+                      <div className="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                        <label className="block text-sm font-semibold text-gray-900 mb-1">
+                          Are you on the guest list?
+                        </label>
+                        <p className="text-xs text-gray-600 mb-2">
+                          Select your name to auto-fill your details.
+                        </p>
+
                         <select
                           className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                           // Value should be the ID if a friend is selected, or 'external' if explicitly external mode.
@@ -576,6 +583,17 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                             </>
                           )}
                         </select>
+
+                        {/* Helper text specific to mode */}
+                        {instance.allowExternalGuests ? (
+                          <p className="text-xs text-gray-500 italic mt-1">
+                            If your name isn't listed, you can select "External Guest" to add your details manually.
+                          </p>
+                        ) : (
+                          <p className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
+                            This event is restricted to the invited guest list only.
+                          </p>
+                        )}
                       </div>
                     )}
 
