@@ -786,6 +786,8 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
         </p>
       </div>
     </div>
+  </div>
+    </div >
   </div >
-  );
+</div >;
 }
