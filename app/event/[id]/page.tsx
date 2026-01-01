@@ -51,6 +51,7 @@ interface PublicActivityInstance {
   priceInfo: string | null;
   capacity: number | null;
   eventUrl: string | null; // Added eventUrl
+  allowExternalGuests: boolean; // Added for guest policy
   activity: {
     id: string;
     name: string;
@@ -537,7 +538,11 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       <div className="space-y-3">
                         <select
                           className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
-                          value={linkedFriend || ''}
+                          // Value should be the ID if a friend is selected, or 'external' if explicitly external mode.
+                          // But linkedFriend is an OBJECT or null.
+                          value={linkedFriend?.id || (linkedFriend === null && rsvpForm.name === '' ? '' : 'external')}
+                          // Wait, logic is clearer if we track "mode" separate from "object".
+                          // Let's simplify: value is friend.id OR "external" OR ""
                           onChange={(e) => {
                             const value = e.target.value;
                             if (value === 'external') {
@@ -546,7 +551,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                             } else {
                               const friend = instance.invitedFriends?.find(f => f.id === value);
                               if (friend) {
-                                setLinkedFriend(value);
+                                setLinkedFriend(friend);
                                 setRsvpForm(prev => ({
                                   ...prev,
                                   name: friend.name,
