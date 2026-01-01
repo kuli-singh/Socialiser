@@ -192,17 +192,6 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
     ? window.location.href
     : '';
 
-  const getSuggestions = () => {
-    if (!instance?.invitedFriends || !rsvpForm.name || linkedFriend) return [];
-    if (rsvpForm.name.length < 2) return [];
-
-    return instance.invitedFriends.filter(f =>
-      f.name.toLowerCase().includes(rsvpForm.name.toLowerCase()) &&
-      !rsvps.some(r => r.name === f.name)
-    ).slice(0, 3);
-  };
-
-  const suggestions = getSuggestions();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

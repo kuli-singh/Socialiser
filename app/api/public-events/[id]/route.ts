@@ -76,6 +76,7 @@ export async function GET(
       priceInfo: instance.priceInfo,
       capacity: instance.capacity,
       eventUrl: instance.eventUrl,
+      allowExternalGuests: instance.allowExternalGuests,
       activity: {
         id: instance.activity.id,
         name: instance.activity.name,

@@ -22,7 +22,7 @@ export async function POST(
     // Check if event exists
     const instance = await prisma.activityInstance.findUnique({
       where: { id: params.id },
-      select: { id: true, capacity: true }
+      select: { id: true, capacity: true, allowExternalGuests: true }
     });
 
     if (!instance) {
@@ -32,6 +32,7 @@ export async function POST(
       );
     }
 
+    // Validate friendId if provided (ensure they are actually invited)
     // Validate friendId if provided (ensure they are actually invited)
     if (friendId) {
       const participation = await prisma.participation.findUnique({
@@ -44,10 +45,22 @@ export async function POST(
       });
 
       if (!participation) {
-        // Invalid friendId or not invited to this event. Ignore it or validation error?
-        // Safer to ignore and just not link it, or wipe it.
-        // But let's assume if frontend sent it, it's valid.
-        // We can strictly enforce it to prevent ID spoofing.
+        // If invalid friend ID provided, treat as external guest?
+        // Or reject? Let's treat as just invalid linking, but if external guests NOT allowed, this is a blocker.
+        if (!instance.allowExternalGuests) {
+          return NextResponse.json(
+            { error: 'This invitation is strictly for invited guests. Please select your name from the list.' },
+            { status: 403 }
+          );
+        }
+      }
+    } else {
+      // No friendId provided (External Guest)
+      if (!instance.allowExternalGuests) {
+        return NextResponse.json(
+          { error: 'This invite does not allow external guests. Please select your name from the list.' },
+          { status: 403 }
+        );
       }
     }
 

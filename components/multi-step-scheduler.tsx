@@ -878,14 +878,43 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
                 </FormField>
 
                 <FormField label="Capacity (Max People)">
-                  <Input
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => handleChange('capacity', e.target.value)}
-                    placeholder="e.g., 8"
-                    min="1"
-                  />
+                  <div className="space-y-3">
+                    <p className="text-xs text-gray-500">
+                      Total maximum people allowed (Leave empty for unlimited)
+                    </p>
+                    <Input
+                      type="number"
+                      value={formData.capacity}
+                      onChange={(e) => handleChange('capacity', e.target.value)}
+                      placeholder="e.g., 20"
+                      min="1"
+                    />
+                  </div>
                 </FormField>
+
+                <div className="md:col-span-2 border-t pt-4 mt-2">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-blue-600" />
+                    Guest Policy
+                  </h3>
+                  <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded-md border">
+                    <input
+                      type="checkbox"
+                      id="allowExternalGuests"
+                      checked={formData.allowExternalGuests}
+                      onChange={(e) => handleChange('allowExternalGuests', e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="allowExternalGuests" className="block text-sm font-medium text-gray-900 cursor-pointer">
+                        Allow External Guests (+1s)
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        If checked, people without an invite can RSVP (e.g. partners, friends of friends).
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
