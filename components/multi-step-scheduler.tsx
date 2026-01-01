@@ -145,6 +145,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
     priceInfo: '',
     capacity: '',
     eventUrl: '',
+    allowExternalGuests: true,
   });
 
   // Initialize with initialInstance if provided
