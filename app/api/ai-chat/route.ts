@@ -110,16 +110,7 @@ export async function POST(request: NextRequest) {
     const socialLocation = userPreferences.socialLocation || defaultLocation;
 
 
-    debugLog("Context loaded", {
-      activities: userActivities.length,
-      values: userValues.length,
-      locations: userLocations.length,
-      defaultLocation,
-      socialLocation,
-      hasSystemPrompt: !!systemPrompt,
-      preferredModel,
-      enableGoogleSearch
-    });
+
 
     // 4. Initialize Gemini
     let apiKey = process.env.GOOGLE_API_KEY;
@@ -141,6 +132,17 @@ export async function POST(request: NextRequest) {
     const systemPrompt = adminPrefs.systemPrompt || userPreferences.systemPrompt || "";
     let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-flash-latest";
     const enableGoogleSearch = adminPrefs.enableGoogleSearch !== undefined ? adminPrefs.enableGoogleSearch : (userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true);
+
+    debugLog("Context loaded", {
+      activities: userActivities.length,
+      values: userValues.length,
+      locations: userLocations.length,
+      defaultLocation,
+      socialLocation,
+      hasSystemPrompt: !!systemPrompt,
+      preferredModel,
+      enableGoogleSearch
+    });
 
     // Use Admin Key if available, else user key, else env
     if (adminUser?.googleApiKey) {
