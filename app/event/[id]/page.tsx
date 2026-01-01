@@ -502,27 +502,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                           )}
                         </div>
 
-                        {!linkedFriend && suggestions.length > 0 && (
-                          <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2 animate-in fade-in slide-in-from-top-1">
-                            <p className="text-xs text-blue-800 mb-2 font-medium">Are you one of these invited guests?</p>
-                            <div className="flex flex-wrap gap-2">
-                              {suggestions.map(s => (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setLinkedFriend(s);
-                                    setRsvpForm(prev => ({ ...prev, name: s.name }));
-                                  }}
-                                  className="text-sm bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors flex items-center"
-                                >
-                                  {s.name}
-                                  <Check className="h-3 w-3 ml-1" />
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+
 
                         {linkedFriend && (
                           <p className="text-xs text-green-600 mt-1 flex items-center">
