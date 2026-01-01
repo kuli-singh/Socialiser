@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/form-field';
+import { GroupSelector } from '@/components/group-selector';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
 import { ArrowLeft } from 'lucide-react';
@@ -142,10 +143,10 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
             </FormField>
 
             <FormField label="Group" error={errors.group}>
-              <Input
+              <GroupSelector
                 value={formData.group}
-                onChange={(e) => handleChange('group', e.target.value)}
-                placeholder="e.g., Close Friends, Work, Family"
+                onValueChange={(val: string) => handleChange('group', val)}
+                groups={['Close Friends', 'Family', 'Work', 'School', 'Gym', 'Travel']}
               />
               <p className="text-sm text-gray-500 mt-1">
                 Optional: Organize friends into groups for easier management

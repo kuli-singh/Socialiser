@@ -193,24 +193,23 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
   const eventUrl = typeof window !== 'undefined' ? window.location.href : '';
 
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">
-          {instance.customTitle || instance.activity.name}
-        </h1>
-        <p className="text-lg text-gray-600">You're invited to join us!</p>
-      </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-gray-900">
+            {instance.customTitle || instance.activity.name}
+          </h1>
+          <p className="text-lg text-gray-600">You're invited to join us!</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Column */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Event Details Card */}
-          <Card className="border-l-4 border-l-blue-500 shadow-lg">
-            <CardContent className="p-0 flex flex-col">
-
-              <div className="p-8 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Event Details Card */}
+            <Card className="border-l-4 border-l-blue-500 shadow-lg">
+              <CardContent className="p-8 space-y-6">
                 {/* Date & Time */}
                 <div className="flex items-center text-gray-700">
                   <Calendar className="h-6 w-6 mr-4 text-blue-600" />
@@ -222,572 +221,156 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
 
                 {/* Location */}
                 {(instance.venue || instance.address || instance.location) && (
-                  <div className="space-y-3">
-                    {instance.venue && (
-                      <div className="flex items-center text-gray-900 group">
-                        <MapPin className="h-6 w-6 mr-4 text-green-600" />
-                        <div>
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                              `${instance.venue} ${instance.address || ''} ${instance.city || ''}`.trim()
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-lg font-semibold hover:text-green-600 transition-colors flex items-center group-hover:underline"
-                          >
-                            {instance.venue}
-                            <ExternalLink className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </a>
-                          {instance.venueType && (
-                            <Badge variant="outline" className="mt-1 border-green-300 text-green-700">
-                              {instance.venueType}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {(instance.address || instance.city || instance.state) && (
-                      <div className="flex items-start text-gray-700 ml-10">
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${instance.address || ''} ${instance.city || ''} ${instance.state || ''}`.trim()
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-green-600 hover:underline transition-colors"
-                        >
-                          {instance.address && <div className="text-base">{instance.address}</div>}
-                          {(instance.city || instance.state || instance.zipCode) && (
-                            <div className="text-base">
-                              {[instance.city, instance.state, instance.zipCode].filter(Boolean).join(', ')}
-                            </div>
-                          )}
-                        </a>
-                      </div>
-                    )}
-
-                    {!instance.venue && !instance.address && instance.location && (
-                      <div className="flex items-center text-gray-700 group">
-                        <MapPin className="h-6 w-6 mr-4 text-green-600" />
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(instance.location)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-lg hover:text-green-600 hover:underline transition-colors flex items-center"
-                        >
-                          {instance.location}
-                          <ExternalLink className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </a>
-                      </div>
-                    )}
+                  <div className="flex items-start text-gray-700">
+                    <MapPin className="h-6 w-6 mr-4 text-green-600 mt-1" />
+                    <div>
+                      {instance.venue && <div className="text-xl font-semibold">{instance.venue}</div>}
+                      {instance.address && <div className="text-base">{instance.address}</div>}
+                      {instance.city && <div className="text-base">{instance.city}, {instance.state} {instance.zipCode}</div>}
+                      {!instance.venue && !instance.address && instance.location && <div className="text-xl">{instance.location}</div>}
+                    </div>
                   </div>
                 )}
 
                 {/* Description */}
                 {(instance.detailedDescription || instance.activity.description) && (
-                  <div className="pt-4 border-t border-gray-100 space-y-4">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">About This Event</h3>
-                    <p className="text-gray-700 leading-relaxed text-lg">
+                  <div className="pt-4 border-t border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">About This Event</h3>
+                    <p className="text-gray-700 leading-relaxed">
                       {instance.detailedDescription || instance.activity.description}
                     </p>
-
-                    {instance.eventUrl && (
-                      <div className="flex items-center pt-2">
-                        <ExternalLink className="h-5 w-5 mr-3 text-blue-600" />
-                        <a
-                          href={instance.eventUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 font-bold hover:underline group flex items-center"
-                        >
-                          Visit Event Website
-                          <span className="ml-1 opacity-0 group-hover:opacity-100 transition-all opacity-0 transform translate-x-1 group-hover:translate-x-0">
-                            →
-                          </span>
-                        </a>
-                      </div>
-                    )}
                   </div>
                 )}
 
-                {/* Requirements & Additional Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {instance.requirements && (
-                    <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5">
-                      <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">What to Bring/Know</h4>
-                      <p className="text-amber-900 text-sm whitespace-pre-wrap">{instance.requirements}</p>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    {instance.capacity && (
-                      <div className="flex items-center text-gray-700 bg-purple-50/50 border border-purple-100 rounded-xl p-4">
-                        <Users className="h-5 w-5 mr-3 text-purple-600" />
-                        <span className="text-sm font-medium">Limited to {instance.capacity} guests</span>
-                      </div>
-                    )}
-
-                    {instance.priceInfo && (
-                      <div className="flex items-center text-gray-700 bg-green-50/50 border border-green-100 rounded-xl p-4">
-                        <Badge variant="outline" className="bg-white border-green-200 text-green-700 px-3 py-1">
-                          {instance.priceInfo}
-                        </Badge>
-                      </div>
-                    )}
+                {/* Participants */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center text-gray-700">
+                    <Users className="h-5 w-5 mr-3 text-indigo-600" />
+                    <span className="font-semibold">{rsvps.length + 1} confirmed</span>
                   </div>
                 </div>
-
-                {/* Contact Info */}
-                {instance.contactInfo && (
-                  <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
-                    <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Contact Info</h4>
-                    <p className="text-blue-900 text-sm">{instance.contactInfo}</p>
-                  </div>
-                )}
-
-                <div className="pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Participants */}
-                  <div className="flex items-start text-gray-700 leading-relaxed border-r border-gray-100 pr-4">
-                    <Users className="h-5 w-5 mr-3 mt-1 text-indigo-600" />
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-left">Who's Joining</p>
-                      <h4 className="text-lg font-bold text-gray-900 text-left">
-                        {(() => {
-                          // Calculate External RSVPs (not in invitedFriends)
-                          const externalRSVPs = rsvps.filter(r =>
-                            !r.friendId &&
-                            !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                          );
-                          const totalInvited = (instance.invitedFriends?.length ?? 0) + 1 + externalRSVPs.length;
-                          const totalConfirmed = rsvps.length + 1;
-                          return `${totalInvited} invited • ${totalConfirmed} confirmed`;
-                        })()}
-                      </h4>
-
-                      {/* Guest Policy Indicator */}
-                      <div className="mt-1">
-                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${instance.allowExternalGuests
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-gray-50 text-gray-500 border-gray-200"
-                          }`}>
-                          {instance.allowExternalGuests ? "EXTERNAL GUESTS ALLOWED" : "INVITE ONLY"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {/* 1. Host (Always Confirmed) */}
-                    <div className="flex items-center justify-between group">
-                      <div className="flex items-center">
-                        <span className="text-base font-bold text-indigo-900">
-                          {instance.participantNames.find(n => n.includes('(Host)'))?.replace('(Host)', '').trim() || 'Host'}
-                        </span>
-                        <Badge className="ml-2 bg-indigo-600 text-white border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                          Host
-                        </Badge>
-                      </div>
-                      <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                        Confirmed
-                      </Badge>
-                    </div>
-
-                    {/* 2. Invited Friends */}
-                    {(instance.invitedFriends ?? []).map((friend) => {
-                      const matchedRSVP = rsvps.find(r =>
-                        (r.friendId === friend.id) ||
-                        (r.name.toLowerCase() === friend.name.toLowerCase())
-                      );
-
-                      return (
-                        <div key={friend.id} className="flex items-center justify-between group">
-                          <span className="text-base text-gray-700">
-                            {friend.name}
-                          </span>
-                          {matchedRSVP ? (
-                            <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                              Confirmed
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-gray-400 border-gray-100 text-[8px] h-4 px-1 leading-none font-black uppercase">
-                              Pending
-                            </Badge>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* 3. External Guest RSVPs */}
-                    {rsvps.filter(r =>
-                      !r.friendId &&
-                      !instance.invitedFriends?.some(f => f.name.toLowerCase() === r.name.toLowerCase())
-                    ).map((rsvp) => (
-                      <div key={rsvp.id} className="flex items-center justify-between group">
-                        <div className="flex items-center">
-                          <span className="text-base text-gray-700">{rsvp.name}</span>
-                          <Badge className="ml-2 bg-blue-50 text-blue-600 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                            Guest
-                          </Badge>
-                        </div>
-                        <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4 px-1 leading-none font-black uppercase">
-                          Confirmed
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Values */}
-              {(instance?.activity?.values?.length ?? 0) > 0 && (
-                <div className="flex items-start text-gray-700 justify-end">
-                  <div className="text-right">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Our Values</p>
-                    <div className="flex flex-wrap gap-2 justify-end">
-                      {(instance?.activity?.values ?? []).map((av) => (
-                        <Badge key={av?.value?.id} variant="secondary" className="bg-red-50 text-red-700 border-red-100">
-                          {av?.value?.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <Heart className="h-5 w-5 ml-3 mt-1 text-red-500" />
-                </div>
-              )}
-            </div>
-
-            {/* Template Playbook Footer */}
-            <CardFooter className="pt-4 pb-4 px-8 border-t border-gray-100 flex items-center justify-between bg-slate-50/50 mt-auto">
-              <div className="flex items-center gap-2">
-                <div className="bg-white p-1 rounded shadow-sm border border-slate-100">
+              </CardContent>
+              <CardFooter className="pt-4 pb-4 px-8 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-blue-500" />
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Socialiser Playbook</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  Socialiser Playbook
-                </span>
-              </div>
-              <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-500 bg-white px-2 py-0.5 uppercase">
-                {instance.activity.name}
-              </Badge>
-            </CardFooter>
-          </CardContent>
-        </Card>
+                <Badge variant="outline" className="text-xs font-bold border-slate-200 text-slate-500 bg-white px-2 py-0.5 uppercase">
+                  {instance.activity.name}
+                </Badge>
+              </CardFooter>
+            </Card>
 
-        {/* RSVP Section */}
-        <Card className="shadow-lg border-none">
-          <CardHeader className="bg-gray-50/50 border-b">
-            <CardTitle className="text-2xl text-center">RSVP for This Event</CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            {rsvpSubmitted ? (
-              <div className="text-center space-y-4">
-                <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
-                <h3 className="text-xl font-semibold text-green-900">RSVP Submitted!</h3>
-                <p className="text-gray-600">Thank you for confirming your attendance. We look forward to seeing you there!</p>
-                <Button onClick={() => setRsvpSubmitted(false)} variant="outline">
-                  Submit Another RSVP
-                </Button>
-              </div>
-            ) : (
+            {/* RSVP Section */}
+            <Card className="shadow-lg border-none">
+              <CardHeader className="bg-gray-50/50 border-b">
+                <CardTitle className="text-2xl text-center">RSVP for This Event</CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                {rsvpSubmitted ? (
+                  <div className="text-center space-y-4">
+                    <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
+                    <h3 className="text-xl font-semibold text-green-900">RSVP Submitted!</h3>
+                    <p className="text-gray-600">Thank you for confirming your attendance.</p>
+                    <Button onClick={() => setRsvpSubmitted(false)} variant="outline">Submit Another RSVP</Button>
+                  </div>
+                ) : (
                   <form onSubmit={handleRsvpSubmit} className="space-y-6">
-                    {/* Step 2: Details (Name/Email/Phone) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Your Name
-                      </label>
-                      <div className="relative">
-                        <Input
-                          value={rsvpForm.name}
-                          onChange={(e) => {
-                            setRsvpForm({ ...rsvpForm, name: e.target.value })
-                          }}
-                          required
-                          placeholder={
-                            !instance.allowExternalGuests && !linkedFriend 
-                              ? "Please select your name from the list above" 
-                              : "Enter your full name"
-                          }
-                          className={linkedFriend ? "border-green-500 pr-10" : ""}
-                          // Enforce Selection: If external guests NOT allowed, and no friend selected, disable typing.
-                          // Or if user selected "External Guest", allow typing.
-                          // If user selected a Friend, allow editing (maybe they want to fix a typo?).
-                          readOnly={!instance.allowExternalGuests && !linkedFriend}
-                          disabled={!instance.allowExternalGuests && !linkedFriend}
-                        />
-                        {linkedFriend && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
-                            <CheckCircle className="h-5 w-5" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Enforcement Message */}
-                      {!instance.allowExternalGuests && !linkedFriend && (
-                           <p className="text-xs text-red-500 mt-1">
-                               Selection required. Manual entry is disabled for this event.
-                           </p>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                      <Input
+                        value={rsvpForm.name}
+                        onChange={(e) => setRsvpForm({ ...rsvpForm, name: e.target.value })}
+                        required
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <Input
+                        type="email"
+                        value={rsvpForm.email}
+                        onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
+                        placeholder="your.email@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                      <Input
+                        type="tel"
+                        value={rsvpForm.phone}
+                        onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
+                        placeholder="(555) 123-4567"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                      <Textarea
+                        value={rsvpForm.message}
+                        onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
+                        placeholder="Any special requests or questions?"
+                        rows={3}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-lg shadow-md"
+                      disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
+                    >
+                      {submitting ? (
+                        <><Clock className="h-4 w-4 mr-2 animate-spin" />Submitting...</>
+                      ) : (
+                        <><CheckCircle className="h-4 w-4 mr-2" />Confirm Attendance</>
                       )}
-                    </div>
-       {linkedFriend && (
-                          <p className="text-xs text-green-600 mt-1 flex items-center">
-                            <Check className="h-3 w-3 mr-1" />
-                            Linked to invitation for <strong>{linkedFriend.name}</strong>
-                            <button
-                              type="button"
-                              onClick={() => { setLinkedFriend(null); setRsvpForm(prev => ({ ...prev, name: '' })); }}
-                              className="ml-2 text-gray-400 hover:text-gray-600"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </p>
-                        )}
-                      </div>
-
-                      <div> {/* This div is for the Email field */}
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email
-                        </label>
-                        <Input
-                          type="email"
-                          value={rsvpForm.email}
-                          onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
-                          placeholder="your.email@example.com"
-                        />
-                      </div>
-                    </div>
-
-          {/* Invitee Dropdown */}
-          {(instance.invitedFriends?.length > 0 || instance.allowExternalGuests) && (
-            <div className="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-              <label className="block text-sm font-semibold text-gray-900 mb-1">
-                Are you on the guest list?
-              </label>
-              <p className="text-xs text-gray-600 mb-2">
-                Select your name to auto-fill your details.
-              </p>
-
-              <select
-                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
-                // Value should be the ID if a friend is selected, or 'external' if explicitly external mode.
-                // But linkedFriend is an OBJECT or null.
-                value={linkedFriend?.id || (linkedFriend === null && rsvpForm.name === '' ? '' : 'external')}
-                // Wait, logic is clearer if we track "mode" separate from "object".
-                // Let's simplify: value is friend.id OR "external" OR ""
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === 'external') {
-                    setLinkedFriend(null);
-                    setRsvpForm(prev => ({ ...prev, name: '', friendId: undefined }));
-                  } else {
-                    const friend = instance.invitedFriends?.find(f => f.id === value);
-                    if (friend) {
-                      setLinkedFriend(friend);
-                      setRsvpForm(prev => ({
-                        ...prev,
-                        name: friend.name,
-                        friendId: friend.id
-                      }));
-                    }
-                  }
-                }}
-              >
-                <option value="" disabled>Select your name...</option>
-                {instance.invitedFriends?.map(friend => (
-                  <option key={friend.id} value={friend.id}>
-                    {friend.name}
-                  </option>
-                ))}
-
-                {/* External Guest Option */}
-                {instance.allowExternalGuests && (
-                  <>
-                    <option disabled>──────────</option>
-                    <option value="external">I'm not on this list (External Guest)</option>
-                  </>
+                    </Button>
+                  </form>
                 )}
-              </select>
-
-              {/* Helper text specific to mode */}
-              {instance.allowExternalGuests ? (
-                <p className="text-xs text-gray-500 italic mt-1">
-                  If your name isn't listed, you can select "External Guest" to add your details manually.
-                </p>
-              ) : (
-                <p className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
-                  This event is restricted to the invited guest list only.
-                </p>
-              )}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <Input
-              type="tel"
-              value={rsvpForm.phone}
-              onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
-              placeholder="(555) 123-4567"
-            />
-            <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
+              </CardContent>
+            </Card>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message (Optional)
-            </label>
-            <Textarea
-              value={rsvpForm.message}
-              onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
-              placeholder="Any special requests or questions?"
-              rows={3}
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full h-12 text-lg shadow-md"
-            disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
-          >
-            {submitting ? (
-              <>
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm Attendance
-              </>
-            )}
-          </Button>
-        </form>
-                )}
-      </CardContent>
-    </Card >
-
-    {/* Recent RSVPs */}
-    {
-      (rsvps?.length ?? 0) > 0 && (
-        <Card className="shadow-lg border-none overflow-hidden">
-          <CardHeader className="bg-gray-50/50 border-b">
-            <CardTitle className="text-xl">Recent RSVPs</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            {(rsvps ?? []).slice(0, 5).map((rsvp) => (
-              <div key={rsvp.id} className="border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-medium text-gray-900">{rsvp.name}</div>
-                    {rsvp.message && (
-                      <p className="text-sm text-gray-600 mt-1">{rsvp.message}</p>
-                    )}
+          {/* Sidebar Column */}
+          <div className="space-y-6">
+            {/* Branding Card */}
+            <Card className="border-none shadow-2xl bg-white overflow-hidden ring-1 ring-gray-200">
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
+                <div className="relative z-10 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-white" />
+                    <h2 className="text-xl font-bold tracking-tight">Plan with Socialiser</h2>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(rsvp.createdAt).toLocaleDateString()}
-                  </div>
+                  <p className="text-blue-50 text-sm leading-relaxed">
+                    Organized using <span className="font-bold">Socialiser</span>, the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
+                  </p>
+                  <Link href="/register" className="block pt-4">
+                    <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg">
+                      Get Started for Free
+                    </Button>
+                  </Link>
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )
-    }
-  </div >
+            </Card>
 
-  {/* Sidebar Column */ }
-  < div className="space-y-6" >
-    <div className="sticky top-8 space-y-6">
-      {/* Branding & CTA Card - Primary Side Element */}
-      <Card className="border-none shadow-2xl bg-white overflow-hidden ring-1 ring-gray-200">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
-          {/* Decorative Sparkle Background */}
-          <div className="absolute top-0 right-0 p-2 opacity-10">
-            <Sparkles className="h-32 w-32 rotate-12" />
-          </div>
+            {/* Guest Tools */}
+            <CalendarIntegration
+              instanceId={instance.id}
+              activityName={instance.customTitle || instance.activity.name}
+            />
+            <QRCodeGenerator
+              url={eventUrl}
+              eventTitle={instance.customTitle || instance.activity.name}
+            />
 
-          <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight">Plan with Socialiser</h2>
-            </div>
-
-            <div className="space-y-4">
-              <p className="text-blue-50 text-sm leading-relaxed">
-                Organized using <span className="font-bold underline decoration-blue-400">Socialiser</span>,
-                the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
+            {/* Developer Credit Footer */}
+            <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                SOCIALISER BY KULI SINGH • © 2025
               </p>
-
-              <div className="space-y-3 pt-2">
-                <div className="flex items-start gap-3 text-xs text-blue-50">
-                  <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                    <Users className="h-3 w-3 text-white" />
-                  </div>
-                  <div>
-                    <span className="font-bold block text-white">Build Your Circle</span>
-                    Add your friends and organize group activities without the back-and-forth.
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-xs text-blue-50">
-                  <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                    <Sparkles className="h-3 w-3 text-white" />
-                  </div>
-                  <div>
-                    <span className="font-bold block text-white">Create Custom Playbooks</span>
-                    Save your favorite activity templates—from casual drinks to epic weekend trips.
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-xs text-blue-50">
-                  <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                    <Calendar className="h-3 w-3 text-white" />
-                  </div>
-                  <div>
-                    <span className="font-bold block text-white">Launch Events in Seconds</span>
-                    Pick a template, and let our AI handle the logistics and invite sync.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-white/10 space-y-4">
-              <div>
-                <p className="font-semibold text-sm text-white">Inspired?</p>
-                <p className="text-[10px] text-blue-200">Start planning your own events today.</p>
-              </div>
-              <Link href="/register" className="block">
-                <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-all">
-                  Get Started for Free
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
-      </Card>
-
-      {/* Guest Tools */}
-      <CalendarIntegration
-        instanceId={instance.id}
-        activityName={instance.customTitle || instance.activity.name}
-      />
-      <QRCodeGenerator
-        url={eventUrl}
-        eventTitle={instance.customTitle || instance.activity.name}
-      />
-
-      {/* Developer Credit Footer (Mobile/Desktop consistent) */}
-      <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
-        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
-          SOCIALISER BY KULI SINGH • © 2025
-        </p>
       </div>
     </div>
-  </div>
-    </div >
-  </div >
-</div >;
+  );
 }
