@@ -224,7 +224,8 @@ export default function FriendsPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/4">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 w-1/3">Notes</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-700">Added</th>
                         <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
                       </tr>
@@ -232,10 +233,15 @@ export default function FriendsPage() {
                     <tbody>
                       {groupFriends.map((friend) => (
                         <tr key={friend.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-4 align-top">
                             <div className="font-medium text-gray-900">{friend.name}</div>
                           </td>
-                          <td className="py-3 px-4 text-gray-600">
+                          <td className="py-3 px-4 text-gray-600 align-top">
+                            <div className="text-sm line-clamp-2" title={friend.notes || ''}>
+                              {friend.notes || <span className="text-gray-400 italic">No notes</span>}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 align-top whitespace-nowrap">
                             {(() => {
                               try {
                                 const date = friend?.createdAt ? new Date(friend.createdAt) : null;
@@ -245,7 +251,7 @@ export default function FriendsPage() {
                               }
                             })()}
                           </td>
-                          <td className="py-3 px-4 text-right">
+                          <td className="py-3 px-4 text-right align-top">
                             <div className="flex items-center justify-end space-x-2">
                               <Button variant="outline" size="sm" onClick={() => router.push(`/friends/${friend.id}/edit`)}>
                                 <Edit className="h-4 w-4" />
