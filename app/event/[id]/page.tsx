@@ -481,31 +481,45 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                   </div>
                 ) : (
                   <form onSubmit={handleRsvpSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Your Name *
-                        </label>
-                        <div className="relative">
-                          <Input
-                            value={rsvpForm.name}
-                            onChange={(e) => {
-                              setRsvpForm({ ...rsvpForm, name: e.target.value })
-                            }}
-                            required
-                            placeholder="Enter your full name"
-                            className={linkedFriend ? "border-green-500 pr-10" : ""}
-                          />
-                          {linkedFriend && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
-                              <CheckCircle className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
-
-
-
+                    {/* Step 2: Details (Name/Email/Phone) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Your Name
+                      </label>
+                      <div className="relative">
+                        <Input
+                          value={rsvpForm.name}
+                          onChange={(e) => {
+                            setRsvpForm({ ...rsvpForm, name: e.target.value })
+                          }}
+                          required
+                          placeholder={
+                            !instance.allowExternalGuests && !linkedFriend 
+                              ? "Please select your name from the list above" 
+                              : "Enter your full name"
+                          }
+                          className={linkedFriend ? "border-green-500 pr-10" : ""}
+                          // Enforce Selection: If external guests NOT allowed, and no friend selected, disable typing.
+                          // Or if user selected "External Guest", allow typing.
+                          // If user selected a Friend, allow editing (maybe they want to fix a typo?).
+                          readOnly={!instance.allowExternalGuests && !linkedFriend}
+                          disabled={!instance.allowExternalGuests && !linkedFriend}
+                        />
                         {linkedFriend && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
+                            <CheckCircle className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Enforcement Message */}
+                      {!instance.allowExternalGuests && !linkedFriend && (
+                           <p className="text-xs text-red-500 mt-1">
+                               Selection required. Manual entry is disabled for this event.
+                           </p>
+                      )}
+                    </div>
+       {linkedFriend && (
                           <p className="text-xs text-green-600 mt-1 flex items-center">
                             <Check className="h-3 w-3 mr-1" />
                             Linked to invitation for <strong>{linkedFriend.name}</strong>
@@ -533,237 +547,237 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       </div>
                     </div>
 
-                    {/* Invitee Dropdown */}
-                    {(instance.invitedFriends?.length > 0 || instance.allowExternalGuests) && (
-                      <div className="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                        <label className="block text-sm font-semibold text-gray-900 mb-1">
-                          Are you on the guest list?
-                        </label>
-                        <p className="text-xs text-gray-600 mb-2">
-                          Select your name to auto-fill your details.
-                        </p>
+              {/* Invitee Dropdown */}
+              {(instance.invitedFriends?.length > 0 || instance.allowExternalGuests) && (
+                <div className="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    Are you on the guest list?
+                  </label>
+                  <p className="text-xs text-gray-600 mb-2">
+                    Select your name to auto-fill your details.
+                  </p>
 
-                        <select
-                          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
-                          // Value should be the ID if a friend is selected, or 'external' if explicitly external mode.
-                          // But linkedFriend is an OBJECT or null.
-                          value={linkedFriend?.id || (linkedFriend === null && rsvpForm.name === '' ? '' : 'external')}
-                          // Wait, logic is clearer if we track "mode" separate from "object".
-                          // Let's simplify: value is friend.id OR "external" OR ""
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (value === 'external') {
-                              setLinkedFriend(null);
-                              setRsvpForm(prev => ({ ...prev, name: '', friendId: undefined }));
-                            } else {
-                              const friend = instance.invitedFriends?.find(f => f.id === value);
-                              if (friend) {
-                                setLinkedFriend(friend);
-                                setRsvpForm(prev => ({
-                                  ...prev,
-                                  name: friend.name,
-                                  friendId: friend.id
-                                }));
-                              }
-                            }
-                          }}
-                        >
-                          <option value="" disabled>Select your name...</option>
-                          {instance.invitedFriends?.map(friend => (
-                            <option key={friend.id} value={friend.id}>
-                              {friend.name}
-                            </option>
-                          ))}
+                  <select
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    // Value should be the ID if a friend is selected, or 'external' if explicitly external mode.
+                    // But linkedFriend is an OBJECT or null.
+                    value={linkedFriend?.id || (linkedFriend === null && rsvpForm.name === '' ? '' : 'external')}
+                    // Wait, logic is clearer if we track "mode" separate from "object".
+                    // Let's simplify: value is friend.id OR "external" OR ""
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'external') {
+                        setLinkedFriend(null);
+                        setRsvpForm(prev => ({ ...prev, name: '', friendId: undefined }));
+                      } else {
+                        const friend = instance.invitedFriends?.find(f => f.id === value);
+                        if (friend) {
+                          setLinkedFriend(friend);
+                          setRsvpForm(prev => ({
+                            ...prev,
+                            name: friend.name,
+                            friendId: friend.id
+                          }));
+                        }
+                      }
+                    }}
+                  >
+                    <option value="" disabled>Select your name...</option>
+                    {instance.invitedFriends?.map(friend => (
+                      <option key={friend.id} value={friend.id}>
+                        {friend.name}
+                      </option>
+                    ))}
 
-                          {/* External Guest Option */}
-                          {instance.allowExternalGuests && (
-                            <>
-                              <option disabled>──────────</option>
-                              <option value="external">I'm not on this list (External Guest)</option>
-                            </>
-                          )}
-                        </select>
-
-                        {/* Helper text specific to mode */}
-                        {instance.allowExternalGuests ? (
-                          <p className="text-xs text-gray-500 italic mt-1">
-                            If your name isn't listed, you can select "External Guest" to add your details manually.
-                          </p>
-                        ) : (
-                          <p className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
-                            This event is restricted to the invited guest list only.
-                          </p>
-                        )}
-                      </div>
+                    {/* External Guest Option */}
+                    {instance.allowExternalGuests && (
+                      <>
+                        <option disabled>──────────</option>
+                        <option value="external">I'm not on this list (External Guest)</option>
+                      </>
                     )}
+                  </select>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number
-                      </label>
-                      <Input
-                        type="tel"
-                        value={rsvpForm.phone}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
-                        placeholder="(555) 123-4567"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
-                    </div>
+                  {/* Helper text specific to mode */}
+                  {instance.allowExternalGuests ? (
+                    <p className="text-xs text-gray-500 italic mt-1">
+                      If your name isn't listed, you can select "External Guest" to add your details manually.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
+                      This event is restricted to the invited guest list only.
+                    </p>
+                  )}
+                </div>
+              )}
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Message (Optional)
-                      </label>
-                      <Textarea
-                        value={rsvpForm.message}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
-                        placeholder="Any special requests or questions?"
-                        rows={3}
-                      />
-                    </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <Input
+                  type="tel"
+                  value={rsvpForm.phone}
+                  onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                />
+                <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
+              </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-12 text-lg shadow-md"
-                      disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
-                    >
-                      {submitting ? (
-                        <>
-                          <Clock className="h-4 w-4 mr-2 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Confirm Attendance
-                        </>
-                      )}
-                    </Button>
-                  </form>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message (Optional)
+                </label>
+                <Textarea
+                  value={rsvpForm.message}
+                  onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
+                  placeholder="Any special requests or questions?"
+                  rows={3}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-lg shadow-md"
+                disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
+              >
+                {submitting ? (
+                  <>
+                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Confirm Attendance
+                  </>
                 )}
-              </CardContent>
-            </Card>
+              </Button>
+            </form>
+                )}
+          </CardContent>
+        </Card>
 
-            {/* Recent RSVPs */}
-            {(rsvps?.length ?? 0) > 0 && (
-              <Card className="shadow-lg border-none overflow-hidden">
-                <CardHeader className="bg-gray-50/50 border-b">
-                  <CardTitle className="text-xl">Recent RSVPs</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  {(rsvps ?? []).slice(0, 5).map((rsvp) => (
-                    <div key={rsvp.id} className="border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900">{rsvp.name}</div>
-                          {rsvp.message && (
-                            <p className="text-sm text-gray-600 mt-1">{rsvp.message}</p>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(rsvp.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
+        {/* Recent RSVPs */}
+        {(rsvps?.length ?? 0) > 0 && (
+          <Card className="shadow-lg border-none overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b">
+              <CardTitle className="text-xl">Recent RSVPs</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {(rsvps ?? []).slice(0, 5).map((rsvp) => (
+                <div key={rsvp.id} className="border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{rsvp.name}</div>
+                      {rsvp.message && (
+                        <p className="text-sm text-gray-600 mt-1">{rsvp.message}</p>
+                      )}
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Sidebar Column */}
-          <div className="space-y-6">
-            <div className="sticky top-8 space-y-6">
-              {/* Branding & CTA Card - Primary Side Element */}
-              <Card className="border-none shadow-2xl bg-white overflow-hidden ring-1 ring-gray-200">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
-                  {/* Decorative Sparkle Background */}
-                  <div className="absolute top-0 right-0 p-2 opacity-10">
-                    <Sparkles className="h-32 w-32 rotate-12" />
-                  </div>
-
-                  <div className="relative z-10 space-y-6">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                        <Sparkles className="h-5 w-5 text-white" />
-                      </div>
-                      <h2 className="text-xl font-bold tracking-tight">Plan with Socialiser</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      <p className="text-blue-50 text-sm leading-relaxed">
-                        Organized using <span className="font-bold underline decoration-blue-400">Socialiser</span>,
-                        the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
-                      </p>
-
-                      <div className="space-y-3 pt-2">
-                        <div className="flex items-start gap-3 text-xs text-blue-50">
-                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                            <Users className="h-3 w-3 text-white" />
-                          </div>
-                          <div>
-                            <span className="font-bold block text-white">Build Your Circle</span>
-                            Add your friends and organize group activities without the back-and-forth.
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 text-xs text-blue-50">
-                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                            <Sparkles className="h-3 w-3 text-white" />
-                          </div>
-                          <div>
-                            <span className="font-bold block text-white">Create Custom Playbooks</span>
-                            Save your favorite activity templates—from casual drinks to epic weekend trips.
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 text-xs text-blue-50">
-                          <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
-                            <Calendar className="h-3 w-3 text-white" />
-                          </div>
-                          <div>
-                            <span className="font-bold block text-white">Launch Events in Seconds</span>
-                            Pick a template, and let our AI handle the logistics and invite sync.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 space-y-4">
-                      <div>
-                        <p className="font-semibold text-sm text-white">Inspired?</p>
-                        <p className="text-[10px] text-blue-200">Start planning your own events today.</p>
-                      </div>
-                      <Link href="/register" className="block">
-                        <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-all">
-                          Get Started for Free
-                        </Button>
-                      </Link>
+                    <div className="text-xs text-gray-500">
+                      {new Date(rsvp.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
-              </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-              {/* Guest Tools */}
-              <CalendarIntegration
-                instanceId={instance.id}
-                activityName={instance.customTitle || instance.activity.name}
-              />
-              <QRCodeGenerator
-                url={eventUrl}
-                eventTitle={instance.customTitle || instance.activity.name}
-              />
+      {/* Sidebar Column */}
+      <div className="space-y-6">
+        <div className="sticky top-8 space-y-6">
+          {/* Branding & CTA Card - Primary Side Element */}
+          <Card className="border-none shadow-2xl bg-white overflow-hidden ring-1 ring-gray-200">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
+              {/* Decorative Sparkle Background */}
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <Sparkles className="h-32 w-32 rotate-12" />
+              </div>
 
-              {/* Developer Credit Footer (Mobile/Desktop consistent) */}
-              <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
-                  SOCIALISER BY KULI SINGH • © 2025
-                </p>
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold tracking-tight">Plan with Socialiser</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-blue-50 text-sm leading-relaxed">
+                    Organized using <span className="font-bold underline decoration-blue-400">Socialiser</span>,
+                    the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
+                  </p>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-start gap-3 text-xs text-blue-50">
+                      <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                        <Users className="h-3 w-3 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-white">Build Your Circle</span>
+                        Add your friends and organize group activities without the back-and-forth.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 text-xs text-blue-50">
+                      <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                        <Sparkles className="h-3 w-3 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-white">Create Custom Playbooks</span>
+                        Save your favorite activity templates—from casual drinks to epic weekend trips.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 text-xs text-blue-50">
+                      <div className="bg-white/10 p-1.5 rounded-full mt-0.5">
+                        <Calendar className="h-3 w-3 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-white">Launch Events in Seconds</span>
+                        Pick a template, and let our AI handle the logistics and invite sync.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-white/10 space-y-4">
+                  <div>
+                    <p className="font-semibold text-sm text-white">Inspired?</p>
+                    <p className="text-[10px] text-blue-200">Start planning your own events today.</p>
+                  </div>
+                  <Link href="/register" className="block">
+                    <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-all">
+                      Get Started for Free
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
+          </Card>
+
+          {/* Guest Tools */}
+          <CalendarIntegration
+            instanceId={instance.id}
+            activityName={instance.customTitle || instance.activity.name}
+          />
+          <QRCodeGenerator
+            url={eventUrl}
+            eventTitle={instance.customTitle || instance.activity.name}
+          />
+
+          {/* Developer Credit Footer (Mobile/Desktop consistent) */}
+          <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+              SOCIALISER BY KULI SINGH • © 2025
+            </p>
           </div>
         </div>
       </div>
     </div>
+      </div >
+    </div >
   );
 }
