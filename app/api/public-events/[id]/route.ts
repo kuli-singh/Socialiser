@@ -94,7 +94,9 @@ export async function GET(
       participantNames: participants.map(p => p.name),
       invitedFriends: instance.participations?.map(p => ({
         id: p.friendId,
-        name: p.friend.name
+        name: p.friend.name,
+        email: p.friend.email,
+        phoneNumber: p.friend.phoneNumber
       })) ?? [] // For Smart Matching
     };
 
