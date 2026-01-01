@@ -532,6 +532,48 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       </div>
                     </div>
 
+                    {/* Invitee Dropdown */}
+                    {(instance.invitedFriends?.length > 0 || instance.allowExternalGuests) && (
+                      <div className="space-y-3">
+                        <select
+                          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+                          value={linkedFriend || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === 'external') {
+                              setLinkedFriend(null);
+                              setRsvpForm(prev => ({ ...prev, name: '', friendId: undefined }));
+                            } else {
+                              const friend = instance.invitedFriends?.find(f => f.id === value);
+                              if (friend) {
+                                setLinkedFriend(value);
+                                setRsvpForm(prev => ({
+                                  ...prev,
+                                  name: friend.name,
+                                  friendId: friend.id
+                                }));
+                              }
+                            }
+                          }}
+                        >
+                          <option value="" disabled>Select your name...</option>
+                          {instance.invitedFriends?.map(friend => (
+                            <option key={friend.id} value={friend.id}>
+                              {friend.name}
+                            </option>
+                          ))}
+
+                          {/* External Guest Option */}
+                          {instance.allowExternalGuests && (
+                            <>
+                              <option disabled>──────────</option>
+                              <option value="external">I'm not on this list (External Guest)</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number
