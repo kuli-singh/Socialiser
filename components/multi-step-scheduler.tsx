@@ -104,6 +104,13 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
   const searchParams = useSearchParams();
   const isManualMode = searchParams.get('mode') === 'manual';
 
+  // Calculate minimum capacity based on existing participants
+  const minCapacity = initialInstance ? (
+    (initialInstance.participations?.length || 0) +
+    (initialInstance.publicRSVPs?.length || 0) +
+    (initialInstance.hostAttending ? 1 : 0)
+  ) : 1;
+
   const [currentStep, setCurrentStep] = useState<Step>(() => {
     if (initialInstance) return 'event-details';
     if (aiSuggestion) return 'event-details';
@@ -889,9 +896,14 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
                       type="number"
                       value={formData.capacity}
                       onChange={(e) => handleChange('capacity', e.target.value)}
-                      placeholder="e.g., 20"
-                      min="1"
+                      placeholder={minCapacity > 1 ? `Min ${minCapacity}` : "e.g., 20"}
+                      min={minCapacity}
                     />
+                    {minCapacity > 1 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        Minimum of {minCapacity} required (based on current guest list)
+                      </p>
+                    )}
                   </div>
                 </FormField>
 

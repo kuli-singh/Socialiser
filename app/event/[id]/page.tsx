@@ -245,10 +245,32 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                 )}
 
                 {/* Participants */}
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex items-center text-gray-700">
-                    <Users className="h-5 w-5 mr-3 text-indigo-600" />
-                    <span className="font-semibold">{rsvps.length + (instance.hostAttending ? 1 : 0)} confirmed</span>
+                <div className="pt-4 border-t border-gray-100 space-y-3">
+                  <div className="flex items-center justify-between text-gray-700">
+                    <div className="flex items-center">
+                      <Users className="h-5 w-5 mr-3 text-indigo-600" />
+                      <span className="font-semibold">
+                        {rsvps.length + (instance.hostAttending ? 1 : 0)}
+                        {instance.capacity ? ` / ${instance.capacity}` : ''} confirmed
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center pl-8">
+                    {instance.allowExternalGuests ? (
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                        External Guests Allowed
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-200">
+                        Invite Only
+                      </Badge>
+                    )}
+                    {instance.capacity && (
+                      <Badge variant="outline" className="ml-2 text-gray-500 border-gray-300">
+                        Max {instance.capacity} Guests
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardContent>
