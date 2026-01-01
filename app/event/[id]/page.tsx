@@ -12,6 +12,7 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
 import { CalendarIntegration } from '@/components/calendar-integration';
 import { QRCodeGenerator } from '@/components/qr-code-generator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Calendar,
   MapPin,
@@ -92,7 +93,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
     message: ''
   });
 
-  const [linkedFriend, setLinkedFriend] = useState<InvitedFriend | null>(null);
+  const [selectedFriendId, setSelectedFriendId] = useState<string>('');
 
 
 
@@ -137,7 +138,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
         },
         body: JSON.stringify({
           ...rsvpForm,
-          friendId: linkedFriend?.id
+          friendId: selectedFriendId && selectedFriendId !== 'external' ? selectedFriendId : undefined
         }),
       });
 
@@ -275,56 +276,114 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     <Button onClick={() => setRsvpSubmitted(false)} variant="outline">Submit Another RSVP</Button>
                   </div>
                 ) : (
-                  <form onSubmit={handleRsvpSubmit} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                      <Input
-                        value={rsvpForm.name}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, name: e.target.value })}
-                        required
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <Input
-                        type="email"
-                        value={rsvpForm.email}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                      <Input
-                        type="tel"
-                        value={rsvpForm.phone}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
-                        placeholder="(555) 123-4567"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
-                      <Textarea
-                        value={rsvpForm.message}
-                        onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
-                        placeholder="Any special requests or questions?"
-                        rows={3}
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full h-12 text-lg shadow-md"
-                      disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
-                    >
-                      {submitting ? (
-                        <><Clock className="h-4 w-4 mr-2 animate-spin" />Submitting...</>
-                      ) : (
-                        <><CheckCircle className="h-4 w-4 mr-2" />Confirm Attendance</>
-                      )}
-                    </Button>
-                  </form>
+                  <div className="space-y-6">
+                    {/* Guest Selection Dropdown */}
+                    {(instance.invitedFriends && instance.invitedFriends.length > 0) && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Are you one of these invited guests?</label>
+                        <Select
+                          value={selectedFriendId}
+                          onValueChange={(val) => {
+                            setSelectedFriendId(val);
+                            if (val === 'external') {
+                              setRsvpForm(prev => ({ ...prev, name: '' }));
+                            } else {
+                              const friend = instance.invitedFriends?.find(f => f.id === val);
+                              if (friend) {
+                                setRsvpForm(prev => ({ ...prev, name: friend.name }));
+                              }
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select your name..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {instance.invitedFriends.map(friend => (
+                              <SelectItem key={friend.id} value={friend.id}>
+                                {friend.name}
+                              </SelectItem>
+                            ))}
+                            {instance.allowExternalGuests && (
+                              <SelectItem value="external" className="font-semibold text-blue-600 border-t mt-1 pt-1">
+                                I'm not on this list (Add +1)
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {/* Manual Form - Show if external guest is selected OR no invited friends exist OR a friend is selected */}
+                    {/* Hide only if there are invited friends AND no selection is made yet */}
+                    {((!instance.invitedFriends || instance.invitedFriends.length === 0) || !!selectedFriendId) ? (
+                      <form onSubmit={handleRsvpSubmit} className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                          <Input
+                            value={rsvpForm.name}
+                            onChange={(e) => setRsvpForm({ ...rsvpForm, name: e.target.value })}
+                            required
+                            placeholder="Enter your full name"
+                            // Disable if a friend is selected (not external) to prevent impersonation/mismatch
+                            disabled={selectedFriendId && selectedFriendId !== 'external'}
+                            className={selectedFriendId && selectedFriendId !== 'external' ? 'bg-gray-100' : ''}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                          <Input
+                            type="email"
+                            value={rsvpForm.email}
+                            onChange={(e) => setRsvpForm({ ...rsvpForm, email: e.target.value })}
+                            placeholder="your.email@example.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                          <Input
+                            type="tel"
+                            value={rsvpForm.phone}
+                            onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
+                            placeholder="(555) 123-4567"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Either email or phone is required</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                          <Textarea
+                            value={rsvpForm.message}
+                            onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
+                            placeholder="Any special requests or questions?"
+                            rows={3}
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full h-12 text-lg shadow-md"
+                          disabled={submitting || (!rsvpForm.email && !rsvpForm.phone)}
+                        >
+                          {submitting ? (
+                            <><Clock className="h-4 w-4 mr-2 animate-spin" />Submitting...</>
+                          ) : (
+                            <><CheckCircle className="h-4 w-4 mr-2" />Confirm Attendance</>
+                          )}
+                        </Button>
+                      </form>
+                    ) : (
+                      // Message when no selection made
+                      (instance.invitedFriends && instance.invitedFriends.length > 0) && (
+                        <div className="text-center p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                          <p className="text-gray-500">Please select your name above to continue.</p>
+                          {!instance.allowExternalGuests && (
+                            <p className="text-xs text-red-500 mt-2 font-medium">
+                              This event is invite-only. External guests are not allowed.
+                            </p>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

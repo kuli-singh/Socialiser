@@ -141,7 +141,8 @@ export async function PUT(
       venueType,
       priceInfo,
       capacity,
-      eventUrl
+      eventUrl,
+      allowExternalGuests
     } = body;
 
     // Validate datetime if provided
@@ -199,6 +200,7 @@ export async function PUT(
         priceInfo,
         capacity,
         eventUrl,
+        allowExternalGuests,
         participations: friendIds ? {
           create: (friendIds as string[]).map((friendId: string) => ({
             friendId,

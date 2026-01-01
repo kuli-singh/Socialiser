@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +11,25 @@ import { FormField } from '@/components/form-field';
 import { GroupSelector } from '@/components/group-selector';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
 
 export default function NewFriendPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [existingGroups, setExistingGroups] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch existing groups for suggestion
+    fetch('/api/friends/groups')
+      .then(res => res.json())
+      .then(data => {
+        if (data.groups) {
+          setExistingGroups(data.groups);
+        }
+      })
+      .catch(err => console.error('Failed to fetch groups', err));
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -105,7 +120,7 @@ export default function NewFriendPage() {
               <GroupSelector
                 value={formData.group}
                 onValueChange={(val: string) => handleChange('group', val)}
-                groups={['Close Friends', 'Family', 'Work', 'School', 'Gym', 'Travel']}
+                groups={existingGroups.length > 0 ? existingGroups : ['Close Friends', 'Family', 'Work', 'School']}
               />
               <p className="text-sm text-gray-500 mt-1">
                 Optional: Organize friends into groups for easier management

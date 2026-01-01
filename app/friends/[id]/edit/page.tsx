@@ -35,6 +35,19 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
     notes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [existingGroups, setExistingGroups] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch existing groups
+    fetch('/api/friends/groups')
+      .then(res => res.json())
+      .then(data => {
+        if (data.groups) {
+          setExistingGroups(data.groups);
+        }
+      })
+      .catch(err => console.error('Failed to fetch groups', err));
+  }, []);
 
   useEffect(() => {
     fetchFriend();
@@ -146,7 +159,7 @@ export default function EditFriendPage({ params }: { params: { id: string } }) {
               <GroupSelector
                 value={formData.group}
                 onValueChange={(val: string) => handleChange('group', val)}
-                groups={['Close Friends', 'Family', 'Work', 'School', 'Gym', 'Travel']}
+                groups={existingGroups.length > 0 ? existingGroups : ['Close Friends', 'Family', 'Work', 'School']}
               />
               <p className="text-sm text-gray-500 mt-1">
                 Optional: Organize friends into groups for easier management
