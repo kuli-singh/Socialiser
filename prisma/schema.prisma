@@ -18,6 +18,7 @@ model User {
   timezone          String?
   preferences       Json?
   googleApiKey      String?
+  isAdmin           Boolean            @default(false)
   activities        Activity[]
   activityInstances ActivityInstance[]
   coreValues        CoreValue[]

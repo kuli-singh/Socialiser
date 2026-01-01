@@ -104,29 +104,11 @@ export async function POST(request: NextRequest) {
     });
 
     const userPreferences = (userRecord?.preferences as { defaultLocation?: string, socialLocation?: string, systemPrompt?: string, preferredModel?: string, enableGoogleSearch?: boolean }) || {};
+
+    // User-specific locations (Always from the authenticated user)
     const defaultLocation = userPreferences.defaultLocation || "Unknown";
-    const socialLocation = userPreferences.socialLocation || defaultLocation; // Fallback to default if not set
-    const systemPrompt = userPreferences.systemPrompt || "";
-    let preferredModel = userPreferences.preferredModel || "gemini-flash-latest";
+    const socialLocation = userPreferences.socialLocation || defaultLocation;
 
-    // Explicit mapping for model IDs based on settings choice
-    if (preferredModel === "gemini-1.5-pro") {
-      preferredModel = "gemini-1.5-pro";
-    } else if (preferredModel === "gemini-1.5-flash") {
-      preferredModel = "gemini-1.5-flash";
-    } else if (preferredModel === "gemini-2.5-pro") {
-      preferredModel = "gemini-2.5-pro";
-    } else if (preferredModel === "gemini-2.0-flash") {
-      preferredModel = "gemini-2.0-flash";
-    } else if (preferredModel.includes("lite")) {
-      preferredModel = "gemini-2.5-flash-lite";
-    } else if (preferredModel === "gemini-2.5-flash") {
-      preferredModel = "gemini-2.5-flash";
-    } else {
-      preferredModel = "gemini-1.5-flash-latest"; // Safest, highest-quota functional default
-    }
-
-    const enableGoogleSearch = userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true;
 
     debugLog("Context loaded", {
       activities: userActivities.length,
@@ -142,8 +124,29 @@ export async function POST(request: NextRequest) {
     // 4. Initialize Gemini
     let apiKey = process.env.GOOGLE_API_KEY;
 
-    // Use User-stored key if available
-    if (user.id) {
+    // Fetch Global Admin Settings for API Key and Model Config
+    // We assume the ADMIN (first user with isAdmin=true) holds the master config.
+    const adminUser = await prisma.user.findFirst({
+      where: { isAdmin: true },
+      select: { googleApiKey: true, preferences: true }
+    });
+
+    // Strategy: 
+    // 1. Locations come from current user (already fetched in userPreferences above).
+    // 2. Prompt/Model/Search come from ADMIN user (if exists), else fall back to current user (legacy) or defaults.
+
+    const adminPrefs = (adminUser?.preferences as any) || {};
+
+    // OVERRIDE local preferences with Global Admin preferences for System/AI params
+    const systemPrompt = adminPrefs.systemPrompt || userPreferences.systemPrompt || "";
+    let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-flash-latest";
+    const enableGoogleSearch = adminPrefs.enableGoogleSearch !== undefined ? adminPrefs.enableGoogleSearch : (userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true);
+
+    // Use Admin Key if available, else user key, else env
+    if (adminUser?.googleApiKey) {
+      apiKey = decrypt(adminUser.googleApiKey);
+    } else if (user.id) {
+      // Fallback to user key if no admin key found (legacy support)
       const userWithKey = await prisma.user.findUnique({
         where: { id: user.id },
         select: { googleApiKey: true }
