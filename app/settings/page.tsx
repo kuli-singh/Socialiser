@@ -37,7 +37,7 @@ export default function SettingsPage() {
 
     const fetchSettings = async () => {
         try {
-            const response = await fetch('/api/user/settings');
+            const response = await fetch('/api/user/settings', { cache: 'no-store' });
             if (!response.ok) throw new Error('Failed to fetch settings');
             const data = await response.json();
 
