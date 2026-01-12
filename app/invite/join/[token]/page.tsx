@@ -329,9 +329,15 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                             disabled={submitting}
                                         >
                                             {submitting ? (
-                                                <>\<Clock className="h-4 w-4 mr-2 animate-spin" />Confirming...\</>
+                                                <>
+                                                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                                                    Confirming...
+                                                </>
                                             ) : (
-                                                <>\<Check className="h-4 w-4 mr-2" />Yes, I'll be there\</>
+                                                <>
+                                                    <Check className="h-4 w-4 mr-2" />
+                                                    Yes, I'll be there
+                                                </>
                                             )}
                                         </Button>
                                     </form>
