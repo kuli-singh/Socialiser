@@ -107,7 +107,10 @@ export default function DashboardPage() {
   const fetchUpcomingInstances = async () => {
     try {
       const response = await fetch('/api/instances');
-      if (!response.ok) throw new Error('Failed to fetch scheduled events');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Failed to fetch scheduled events (${response.status})`);
+      }
 
       const data = await response.json();
       // Ensure data is an array and filter for upcoming instances only with safe date parsing
