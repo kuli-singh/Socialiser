@@ -461,10 +461,12 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
               instanceId={instance.id}
               activityName={instance.customTitle || instance.activity.name}
             />
-            <QRCodeGenerator
-              url={eventUrl}
-              eventTitle={instance.customTitle || instance.activity.name}
-            />
+            {(!instance.capacity || (rsvps.length + (instance.hostAttending ? 1 : 0) < instance.capacity)) && (
+              <QRCodeGenerator
+                url={eventUrl}
+                eventTitle={instance.customTitle || instance.activity.name}
+              />
+            )}
 
             {/* Developer Credit Footer */}
             <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">

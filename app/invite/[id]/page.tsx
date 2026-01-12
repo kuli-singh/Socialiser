@@ -203,7 +203,11 @@ export default function InvitePage({ params }: { params: { id: string } }) {
 
   const { date, time } = formatDateTime(instance.datetime);
 
-  // Combine Friends and External Guests for Unified List
+  // Calculate detailed stats
+  const totalInvited = (instance.participations?.length || 0) + (instance.publicRSVPs?.filter(r => !instance.participations?.some(p => p.friend.id === r.friendId)).length || 0);
+  const capacityDisplay = instance.capacity ? `${totalInvited} invited / ${instance.capacity} capacity` : `${totalInvited} invited (Unlimited)`;
+  const isFull = instance.capacity ? totalInvited >= instance.capacity : false;
+
   const friendsList = (instance.participations ?? []).map(p => ({
     id: p.friend.id,
     name: p.friend.name,
@@ -220,11 +224,21 @@ export default function InvitePage({ params }: { params: { id: string } }) {
       name: r.name,
       type: 'external',
       email: r.email,
-      token: null, // External guests don't have tokens, use generic link
+      token: null,
       rsvp: r
     }));
 
-  const allGuests = [...friendsList, ...externalGuests];
+  // "Invite External Guest" placeholder card
+  const inviteExternalCard = {
+    id: 'invite-external',
+    name: 'Invite External Guest',
+    type: 'invite-action',
+    email: null,
+    token: null,
+    rsvp: null
+  };
+
+  const allGuests = [...friendsList, ...externalGuests, inviteExternalCard];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -272,33 +286,53 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         {/* Main Column - Friends & Personal Invites (PRIMARY) */}
         <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
 
-          {/* Friend List (Promoted to Top) */}
+          {/* Guest List (Unified) */}
           <Card className="border-l-4 border-l-purple-500 shadow-md">
             <CardHeader className="bg-purple-50/30 pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
                     <Users className="h-5 w-5 text-purple-600 mr-2" />
-                    Invited Friends
+                    Guest List
                   </CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">Manage guest list and send personal invites</p>
+                  <p className="text-sm text-gray-500 mt-1">Manage invites and responses</p>
                 </div>
-                <Badge variant="outline" className="bg-white">
-                  {instance.participations?.length || 0} Guests
+                <Badge variant={isFull ? "destructive" : "outline"} className="bg-white">
+                  {capacityDisplay}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
 
-              {allGuests.map((guest) => (
-                <div key={guest.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow group">
+              {allGuests.map((guest: any) => (
+                <div
+                  key={guest.id}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group cursor-pointer ${guest.type === 'invite-action' ? 'border-dashed border-2 border-slate-300 bg-slate-50' : ''}`}
+                  onClick={() => {
+                    if (guest.type === 'invite-action') {
+                      if (!isFull) window.open(eventUrl, '_blank');
+                      else alert("Event is at capacity!");
+                    } else if (guest.token) {
+                      window.open(`${window.location.origin}/invite/join/${guest.token}`, '_blank');
+                    } else {
+                      window.open(eventUrl, '_blank');
+                    }
+                  }}
+                >
 
                   {/* Guest Info */}
                   <div className="flex items-center mb-3 sm:mb-0">
                     <div className="relative">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm ${guest.type === 'friend' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-500'}`}>
-                        {guest.name.charAt(0)}
-                      </div>
+                      {guest.type === 'invite-action' ? (
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-slate-300 bg-white text-slate-400">
+                          <ExternalLink className="h-5 w-5" />
+                        </div>
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm ${guest.type === 'friend' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-500'}`}>
+                          {guest.name.charAt(0)}
+                        </div>
+                      )}
+
                       {guest.rsvp && (
                         <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5 border-2 border-white">
                           <CheckCircle className="h-3 w-3" />
@@ -306,20 +340,21 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       )}
                     </div>
                     <div className="ml-3">
-                      <div className="text-sm font-bold text-gray-900">{guest.name}</div>
+                      <div className={`text-sm font-bold ${guest.type === 'invite-action' ? 'text-slate-600' : 'text-gray-900'}`}>{guest.name}</div>
                       <div className="text-xs text-gray-500 flex items-center gap-2">
                         {guest.type === 'external' && <Badge variant="secondary" className="text-[10px] px-1 h-4">External</Badge>}
+                        {guest.type === 'invite-action' && <span>Generic public link</span>}
                         {guest.rsvp ? (
                           <span className="text-green-600 font-medium">Confirmed</span>
                         ) : (
-                          <span>Pending response</span>
+                          guest.type !== 'invite-action' && <span>Pending response</span>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                     {/* Message Button (Opens Dialog) */}
                     <Dialog>
                       <DialogTrigger asChild>
@@ -328,6 +363,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                           size="sm"
                           className="h-9 px-3 text-gray-700 border-gray-200 hover:bg-gray-50"
                           onClick={() => setSelectedGuestForMessage({ name: guest.name, token: guest.token })}
+                          disabled={guest.type === 'invite-action' && isFull}
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Message
@@ -389,15 +425,6 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 </div>
               ))}
 
-              {(allGuests.length === 0) && (
-                <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                  <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-slate-500 text-sm">No guests invited yet.</p>
-                  <Button variant="link" className="text-purple-600" onClick={() => window.location.href = `/activities/${instance.activity.id}/edit`}>
-                    Edit event to add friends
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -428,38 +455,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         {/* Sidebar - Public & Generic (SECONDARY) */}
         <div className="space-y-6 order-1 lg:order-2">
 
-          {/* Public Link Banner (Simplified) */}
-          <Card className="bg-slate-50 border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Public Access
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-slate-500">
-                Generic link for group chats or social media.
-              </p>
-              <div className="flex gap-2">
-                <div className="flex-1 p-2 border border-slate-200 bg-white rounded text-xs text-slate-600 font-mono truncate">
-                  {eventUrl}
-                </div>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(eventUrl);
-                    alert("Public link copied!");
-                  }}
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  title="Copy Public Link"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Quick Actions Only (Public Banner Removed) */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-bold text-gray-500 uppercase">Quick Actions</CardTitle>

@@ -213,23 +213,13 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                 </div>
                             )}
 
-                            {/* Calendar & QR Code Section */}
+                            {/* Calendar & QR Code Section - QR Removed for Friends */}
                             <div className="pt-6 border-t border-gray-100 space-y-4">
                                 <h3 className="text-sm font-semibold text-gray-900">Save Event</h3>
                                 <CalendarIntegration
                                     instanceId={instance.id}
                                     activityName={instance.customTitle || instance.activity.name}
                                 />
-
-                                <div className="pt-4">
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Event QR Code</h3>
-                                    <div className="bg-white p-2 rounded-lg border inline-block">
-                                        <QRCodeGenerator
-                                            url={typeof window !== 'undefined' ? `${window.location.origin}/invite/join/${invite.inviteToken}` : ''}
-                                            eventTitle={instance.customTitle || instance.activity.name}
-                                        />
-                                    </div>
-                                </div>
                             </div>
 
                         </CardContent>
@@ -316,12 +306,34 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                 </div>
 
                 {/* Footer */}
-                <div className="text-center pt-12 pb-8">
-                    <p className="text-gray-500 mb-4">Planning your own event?</p>
-                    <Link href="/" className="inline-flex items-center space-x-2 text-purple-600 hover:text-purple-700 font-semibold text-lg transition-colors">
-                        <Sparkles className="h-5 w-5" />
-                        <span>Plan with Socialiser</span>
-                    </Link>
+                {/* Footer Branding & Credits */}
+                <div className="space-y-6 pt-8">
+                    {/* Branding Card */}
+                    <Card className="border-none shadow-xl bg-white overflow-hidden ring-1 ring-gray-200 transform transition-all hover:scale-[1.01]">
+                        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
+                            <div className="relative z-10 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="h-5 w-5 text-white" />
+                                    <h2 className="text-xl font-bold tracking-tight">Plan with Socialiser</h2>
+                                </div>
+                                <p className="text-blue-50 text-sm leading-relaxed">
+                                    Organized using <span className="font-bold">Socialiser</span>, the AI platform by <strong>Kuli Singh</strong> for friction-free meetups.
+                                </p>
+                                <Link href="/" className="block pt-4">
+                                    <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg">
+                                        Get Started for Free
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Developer Credit Footer */}
+                    <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                            SOCIALISER BY KULI SINGH • © 2025
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
