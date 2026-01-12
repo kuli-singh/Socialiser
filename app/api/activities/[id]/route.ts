@@ -46,22 +46,17 @@ export async function GET(
           }
         },
         instances: {
+          orderBy: {
+            datetime: 'asc'
+          },
           include: {
             participations: {
               include: {
                 friend: true
               }
-            }
-          },
-          datetime: 'asc'
-        },
-        include: {
-          participations: {
-            include: {
-              friend: true
-            }
-          },
-          publicRSVPs: true
+            },
+            publicRSVPs: true
+          }
         }
       }
     }
