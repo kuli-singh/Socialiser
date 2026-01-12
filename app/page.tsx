@@ -413,7 +413,7 @@ export default function DashboardPage() {
                     <div className="flex flex-wrap items-center gap-2 pt-2">
                       {instance.allowExternalGuests ? (
                         <Badge variant="outline" className="text-[10px] font-bold bg-green-50 text-green-700 border-green-200">
-                          +1s Allowed
+                          External Guests Allowed
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-[10px] font-bold bg-gray-50 text-gray-500 border-gray-200">

@@ -59,7 +59,6 @@ interface ActivityInstance {
   contactInfo: string | null;
   venueType: string | null;
   priceInfo: string | null;
-  priceInfo: string | null;
   capacity: number | null;
   allowExternalGuests: boolean; // Added field
   hostAttending: boolean;
@@ -321,7 +320,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                 <div className="flex items-center gap-2">
                   {instance.allowExternalGuests ? (
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      +1s Allowed
+                      External Guests Allowed
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-gray-500 border-gray-200">
