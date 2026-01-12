@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // OVERRIDE local preferences with Global Admin preferences for System/AI params
     const systemPrompt = adminPrefs.systemPrompt || userPreferences.systemPrompt || "";
-    let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-flash-latest";
+    let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-1.5-flash";
     const enableGoogleSearch = adminPrefs.enableGoogleSearch !== undefined ? adminPrefs.enableGoogleSearch : (userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true);
 
     debugLog("Context loaded", {
@@ -252,7 +252,7 @@ USER REQUEST: "${message}"
 
     // Priority Fallback Chain
     // Always include gemini-1.5-flash as the ultimate safety net due to its high quota
-    const robustFallback = "gemini-1.5-flash-latest";
+    const robustFallback = "gemini-1.5-flash";
 
     if (preferredModel !== robustFallback) {
       // If we are using a "Pro" model, try 1.5 Pro as a smarter fallback before Flash
