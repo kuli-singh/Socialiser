@@ -12,9 +12,7 @@ export async function GET(
     const instance = await prisma.activityInstance.findUnique({
       where: { id: params.id },
       include: {
-        user: {
-          select: { name: true }
-        },
+
         activity: {
           include: {
             values: {
@@ -34,6 +32,12 @@ export async function GET(
                 phoneNumber: true
               }
             }
+          }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true
           }
         }
       }

@@ -54,6 +54,10 @@ interface InviteData {
             id: string;
             friendId: string | null;
         }>;
+        user?: {
+            name: string;
+            email?: string;
+        };
     };
 }
 
@@ -203,6 +207,22 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                     </div>
                                 </div>
                             )}
+
+                            {/* Host & Policy Info */}
+                            <div className="flex items-center gap-2 pt-2 pb-2">
+                                <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                                    Hosted by {invite.activityInstance.user?.name || 'Host'}
+                                </Badge>
+                                {invite.activityInstance.allowExternalGuests ? (
+                                    <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
+                                        +1s Allowed
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline" className="text-gray-500 border-gray-300">
+                                        Invite Only
+                                    </Badge>
+                                )}
+                            </div>
 
                             {/* Description */}
                             {(instance.detailedDescription || instance.activity.description) && (

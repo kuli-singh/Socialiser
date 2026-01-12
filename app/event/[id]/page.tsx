@@ -70,6 +70,10 @@ interface PublicActivityInstance {
   participantNames: string[];
   invitedFriends?: InvitedFriend[];
   hostAttending?: boolean;
+  user?: {
+    name: string;
+    email?: string;
+  };
 }
 
 interface RSVP {
@@ -206,6 +210,11 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
             {instance.customTitle || instance.activity.name}
           </h1>
           <p className="text-lg text-gray-600">You're invited to join us!</p>
+          <div className="flex justify-center gap-2">
+            <Badge variant="secondary" className="bg-white/80 backdrop-blur text-gray-700 shadow-sm">
+              Hosted by {instance.hostAttending ? (instance.user?.name || 'the Host') : (instance.user?.name || 'the Host')}
+            </Badge>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -53,28 +53,35 @@ export async function GET(
               }
             }
           },
-          orderBy: {
-            datetime: 'asc'
-          }
+          datetime: 'asc'
+        },
+        include: {
+          participations: {
+            include: {
+              friend: true
+            }
+          },
+          publicRSVPs: true
         }
       }
+    }
     });
 
-    if (!activity) {
-      return NextResponse.json(
-        { error: 'Activity not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(activity);
-  } catch (error) {
-    console.error('Error fetching activity:', error);
+  if (!activity) {
     return NextResponse.json(
-      { error: 'Failed to fetch activity' },
-      { status: 500 }
+      { error: 'Activity not found' },
+      { status: 404 }
     );
   }
+
+  return NextResponse.json(activity);
+} catch (error) {
+  console.error('Error fetching activity:', error);
+  return NextResponse.json(
+    { error: 'Failed to fetch activity' },
+    { status: 500 }
+  );
+}
 }
 
 export async function PUT(

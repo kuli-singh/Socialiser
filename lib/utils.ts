@@ -137,7 +137,7 @@ export function getParticipantCount(instance: any): number {
 export function getEventParticipantStats(instance: any) {
   if (!instance) return { invited: 0, confirmed: 0 };
 
-  // "Invited" in the funnel sense means "Everyone on the list"
+  // "Invited" in the funnel sense means "Everyone on the list" (including host)
   const invited = getParticipantCount(instance);
 
   // "Confirmed" are those who actually RSVP'd plus the host (if attending)

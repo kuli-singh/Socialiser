@@ -330,12 +330,12 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                           <ExternalLink className="h-5 w-5" />
                         </div>
                       ) : (
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm ${guest.type === 'friend' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-500'}`}>
-                          {guest.name.charAt(0)}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm ${guest.type === 'friend' ? 'bg-slate-100 text-slate-500' : guest.type === 'host' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-500'}`}>
+                          {guest.type === 'host' ? <Users className="h-5 w-5" /> : guest.name.charAt(0)}
                         </div>
                       )}
 
-                      {guest.rsvp && (
+                      {(guest.rsvp || guest.type === 'host') && (
                         <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5 border-2 border-white">
                           <CheckCircle className="h-3 w-3" />
                         </div>
@@ -343,13 +343,22 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                     </div>
                     <div className="ml-3">
                       <div className={`text-sm font-bold ${guest.type === 'invite-action' ? 'text-slate-600' : 'text-gray-900'}`}>{guest.name}</div>
-                      <div className="text-xs text-gray-500 flex items-center gap-2">
-                        {guest.type === 'external' && <Badge variant="secondary" className="text-[10px] px-1 h-4">External</Badge>}
-                        {guest.type === 'invite-action' && <span>Generic public link</span>}
-                        {guest.rsvp ? (
-                          <span className="text-green-600 font-medium">Confirmed</span>
-                        ) : (
-                          guest.type !== 'invite-action' && <span>Pending response</span>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="text-xs text-gray-500 flex items-center gap-2">
+                          {guest.type === 'external' && <Badge variant="secondary" className="text-[10px] px-1 h-4">External</Badge>}
+                          {guest.type === 'invite-action' && <span>Generic public link</span>}
+                          {guest.rsvp ? (
+                            <span className="text-green-600 font-medium">Confirmed</span>
+                          ) : (
+                            guest.type !== 'invite-action' && <span>Pending response</span>
+                          )}
+                        </div>
+                        {/* Display contact info for external guests */}
+                        {guest.type === 'external' && (
+                          <div className="text-[10px] text-gray-400 font-mono">
+                            {guest.email && <div>{guest.email}</div>}
+                            {guest.phone && <div>{guest.phone}</div>}
+                          </div>
                         )}
                       </div>
                     </div>
