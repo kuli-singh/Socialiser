@@ -21,7 +21,7 @@ interface DiscoveryRequest {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    let preferredModel = "gemini-1.5-flash";
+    let preferredModel = "gemini-flash-latest";
     let enableGoogleSearch = true;
 
     if (session?.user?.id) {
@@ -31,10 +31,12 @@ export async function POST(request: NextRequest) {
       });
       const prefs = (user?.preferences as any) || {};
       if (prefs.preferredModel) preferredModel = prefs.preferredModel;
-      // Fix legacy/unavailable model names from DB to Stable Versions
-      if (preferredModel === "gemini-flash-latest") preferredModel = "gemini-1.5-flash";
-      if (preferredModel === "gemini-pro-latest") preferredModel = "gemini-1.5-pro";
-      if (preferredModel === "gemini-1.5-pro-latest") preferredModel = "gemini-1.5-pro";
+
+      // Fix legacy/unavailable model names from DB to Stable Versions that exist for this key
+      if (preferredModel === "gemini-1.5-flash") preferredModel = "gemini-flash-latest";
+      if (preferredModel === "gemini-1.5-flash-001") preferredModel = "gemini-flash-latest";
+      if (preferredModel === "gemini-1.5-pro") preferredModel = "gemini-pro-latest";
+      if (preferredModel === "gemini-1.5-pro-latest") preferredModel = "gemini-pro-latest";
 
       if (prefs.enableGoogleSearch !== undefined) enableGoogleSearch = prefs.enableGoogleSearch;
     }

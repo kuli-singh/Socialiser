@@ -129,8 +129,23 @@ export async function POST(request: NextRequest) {
     const adminPrefs = (adminUser?.preferences as any) || {};
 
     // OVERRIDE local preferences with Global Admin preferences for System/AI params
+    // OVERRIDE local preferences with Global Admin preferences for System/AI params
     const systemPrompt = adminPrefs.systemPrompt || userPreferences.systemPrompt || "";
-    let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-1.5-flash";
+    let preferredModel = adminPrefs.preferredModel || userPreferences.preferredModel || "gemini-flash-latest";
+
+    // AGGRESSIVE SANITIZATION
+    // 1. Remove potential "models/" prefix and whitespace
+    preferredModel = preferredModel.replace(/^models\//, '').trim();
+
+    // 2. Remap legacy/missing 1.5 versions to "latest" using partial matching
+    if (preferredModel.includes("gemini-1.5-flash")) preferredModel = "gemini-flash-latest";
+    if (preferredModel.includes("gemini-1.5-pro")) preferredModel = "gemini-pro-latest";
+
+    // 3. Fallback for specific exact legacy strings just in case
+    if (preferredModel === "gemini-1.5-flash-001") preferredModel = "gemini-flash-latest";
+
+    debugLog("Model Selection sanitized", { original: adminPrefs.preferredModel || userPreferences.preferredModel, final: preferredModel });
+
     const enableGoogleSearch = adminPrefs.enableGoogleSearch !== undefined ? adminPrefs.enableGoogleSearch : (userPreferences.enableGoogleSearch !== undefined ? userPreferences.enableGoogleSearch : true);
 
     debugLog("Context loaded", {
@@ -262,13 +277,13 @@ USER REQUEST: "${message}"
     let modelsToTry = [preferredModel];
 
     // Priority Fallback Chain
-    // Use specific valid version instead of alias to prevent 404s
-    const robustFallback = "gemini-1.5-flash-001";
+    // Using 'gemini-flash-latest' as it is confirmed to exist for this user, unlike 1.5-flash
+    const robustFallback = "gemini-flash-latest";
 
     if (preferredModel !== robustFallback) {
-      // If we are using a "Pro" model, try 1.5 Pro as a smarter fallback before Flash
-      if (preferredModel.includes('pro') && preferredModel !== 'gemini-1.5-pro') {
-        modelsToTry.push('gemini-1.5-pro');
+      // If we are using a "Pro" model, try pro-latest as intermediate fallback
+      if (preferredModel.includes('pro') && preferredModel !== 'gemini-pro-latest') {
+        modelsToTry.push('gemini-pro-latest');
       }
 
       // Finally, add the most reliable Flash model

@@ -327,12 +327,10 @@ export default function SettingsPage() {
                                                 <SelectValue placeholder="Select a model" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash (Highly Reliable - Recommended)</SelectItem>
-                                                <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro (Steady & Powerful)</SelectItem>
+                                                <SelectItem value="gemini-flash-latest">Gemini Flash (Latest Stable - Recommended)</SelectItem>
+                                                <SelectItem value="gemini-pro-latest">Gemini Pro (Latest Steady & Powerful)</SelectItem>
                                                 <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash (New / Experimental)</SelectItem>
-                                                <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro (Powerful Preview)</SelectItem>
                                                 <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Fast Next-Gen)</SelectItem>
-                                                <SelectItem value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Low Cost)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <p className="text-[10px] text-gray-400">Flash models are recommended for daily use.</p>
