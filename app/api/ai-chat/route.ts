@@ -388,7 +388,7 @@ USER REQUEST: "${message}"
     let userMessage = "I'm having trouble connecting to my brain right now.";
 
     if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-      userMessage = "The selected AI model is currently hitting its usage limit. Please go to Settings and switch to 'Gemini 1.5 Flash (Highly Reliable)' for the best experience.";
+      userMessage = "The selected AI model is currently hitting its usage limit. Please go to Settings and switch to 'Gemini Flash (Latest Stable)' for the best experience.";
     } else {
       userMessage += ` Error details: ${errorMessage}`;
     }
