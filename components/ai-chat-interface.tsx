@@ -378,32 +378,32 @@ export function AIChatInterface({ initialContext, onEventSelected }: AIChatInter
 // Event Card Component
 function EventCard({ event, onSelect }: { event: SuggestedEvent; onSelect: () => void }) {
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500" onClick={onSelect}>
+    <Card className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-blue-500 group" onClick={onSelect}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h4 className="font-semibold text-gray-900">{event.name}</h4>
-          <Button size="sm" className="ml-2">
-            Select
+          <h4 className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">{event.name}</h4>
+          <Button size="sm" variant="secondary" className="ml-2 bg-blue-100 text-blue-700 hover:bg-blue-200">
+            Create Event
           </Button>
         </div>
 
-        <p className="text-sm text-gray-600 mb-3">{event.description}</p>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
 
         <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-3">
           <div className="flex items-center">
-            <MapPin className="h-3 w-3 mr-1" />
-            {event.venue}
+            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="truncate">{event.venue}</span>
           </div>
           <div className="flex items-center">
-            <Calendar className="h-3 w-3 mr-1" />
+            <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
             {event.date}
           </div>
           <div className="flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
             {event.time}
           </div>
           <div className="flex items-center">
-            <DollarSign className="h-3 w-3 mr-1" />
+            <DollarSign className="h-3 w-3 mr-1 flex-shrink-0" />
             {event.price}
           </div>
           {event.venueType && (
@@ -414,16 +414,24 @@ function EventCard({ event, onSelect }: { event: SuggestedEvent; onSelect: () =>
           )}
         </div>
 
-        <div className="bg-blue-50 p-2 rounded text-xs text-blue-800">
+        <div className="bg-blue-50 p-2 rounded text-xs text-blue-800 mb-3">
           <strong>Why this works:</strong> {event.reasoning}
         </div>
 
         {event.url && (
-          <div className="mt-2 flex items-center text-xs text-blue-600">
-            <ExternalLink className="h-3 w-3 mr-1" />
-            <a href={event.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+          <div className="mt-2 flex items-center justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs h-7 gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(event.url, '_blank');
+              }}
+            >
+              <ExternalLink className="h-3 w-3" />
               View Details
-            </a>
+            </Button>
           </div>
         )}
       </CardContent>
