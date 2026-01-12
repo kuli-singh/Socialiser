@@ -208,6 +208,15 @@ export default function InvitePage({ params }: { params: { id: string } }) {
   const capacityDisplay = instance.capacity ? `${totalInvited} invited / ${instance.capacity} capacity` : `${totalInvited} invited (Unlimited)`;
   const isFull = instance.capacity ? totalInvited >= instance.capacity : false;
 
+  const hostCard = (instance.hostAttending && instance.user) ? {
+    id: 'host',
+    name: `${instance.user.name} (Host)`,
+    type: 'host',
+    email: instance.user.email,
+    token: null,
+    rsvp: true // implicitly confirmed
+  } : null;
+
   const friendsList = (instance.participations ?? []).map(p => ({
     id: p.friend.id,
     name: p.friend.name,
@@ -224,6 +233,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
       name: r.name,
       type: 'external',
       email: r.email,
+      phone: r.phone,
       token: null,
       rsvp: r
     }));
@@ -238,7 +248,12 @@ export default function InvitePage({ params }: { params: { id: string } }) {
     rsvp: null
   };
 
-  const allGuests = [...friendsList, ...externalGuests, inviteExternalCard];
+  const allGuests = [
+    ...(hostCard ? [hostCard] : []),
+    ...friendsList,
+    ...externalGuests,
+    inviteExternalCard
+  ];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -307,8 +322,11 @@ export default function InvitePage({ params }: { params: { id: string } }) {
               {allGuests.map((guest: any) => (
                 <div
                   key={guest.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group ${guest.type !== 'external' ? 'cursor-pointer' : ''} ${guest.type === 'invite-action' ? 'border-dashed border-2 border-slate-300 bg-slate-50 cursor-pointer' : ''}`}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group ${(!guest.rsvp && guest.type !== 'host' && guest.type !== 'external') || guest.type === 'invite-action' ? 'cursor-pointer' : ''} ${guest.type === 'invite-action' ? 'border-dashed border-2 border-slate-300 bg-slate-50 cursor-pointer' : ''}`}
                   onClick={() => {
+                    // Disable click for confirmed guests (internal or external) or host
+                    if (guest.rsvp || guest.type === 'host' || (guest.type === 'external' && !guest.rsvp)) return;
+
                     if (guest.type === 'invite-action') {
                       if (!isFull) window.open(eventUrl, '_blank');
                       else alert("Event is at capacity!");
@@ -318,7 +336,6 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       // Only open public link for non-external guests (shouldn't happen given logic above, but safe fallback)
                       window.open(eventUrl, '_blank');
                     }
-                    // Do nothing for confirmed external guests
                   }}
                 >
 
