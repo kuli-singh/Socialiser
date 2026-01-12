@@ -227,6 +227,15 @@ export async function POST(request: NextRequest) {
           ]
         }
     `;
+    // Format conversation history
+    let historyContext = "";
+    if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      historyContext = "CONVERSATION HISTORY:\n" + conversationHistory.map((msg: any) => {
+        const role = msg.role === 'user' ? 'User' : 'Assistant';
+        return `${role}: ${msg.content}`;
+      }).join('\n') + "\n";
+    }
+
     const prompt = `
 You are an advanced AI social event planner. Your goal is to help the user plan social activities.
 
@@ -236,6 +245,8 @@ USER CONTEXT:
 - Core Values: ${JSON.stringify(userValues)}
 - Saved Locations: ${JSON.stringify(userLocations)}
 - Location Context: ${locationContextString}
+
+${historyContext}
 
 CORE MANDATORY RULES:
 ${coreGuardrails}
@@ -251,8 +262,8 @@ USER REQUEST: "${message}"
     let modelsToTry = [preferredModel];
 
     // Priority Fallback Chain
-    // Always include gemini-1.5-flash as the ultimate safety net due to its high quota
-    const robustFallback = "gemini-1.5-flash";
+    // Use specific valid version instead of alias to prevent 404s
+    const robustFallback = "gemini-1.5-flash-001";
 
     if (preferredModel !== robustFallback) {
       // If we are using a "Pro" model, try 1.5 Pro as a smarter fallback before Flash
