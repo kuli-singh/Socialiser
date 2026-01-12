@@ -59,24 +59,23 @@ export async function GET(
           }
         }
       }
-    }
     });
 
-  if (!activity) {
+    if (!activity) {
+      return NextResponse.json(
+        { error: 'Activity not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(activity);
+  } catch (error) {
+    console.error('Error fetching activity:', error);
     return NextResponse.json(
-      { error: 'Activity not found' },
-      { status: 404 }
+      { error: 'Failed to fetch activity' },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json(activity);
-} catch (error) {
-  console.error('Error fetching activity:', error);
-  return NextResponse.json(
-    { error: 'Failed to fetch activity' },
-    { status: 500 }
-  );
-}
 }
 
 export async function PUT(
