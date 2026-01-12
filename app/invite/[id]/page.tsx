@@ -59,7 +59,9 @@ interface ActivityInstance {
   contactInfo: string | null;
   venueType: string | null;
   priceInfo: string | null;
+  priceInfo: string | null;
   capacity: number | null;
+  allowExternalGuests: boolean; // Added field
   hostAttending: boolean;
   user?: {
     name: string;
@@ -316,9 +318,20 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   </CardTitle>
                   <p className="text-sm text-gray-500 mt-1">Manage invites and responses</p>
                 </div>
-                <Badge variant={isFull ? "destructive" : "outline"} className="bg-white">
-                  {capacityDisplay}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {instance.allowExternalGuests ? (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      +1s Allowed
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-gray-500 border-gray-200">
+                      Invite Only
+                    </Badge>
+                  )}
+                  <Badge variant={isFull ? "destructive" : "outline"} className="bg-white">
+                    {capacityDisplay}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">

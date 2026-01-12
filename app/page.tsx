@@ -48,6 +48,7 @@ interface ActivityInstance {
   venueType: string | null;
   priceInfo: string | null;
   capacity: number | null;
+  allowExternalGuests: boolean; // Added field
   eventUrl: string | null;
   activity: {
     id: string;
@@ -406,6 +407,25 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Guest Policy Badges - Added based on user request */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                      {instance.allowExternalGuests ? (
+                        <Badge variant="outline" className="text-[10px] font-bold bg-green-50 text-green-700 border-green-200">
+                          +1s Allowed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] font-bold bg-gray-50 text-gray-500 border-gray-200">
+                          Invite Only
+                        </Badge>
+                      )}
+
+                      {instance.capacity && (
+                        <Badge variant="outline" className="text-[10px] font-bold text-gray-500 border-gray-200">
+                          Cap: {instance.capacity}
+                        </Badge>
+                      )}
                     </div>
 
                     <div className="flex-1" />
