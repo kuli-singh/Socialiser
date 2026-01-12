@@ -183,21 +183,22 @@ export async function POST(request: NextRequest) {
         `;
     }
     const coreGuardrails = `
-    1. Suggest 3 - 4 diverse, REAL, CONCRETE event options matching the request happening around ${today}.
-    2. ${enableGoogleSearch ? 'Use Google Search to verify if events are actually happening.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
+    1. Suggest 3 - 4 diverse, REAL, CONCRETE, and CURRENT event options matching the request happening around ${today}.
+    2. ${enableGoogleSearch ? 'SEARCH MANDATE: You match a user request for "trending", "best", "reviews", "gigs", or "what to see right now". You MUST use Google Search to find current critical acclaim, recent reviews, and active listings. Do NOT rely on generic "evergreen" tourist spots (e.g. Lion King, British Museum) unless they are specifically part of a new trend or the user asked for classics.' : 'Since search is disabled, provide realistic suggestions based on your knowledge base.'} Do not hallucinate.
     3. CRITICAL: You MUST provide a valid 'url' for EVERY event found. Use the link from the Google Search result.
-    4. Prioritize saved locations / activities if relevant.
+    4. SAVED ITEMS PRIORITY: Prioritize saved locations / activities ONLY if they strictly match the user's intent. If the user asks for "something new" or "trending", IGNORE saved items and search externally.
 
-    8. TARGET ACTIVITY TYPE (STRICT):
-       - You MUST identify the specific "Activity Type" requested by the user from their message (e.g., "Theatre", "Concert", "Dinner", "Hiking").
-       - ALL suggested events must strictly match this Activity Type.
-       - SAVED ACTIVITIES: You may only suggest a Saved Activity if its name or description clearly matches the requested Activity Type. Do NOT suggest a Saved "Hiking" activity if the user asked for "Theatre".
+    8. STRICT ACTIVITY MATCHING (ZERO TOLERANCE):
+       - You MUST identify the specific "Activity Type" requested (e.g., "Theatre", "Concert", "Dinner", "Hiking").
+       - ALL suggestions must be of that type.
+       - If user asks for "Theatre" or "Plays", suggesting "The British Museum", "Sky Garden", or "Parks" is a CRITICAL FAILURE.
+       - If user asks for "Gigs", suggesting "Musical Theatre" is a FAILURE.
 
     9. GROUNDING & EXISTENCE (CRITICAL):
        - ${enableGoogleSearch ? 'You MUST use Google Search to find REAL, ACTIVE events happening on the specified dates.' : 'Since search is disabled, rely on your knowledge base but be as accurate as possible.'}
-       - VERIFY EXISTENCE: Do not suggest shows or venues that have closed (e.g., verify that a show is currently running / ticketed).
+       - VERIFY EXISTENCE: Do not suggest shows or venues that have closed.
        - VERIFY LOCATION: Ensure suggestions are in the correct location based on the 'Location Context' below.
-       - SEARCH-FIRST: Use real-time search results as your primary source of truth, not your internal training data.
+       - SEARCH-FIRST: Use real-time search results as your primary source of truth.
 
     10. LOCATION SELECTION LOGIC:
         - If the user specifies a location in the request, use that.
@@ -205,10 +206,10 @@ export async function POST(request: NextRequest) {
         - If the request implies LOCAL NATURE (hiking, walks), use 'HOME / ORIGIN'.
         - If the request implies URBAN SOCIALIZING (dinner, theatre, cinema), use 'SOCIAL HUB' unless stated otherwise.
 
-    11. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown, no explanations outside JSON.
+    11. OUTPUT MUST BE STRICT VALID JSON ONLY. No markdown.
     12. Follow this JSON structure:
         {
-          "message": "Friendly response to user...",
+          "message": "Friendly response...",
           "suggestedEvents": [
             {
               "name": "Event Title",
@@ -226,7 +227,6 @@ export async function POST(request: NextRequest) {
           ]
         }
     `;
-
     const prompt = `
 You are an advanced AI social event planner. Your goal is to help the user plan social activities.
 
