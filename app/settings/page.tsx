@@ -65,22 +65,41 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const response = await fetch('/api/user/settings', {
-                method: 'POST', // Changed to POST to match route handler convention if needed, usually PUT/POST. Route handler exports POST.
+            // Prepare payload: Flatten struct and handle masked API Key
+            const payload: any = {
+                name: settings.name,
+                ...settings.preferences
+            };
+
+            // Only include API Key if it's been changed (not the masked placeholder)
+            if (settings.googleApiKey && settings.googleApiKey !== '••••••••') {
+                payload.googleApiKey = settings.googleApiKey;
+            }
+
+            const response = await fetch('/api/settings', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings)
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) throw new Error('Failed to save settings');
             const data = await response.json();
 
             toast.success('Settings saved successfully');
-            setSettings(prev => ({
-                ...prev,
-                hasApiKey: data.hasApiKey,
+
+            // Update state with returned data
+            setSettings({
+                name: data.name || '',
                 googleApiKey: data.hasApiKey ? '••••••••' : '',
-                name: data.name
-            }));
+                hasApiKey: data.hasApiKey,
+                preferences: {
+                    preferredModel: data.preferredModel || settings.preferences.preferredModel,
+                    enableGoogleSearch: data.enableGoogleSearch !== undefined ? data.enableGoogleSearch : settings.preferences.enableGoogleSearch,
+                    systemPrompt: data.systemPrompt || settings.preferences.systemPrompt,
+                    defaultLocation: data.defaultLocation || settings.preferences.defaultLocation,
+                    socialLocation: data.socialLocation || settings.preferences.socialLocation
+                }
+            });
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Failed to save settings');
         } finally {
