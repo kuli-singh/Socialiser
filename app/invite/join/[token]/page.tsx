@@ -212,6 +212,26 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                     </p>
                                 </div>
                             )}
+
+                            {/* Calendar & QR Code Section */}
+                            <div className="pt-6 border-t border-gray-100 space-y-4">
+                                <h3 className="text-sm font-semibold text-gray-900">Save Event</h3>
+                                <CalendarIntegration
+                                    instanceId={instance.id}
+                                    activityName={instance.customTitle || instance.activity.name}
+                                />
+
+                                <div className="pt-4">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Event QR Code</h3>
+                                    <div className="bg-white p-2 rounded-lg border inline-block">
+                                        <QRCodeGenerator
+                                            url={typeof window !== 'undefined' ? `${window.location.origin}/invite/join/${invite.inviteToken}` : ''}
+                                            eventTitle={instance.customTitle || instance.activity.name}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                         </CardContent>
                     </Card>
 
@@ -230,13 +250,9 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                     <p className="text-gray-600">Thanks for confirming, {invite.friend.name}.</p>
 
                                     <div className="pt-4 space-y-3">
-                                        <CalendarIntegration
-                                            instanceId={instance.id}
-                                            activityName={instance.customTitle || instance.activity.name}
-                                        />
                                         <Link href={`/event/${instance.id}`} className="block">
                                             <Button variant="outline" className="w-full">
-                                                View Full Event Page
+                                                View Public Event Page
                                             </Button>
                                         </Link>
                                     </div>
@@ -300,8 +316,12 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                 </div>
 
                 {/* Footer */}
-                <div className="text-center pt-8 text-sm text-gray-400">
-                    Powered by Socialiser
+                <div className="text-center pt-12 pb-8">
+                    <p className="text-gray-500 mb-4">Planning your own event?</p>
+                    <Link href="/" className="inline-flex items-center space-x-2 text-purple-600 hover:text-purple-700 font-semibold text-lg transition-colors">
+                        <Sparkles className="h-5 w-5" />
+                        <span>Plan with Socialiser</span>
+                    </Link>
                 </div>
             </div>
         </div>

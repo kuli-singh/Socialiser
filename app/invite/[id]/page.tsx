@@ -29,8 +29,19 @@ import {
   MessageSquare,
   Mail,
   Copy,
-  CheckCircle
+  CheckCircle,
+  MessageCircle
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ActivityInstance {
   id: string;
@@ -88,6 +99,10 @@ export default function InvitePage({ params }: { params: { id: string } }) {
   const [instance, setInstance] = useState<ActivityInstance | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // State for message dialog
+  const [selectedGuestForMessage, setSelectedGuestForMessage] = useState<{ name: string, token: string | null } | null>(null);
+  const [messageCopied, setMessageCopied] = useState<string | null>(null);
 
   const eventUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/event/${params.id}`
@@ -156,11 +171,60 @@ export default function InvitePage({ params }: { params: { id: string } }) {
     });
   };
 
+  const generateMessage = (format: 'whatsapp' | 'sms' | 'email' | 'generic', guestName: string, token: string | null) => {
+    if (!instance) return '';
+    const { date, time } = formatDateTime(instance.datetime);
+    const location = instance.venue ? `${instance.venue}, ${instance.address || ''}` : (instance.location || 'Location TBD');
+    const title = instance.customTitle || instance.activity.name;
+    const link = token ? `${window.location.origin}/invite/join/${token}` : eventUrl;
+
+    let message = '';
+
+    switch (format) {
+      case 'whatsapp':
+        message = `Hey ${guestName}! 👋\n\nI'm hosting: *${title}*\n📅 ${date} @ ${time}\n📍 ${location}\n\nHope you can make it! confirm here:\n${link}`;
+        break;
+      case 'sms':
+        message = `Hey ${guestName}! Join me for ${title} on ${date}. RSVP: ${link}`;
+        break;
+      case 'email':
+        message = `Subject: Invite: ${title}\n\nHi ${guestName},\n\nI'd love for you to join me!\n\nWhat: ${title}\nWhen: ${date} at ${time}\nWhere: ${location}\n\nRSVP here:\n${link}\n\nHope to see you there!`;
+        break;
+      case 'generic':
+        message = `${title}\n${date} @ ${time}\n${link}`;
+        break;
+    }
+    return message;
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   if (!instance) return <ErrorMessage message="Activity instance not found" />;
 
   const { date, time } = formatDateTime(instance.datetime);
+
+  // Combine Friends and External Guests for Unified List
+  const friendsList = (instance.participations ?? []).map(p => ({
+    id: p.friend.id,
+    name: p.friend.name,
+    type: 'friend',
+    email: p.friend.email,
+    token: p.inviteToken,
+    rsvp: instance.publicRSVPs?.find(r => (r.friendId === p.friend.id) || (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase()))
+  }));
+
+  const externalGuests = (instance.publicRSVPs ?? [])
+    .filter(r => !instance.participations?.some(p => (r.friendId === p.friend.id) || (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())))
+    .map(r => ({
+      id: r.id,
+      name: r.name,
+      type: 'external',
+      email: r.email,
+      token: null, // External guests don't have tokens, use generic link
+      rsvp: r
+    }));
+
+  const allGuests = [...friendsList, ...externalGuests];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -185,13 +249,23 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-          <Share2 className="h-8 w-8 text-blue-600 mr-3" />
-          Share Your Event
-        </h1>
-        <p className="text-gray-600 mt-1">Modern, platform-agnostic invite system that works everywhere</p>
+      {/* Header & Host Calendar Action */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <Share2 className="h-8 w-8 text-blue-600 mr-3" />
+            Share Your Event
+          </h1>
+          <p className="text-gray-600 mt-1">Manage invites and track RSVPs</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/api/calendar/google/${instance.id}`} target="_blank">
+            <Button variant="outline">
+              <Calendar className="h-4 w-4 mr-2" />
+              Add to Calendar
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -215,61 +289,110 @@ export default function InvitePage({ params }: { params: { id: string } }) {
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              {/* Simplified Friend List primarily for Copying Links */}
-              {(instance?.participations ?? []).map((p) => {
-                const matchedRSVP = instance?.publicRSVPs?.find(r =>
-                  (r.friendId === p.friend.id) ||
-                  (r.email && p.friend.email && r.email.toLowerCase() === p.friend.email.toLowerCase())
-                );
 
-                return (
-                  <div key={p.friend.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow group">
+              {allGuests.map((guest) => (
+                <div key={guest.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow group">
 
-                    {/* Friend Info */}
-                    <div className="flex items-center mb-3 sm:mb-0">
-                      <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm border-2 border-white shadow-sm">
-                          {p.friend.name.charAt(0)}
+                  {/* Guest Info */}
+                  <div className="flex items-center mb-3 sm:mb-0">
+                    <div className="relative">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm ${guest.type === 'friend' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-500'}`}>
+                        {guest.name.charAt(0)}
+                      </div>
+                      {guest.rsvp && (
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5 border-2 border-white">
+                          <CheckCircle className="h-3 w-3" />
                         </div>
-                        {matchedRSVP && (
-                          <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5 border-2 border-white">
-                            <CheckCircle className="h-3 w-3" />
-                          </div>
+                      )}
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-bold text-gray-900">{guest.name}</div>
+                      <div className="text-xs text-gray-500 flex items-center gap-2">
+                        {guest.type === 'external' && <Badge variant="secondary" className="text-[10px] px-1 h-4">External</Badge>}
+                        {guest.rsvp ? (
+                          <span className="text-green-600 font-medium">Confirmed</span>
+                        ) : (
+                          <span>Pending response</span>
                         )}
                       </div>
-                      <div className="ml-3">
-                        <div className="text-sm font-bold text-gray-900">{p.friend.name}</div>
-                        <div className="text-xs text-gray-500 flex items-center">
-                          {matchedRSVP ? (
-                            <span className="text-green-600 font-medium">Confirmed</span>
-                          ) : (
-                            <span>Pending response</span>
-                          )}
-                        </div>
-                      </div>
                     </div>
+                  </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center space-x-2">
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-2">
+                    {/* Message Button (Opens Dialog) */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 px-3 text-gray-700 border-gray-200 hover:bg-gray-50"
+                          onClick={() => setSelectedGuestForMessage({ name: guest.name, token: guest.token })}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Message {guest.name}</DialogTitle>
+                          <DialogDescription>
+                            Choose a format to copy and send. {guest.token ? "Evaluating personal link..." : "Using public link."}
+                          </DialogDescription>
+                        </DialogHeader>
+                        {/* Message Generation Tabs */}
+                        <Tabs defaultValue="whatsapp" className="w-full">
+                          <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                            <TabsTrigger value="sms">SMS</TabsTrigger>
+                            <TabsTrigger value="email">Email</TabsTrigger>
+                            <TabsTrigger value="generic">Link</TabsTrigger>
+                          </TabsList>
+                          {['whatsapp', 'sms', 'email', 'generic'].map((format) => (
+                            <TabsContent key={format} value={format} className="mt-4 space-y-4">
+                              <Textarea
+                                readOnly
+                                value={generateMessage(format as any, guest.name, guest.token)}
+                                className="min-h-[150px] font-mono text-sm bg-slate-50"
+                              />
+                              <Button
+                                className="w-full"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(generateMessage(format as any, guest.name, guest.token));
+                                  setMessageCopied(format);
+                                  setTimeout(() => setMessageCopied(null), 2000);
+                                }}
+                              >
+                                {messageCopied === format ? <CheckCircle className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                                {messageCopied === format ? "Copied!" : "Copy to Clipboard"}
+                              </Button>
+                            </TabsContent>
+                          ))}
+                        </Tabs>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Direct Copy Link (Only for Friends with Tokens) */}
+                    {guest.token && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 px-4 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 transition-colors shadow-sm font-semibold"
-                        onClick={() => copyInviteLink(p.inviteToken)}
-                        title="Copy Personal Invite Link"
+                        className="h-9 px-3 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 font-semibold"
+                        onClick={() => copyInviteLink(guest.token!)}
+                        title="Copy Personal Link"
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        COPY LINK
+                        LINK
                       </Button>
-                    </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
 
-              {(instance.participations.length === 0) && (
+              {(allGuests.length === 0) && (
                 <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                   <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-slate-500 text-sm">No friends invited yet.</p>
+                  <p className="text-slate-500 text-sm">No guests invited yet.</p>
                   <Button variant="link" className="text-purple-600" onClick={() => window.location.href = `/activities/${instance.activity.id}/edit`}>
                     Edit event to add friends
                   </Button>
@@ -305,7 +428,7 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         {/* Sidebar - Public & Generic (SECONDARY) */}
         <div className="space-y-6 order-1 lg:order-2">
 
-          {/* Public Link Banner (Demoted to Sidebar) */}
+          {/* Public Link Banner (Simplified) */}
           <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center">
@@ -315,37 +438,27 @@ export default function InvitePage({ params }: { params: { id: string } }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-slate-500">
-                Use this generic link for group chats or social media where you don't need to track specific people.
+                Generic link for group chats or social media.
               </p>
-              <div className="p-2 border border-slate-200 bg-white rounded text-xs text-slate-600 font-mono break-all">
-                {eventUrl}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2">
+                <div className="flex-1 p-2 border border-slate-200 bg-white rounded text-xs text-slate-600 font-mono truncate">
+                  {eventUrl}
+                </div>
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(eventUrl);
                     alert("Public link copied!");
                   }}
-                  variant="outline"
-                  className="w-full text-xs"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  title="Copy Public Link"
                 >
-                  <Copy className="h-3 w-3 mr-2" />
-                  Copy URL
-                </Button>
-                <Button
-                  onClick={() => window.open(eventUrl, '_blank')}
-                  variant="outline"
-                  className="w-full text-xs"
-                >
-                  <Eye className="h-3 w-3 mr-2" />
-                  Preview
+                  <Copy className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
           </Card>
-
-          {/* Generic Copy Hub (Demoted) */}
-          <CopyToClipboardHub instance={instance} eventUrl={eventUrl} />
 
           <Card>
             <CardHeader>
