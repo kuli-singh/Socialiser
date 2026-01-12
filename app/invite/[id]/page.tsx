@@ -408,13 +408,14 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="flex items-center space-x-2">
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                                className="h-7 px-2 text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
                                 onClick={() => copyInviteLink(p.inviteToken)}
                                 title="Copy Personal Invite Link"
                               >
-                                <Copy className="h-3 w-3" />
+                                <Copy className="h-3 w-3 mr-1.5" />
+                                <span className="text-[10px] font-bold">COPY LINK</span>
                               </Button>
                               {matchedRSVP ? (
                                 <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Confirmed</Badge>

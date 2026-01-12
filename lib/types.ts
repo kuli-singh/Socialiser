@@ -218,6 +218,7 @@ export type ActivityInstanceWithRelations = {
     userId: string
     friendId: string
     activityInstanceId: string
+    inviteToken: string
     createdAt: Date
     friend: {
       id: string
@@ -332,6 +333,7 @@ export type SerializedActivityInstanceWithRelations = {
     userId: string
     friendId: string
     activityInstanceId: string
+    inviteToken: string
     createdAt: Date
     friend: {
       id: string
