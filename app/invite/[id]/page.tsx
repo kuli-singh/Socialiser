@@ -204,9 +204,13 @@ export default function InvitePage({ params }: { params: { id: string } }) {
   const { date, time } = formatDateTime(instance.datetime);
 
   // Calculate detailed stats
-  const totalInvited = (instance.participations?.length || 0) + (instance.publicRSVPs?.filter(r => !instance.participations?.some(p => p.friend.id === r.friendId)).length || 0);
-  const capacityDisplay = instance.capacity ? `${totalInvited} invited / ${instance.capacity} capacity` : `${totalInvited} invited (Unlimited)`;
-  const isFull = instance.capacity ? totalInvited >= instance.capacity : false;
+  // Calculate detailed stats including Host
+  const totalParticipants = (instance.participations?.length || 0) +
+    (instance.publicRSVPs?.filter(r => !instance.participations?.some(p => p.friend.id === r.friendId)).length || 0) +
+    (instance.hostAttending ? 1 : 0);
+
+  const capacityDisplay = instance.capacity ? `${totalParticipants} Participants / Capacity: ${instance.capacity}` : `${totalParticipants} Participants`;
+  const isFull = instance.capacity ? totalParticipants >= instance.capacity : false;
 
   const hostCard = (instance.hostAttending && instance.user) ? {
     id: 'host',

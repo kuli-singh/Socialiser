@@ -250,7 +250,7 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                     )}
                                     {instance.capacity && (
                                         <Badge variant="outline" className="ml-2 text-gray-500 border-gray-300">
-                                            Max {instance.capacity} Guests
+                                            Capacity: {instance.capacity}
                                         </Badge>
                                     )}
                                 </div>

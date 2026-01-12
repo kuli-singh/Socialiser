@@ -279,7 +279,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                     )}
                     {instance.capacity && (
                       <Badge variant="outline" className="ml-2 text-gray-500 border-gray-300">
-                        Max {instance.capacity} Guests
+                        Capacity: {instance.capacity}
                       </Badge>
                     )}
                   </div>
