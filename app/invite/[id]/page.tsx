@@ -307,16 +307,18 @@ export default function InvitePage({ params }: { params: { id: string } }) {
               {allGuests.map((guest: any) => (
                 <div
                   key={guest.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group cursor-pointer ${guest.type === 'invite-action' ? 'border-dashed border-2 border-slate-300 bg-slate-50' : ''}`}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group ${guest.type !== 'external' ? 'cursor-pointer' : ''} ${guest.type === 'invite-action' ? 'border-dashed border-2 border-slate-300 bg-slate-50 cursor-pointer' : ''}`}
                   onClick={() => {
                     if (guest.type === 'invite-action') {
                       if (!isFull) window.open(eventUrl, '_blank');
                       else alert("Event is at capacity!");
                     } else if (guest.token) {
                       window.open(`${window.location.origin}/invite/join/${guest.token}`, '_blank');
-                    } else {
+                    } else if (guest.type !== 'external') {
+                      // Only open public link for non-external guests (shouldn't happen given logic above, but safe fallback)
                       window.open(eventUrl, '_blank');
                     }
+                    // Do nothing for confirmed external guests
                   }}
                 >
 
