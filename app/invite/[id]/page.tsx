@@ -28,7 +28,8 @@ import {
   Heart,
   Phone,
   MessageSquare,
-  Mail
+  Mail,
+  Copy
 } from 'lucide-react';
 
 interface ActivityInstance {
@@ -65,6 +66,7 @@ interface ActivityInstance {
     }>;
   };
   participations: Array<{
+    inviteToken: string;
     friend: {
       id: string;
       name: string;
@@ -145,6 +147,13 @@ export default function InvitePage({ params }: { params: { id: string } }) {
         time: 'Invalid Time'
       };
     }
+  };
+
+  const copyInviteLink = (token: string) => {
+    const url = `${window.location.origin}/invite/join/${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Personal invite link copied!");
+    });
   };
 
   if (loading) return <LoadingSpinner />;
@@ -348,8 +357,8 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                                 The API /api/instances/[id] DOES return the full object.
                              */}
                           <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${(instance as any).allowExternalGuests
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-gray-50 text-gray-500 border-gray-200"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-gray-50 text-gray-500 border-gray-200"
                             }`}>
                             {(instance as any).allowExternalGuests ? "EXTERNAL GUESTS ALLOWED" : "INVITE ONLY"}
                           </Badge>
@@ -397,11 +406,22 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                                 <div className="text-[10px] text-gray-500">Invited Friend</div>
                               </div>
                             </div>
-                            {matchedRSVP ? (
-                              <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Confirmed</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-gray-400 border-gray-200 text-[8px] font-black uppercase">Pending</Badge>
-                            )}
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                                onClick={() => copyInviteLink(p.inviteToken)}
+                                title="Copy Personal Invite Link"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                              {matchedRSVP ? (
+                                <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black uppercase">Confirmed</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-400 border-gray-200 text-[8px] font-black uppercase">Pending</Badge>
+                              )}
+                            </div>
                           </div>
                           {matchedRSVP?.message && (
                             <div className="mt-2 text-[11px] text-gray-600 bg-gray-50 p-2 rounded italic border-l-2 border-gray-200">
