@@ -9,17 +9,19 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Allow access to auth pages without token
-        if (req.nextUrl.pathname.startsWith('/login') || 
-            req.nextUrl.pathname.startsWith('/register')) {
+        if (req.nextUrl.pathname.startsWith('/login') ||
+          req.nextUrl.pathname.startsWith('/register')) {
           return true;
         }
-        
+
         // Allow access to public event pages without token
         if (req.nextUrl.pathname.startsWith('/event/') ||
-            req.nextUrl.pathname.startsWith('/api/public-events/')) {
+          req.nextUrl.pathname.startsWith('/api/public-events/') ||
+          req.nextUrl.pathname.startsWith('/invite/join/') ||
+          req.nextUrl.pathname.startsWith('/api/invites/')) {
           return true;
         }
-        
+
         // For all other protected routes, require token
         return !!token;
       },

@@ -249,7 +249,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                 {(instance.detailedDescription || instance.activity.description) && (
                   <div className="pt-4 border-t border-gray-100">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">About This Event</h3>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                       {instance.detailedDescription || instance.activity.description}
                     </p>
                   </div>
