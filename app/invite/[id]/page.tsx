@@ -293,12 +293,22 @@ export default function InvitePage({ params }: { params: { id: string } }) {
           <p className="text-gray-600 mt-1">Manage invites and track RSVPs</p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/api/calendar/google/${instance.id}`} target="_blank">
-            <Button variant="outline">
-              <Calendar className="h-4 w-4 mr-2" />
-              Add to Calendar
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const response = await fetch(`/api/calendar/google/${instance.id}`);
+                if (!response.ok) throw new Error('Failed');
+                const data = await response.json();
+                window.open(data.url, '_blank');
+              } catch (e) {
+                alert('Failed to open calendar');
+              }
+            }}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Add to Calendar
+          </Button>
         </div>
       </div>
 
