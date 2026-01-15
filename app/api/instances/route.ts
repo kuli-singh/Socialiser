@@ -141,7 +141,8 @@ export async function POST(request: NextRequest) {
       capacity,
       locationId,
       eventUrl,
-      allowExternalGuests
+      allowExternalGuests,
+      showGuestList
     } = body;
 
     if (!activityId || !datetime) {
