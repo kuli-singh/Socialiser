@@ -476,8 +476,8 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                       </Button>
                     )}
 
-                    {/* Unconfirm Button (Only for Confirmed Guests) */}
-                    {guest.rsvp && (
+                    {/* Unconfirm Button (Only for Confirmed Guests, excluding Host) */}
+                    {guest.rsvp && guest.type !== 'host' && (
                       <Button
                         variant="outline"
                         size="sm"
