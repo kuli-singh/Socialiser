@@ -272,7 +272,7 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                       <div>
                         <span className="block text-xs text-gray-400 uppercase tracking-wide">Invited</span>
                         <span className="font-medium text-gray-900">
-                          {instance.invitedFriends?.length || 0} People
+                          {instance.invitedFriends?.length || 0} Friends
                         </span>
                       </div>
                       <div>
@@ -284,6 +284,19 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                           ).length || 0)} Waiting
                         </span>
                       </div>
+
+                      {/* Show External Guests count if any exist */}
+                      {(rsvps.filter((r: any) => !r.friendId).length > 0) && (
+                        <div className="col-span-2 pt-2 border-t border-gray-200 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">External Guests</span>
+                            <span className="font-medium text-gray-900">
+                              {rsvps.filter((r: any) => !r.friendId).length} Joined
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {instance.capacity && (
                         <div className="col-span-2 pt-2 border-t border-gray-200 mt-2">
                           <div className="flex justify-between items-center">
