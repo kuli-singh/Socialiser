@@ -259,16 +259,12 @@ export default function PublicEventPage({ params }: { params: { id: string } }) 
                 {/* Participants Summary - Detailed Macro View */}
                 <div className="pt-4 border-t border-gray-100 space-y-4">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-gray-900 font-semibold">
-                        <Users className="h-5 w-5 mr-2 text-indigo-600" />
-                        <span>{rsvps.length + (instance.hostAttending ? 1 : 0)} Confirmed</span>
-                      </div>
-                      {instance.capacity && (
-                        <Badge variant="outline" className="text-gray-500 border-gray-300">
-                          Max {instance.capacity}
-                        </Badge>
-                      )}
+                    <div className="flex items-center text-gray-900 font-semibold text-lg">
+                      <Users className="h-5 w-5 mr-3 text-indigo-600" />
+                      <span>
+                        {rsvps.length + (instance.hostAttending ? 1 : 0)} Confirmed
+                        {instance.capacity && <span className="text-gray-400 font-normal"> / Max {instance.capacity}</span>}
+                      </span>
                     </div>
 
                     {/* Detailed Stats */}
