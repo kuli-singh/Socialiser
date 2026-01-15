@@ -181,15 +181,18 @@ export default function InvitePage({ params }: { params: { id: string } }) {
 
     let message = '';
 
+    // Fix generic greeting for external invites
+    const displayName = guestName === 'Invite External Guest' ? 'friend' : guestName;
+
     switch (format) {
       case 'whatsapp':
-        message = `Hey ${guestName}! 👋\n\nI'm hosting: *${title}*\n📅 ${date} @ ${time}\n📍 ${location}\n\nHope you can make it! confirm here:\n${link}`;
+        message = `Hey ${displayName}! 👋\n\nI'm hosting: *${title}*\n📅 ${date} @ ${time}\n📍 ${location}\n\nHope you can make it! confirm here:\n${link}`;
         break;
       case 'sms':
-        message = `Hey ${guestName}! Join me for ${title} on ${date}. RSVP: ${link}`;
+        message = `Hey ${displayName}! Join me for ${title} on ${date}. RSVP: ${link}`;
         break;
       case 'email':
-        message = `Subject: Invite: ${title}\n\nHi ${guestName},\n\nI'd love for you to join me!\n\nWhat: ${title}\nWhen: ${date} at ${time}\nWhere: ${location}\n\nRSVP here:\n${link}\n\nHope to see you there!`;
+        message = `Subject: Invite: ${title}\n\nHi ${displayName},\n\nI'd love for you to join me!\n\nWhat: ${title}\nWhen: ${date} at ${time}\nWhere: ${location}\n\nRSVP here:\n${link}\n\nHope to see you there!`;
         break;
       case 'generic':
         message = `${title}\n${date} @ ${time}\n${link}`;
