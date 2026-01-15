@@ -153,6 +153,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
     capacity: '',
     eventUrl: '',
     allowExternalGuests: true,
+    showGuestList: true,
   });
 
   // Initialize with initialInstance if provided
@@ -179,6 +180,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
         capacity: initialInstance.capacity?.toString() || '',
         eventUrl: initialInstance.eventUrl || '',
         allowExternalGuests: initialInstance.allowExternalGuests !== undefined ? initialInstance.allowExternalGuests : true,
+        showGuestList: initialInstance.showGuestList !== undefined ? initialInstance.showGuestList : true,
       });
       if (initialInstance.activity) {
         setSelectedActivity(initialInstance.activity);
@@ -415,6 +417,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
           capacity: formData.capacity ? parseInt(formData.capacity) : null,
           eventUrl: formData.eventUrl || null,
           allowExternalGuests: formData.allowExternalGuests,
+          showGuestList: formData.showGuestList,
         }),
       });
 
@@ -751,6 +754,31 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
                       </label>
                       <p className="text-xs text-gray-500 mt-0.5">
                         Allow friends to bring guests
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 block">
+                    Guest List Visibility
+                  </label>
+                  <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded-md border h-[72px]">
+                    <div className="pt-0.5">
+                      <input
+                        type="checkbox"
+                        id="showGuestList"
+                        checked={formData.showGuestList}
+                        onChange={(e) => handleChange('showGuestList', e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="showGuestList" className="block text-sm font-bold text-gray-900 cursor-pointer">
+                        Show Guests to Invitees
+                      </label>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        If unchecked, only total counts are shown
                       </p>
                     </div>
                   </div>

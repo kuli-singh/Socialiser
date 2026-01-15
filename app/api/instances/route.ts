@@ -231,7 +231,8 @@ export async function POST(request: NextRequest) {
         priceInfo,
         capacity,
         eventUrl,
-        allowExternalGuests: allowExternalGuests ?? true, // Default to true if not provided? Schema says true.
+        allowExternalGuests: allowExternalGuests ?? true,
+        showGuestList: showGuestList ?? true,
         participations: friendIds ? {
           create: (friendIds as string[]).map((friendId: string) => ({
             friendId,

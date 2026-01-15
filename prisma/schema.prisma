@@ -111,6 +111,7 @@ model ActivityInstance {
   eventUrl            String?
   hostAttending       Boolean         @default(true)
   allowExternalGuests Boolean         @default(true)
+  showGuestList       Boolean         @default(true)
   activity            Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
   locationRef         Location?       @relation(fields: [locationId], references: [id])
   user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)

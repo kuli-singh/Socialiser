@@ -83,6 +83,7 @@ export async function GET(
       eventUrl: instance.eventUrl,
       hostAttending: instance.hostAttending,
       allowExternalGuests: instance.allowExternalGuests,
+      showGuestList: instance.showGuestList,
       user: instance.user, // Expose Host details (name, email)
       activity: {
         id: instance.activity.id,

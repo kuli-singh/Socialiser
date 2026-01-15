@@ -22,7 +22,7 @@ export async function POST(
     // Check if event exists
     const instance = await prisma.activityInstance.findUnique({
       where: { id: params.id },
-      select: { id: true, capacity: true, allowExternalGuests: true, hostAttending: true }
+      select: { id: true, capacity: true, allowExternalGuests: true, showGuestList: true, hostAttending: true }
     });
 
     if (!instance) {

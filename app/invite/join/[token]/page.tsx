@@ -50,8 +50,17 @@ interface InviteData {
         };
         publicRSVPs: Array<{
             id: string;
+            name: string;
             friendId: string | null;
         }>;
+        participations?: Array<{
+            id: string;
+            friend: {
+                id: string;
+                name: string;
+            };
+        }>;
+        showGuestList?: boolean;
         user?: {
             name: string;
             email?: string;
@@ -225,19 +234,52 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                     </div>
                                 )}
 
-                                {/* Participants */}
-                                <div className="pt-4 border-t border-gray-100 space-y-3">
-                                    <div className="flex items-center justify-between text-gray-700">
-                                        <div className="flex items-center">
-                                            <Users className="h-5 w-5 mr-3 text-indigo-600" />
-                                            <span className="font-semibold">
-                                                {confirmedCount}
-                                                {instance.capacity ? ` / ${instance.capacity}` : ''} confirmed
-                                            </span>
+                                {/* Participants Summary - Detailed Macro View */}
+                                <div className="pt-4 border-t border-gray-100 space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center text-gray-900 font-semibold">
+                                                <Users className="h-5 w-5 mr-2 text-indigo-600" />
+                                                <span>{confirmedCount} Confirmed</span>
+                                            </div>
+                                            {instance.capacity && (
+                                                <Badge variant="outline" className="text-gray-500 border-gray-300">
+                                                    Max {instance.capacity}
+                                                </Badge>
+                                            )}
+                                        </div>
+
+                                        {/* Detailed Stats */}
+                                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                            <div>
+                                                <span className="block text-xs text-gray-400 uppercase tracking-wide">Invited</span>
+                                                <span className="font-medium text-gray-900">
+                                                    {instance.participations?.length || 0} People
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs text-gray-400 uppercase tracking-wide">Pending</span>
+                                                <span className="font-medium text-gray-900">
+                                                    {/* Pending = Total Invites - (Invites that have RSVPed) */}
+                                                    {(instance.participations?.length || 0) - (instance.participations?.filter((p: any) =>
+                                                        instance.publicRSVPs?.some((r: any) => r.friendId === p.friend.id)
+                                                    ).length || 0)} Waiting
+                                                </span>
+                                            </div>
+                                            {instance.capacity && (
+                                                <div className="col-span-2 pt-2 border-t border-gray-200 mt-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-xs text-gray-500">Free Spots</span>
+                                                        <span className={`font-bold ${confirmedCount >= instance.capacity ? 'text-red-500' : 'text-green-600'}`}>
+                                                            {Math.max(0, instance.capacity - confirmedCount)} Remaining
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center pl-8">
+                                    <div className="flex items-center">
                                         {instance.allowExternalGuests ? (
                                             <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
                                                 External Guests Allowed
@@ -247,13 +289,57 @@ export default function InviteJoinPage({ params }: { params: { token: string } }
                                                 Invite Only
                                             </Badge>
                                         )}
-                                        {instance.capacity && (
-                                            <Badge variant="outline" className="ml-2 text-gray-500 border-gray-300">
-                                                Capacity: {instance.capacity}
-                                            </Badge>
-                                        )}
                                     </div>
                                 </div>
+
+                                {/* Guest List (Conditionally Rendered) */}
+                                {instance.showGuestList && (
+                                    <div className="pt-6 border-t border-gray-100 animate-in fade-in duration-500">
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Who's Coming</h3>
+                                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {/* Host */}
+                                            {instance.hostAttending && (
+                                                <div className="flex items-center justify-between p-3 rounded-lg bg-purple-50 border border-purple-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 font-bold text-xs">
+                                                            HOST
+                                                        </div>
+                                                        <div className="font-medium text-gray-900">{instance.user?.name || 'Host'}</div>
+                                                    </div>
+                                                    <Badge className="bg-purple-200 text-purple-800 hover:bg-purple-200">Organizer</Badge>
+                                                </div>
+                                            )}
+
+                                            {/* Confirmed Public RSVPs */}
+                                            {instance.publicRSVPs?.map((rsvp: any) => (
+                                                <div key={rsvp.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50/50 border border-green-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-bold text-xs">
+                                                            {rsvp.name.charAt(0)}
+                                                        </div>
+                                                        <div className="font-medium text-gray-900">{rsvp.name}</div>
+                                                    </div>
+                                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 shadow-none border-0">Going</Badge>
+                                                </div>
+                                            ))}
+
+                                            {/* Pending Invites (Participations w/o RSVP) */}
+                                            {instance.participations?.filter((p: any) =>
+                                                !instance.publicRSVPs?.some((r: any) => r.friendId === p.friend.id)
+                                            ).map((p: any) => (
+                                                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs">
+                                                            {p.friend.name.charAt(0)}
+                                                        </div>
+                                                        <div className="font-medium text-gray-500">{p.friend.name}</div>
+                                                    </div>
+                                                    <Badge variant="outline" className="text-gray-400 border-gray-200">Invited</Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="pt-4 pb-4 px-8 border-t border-gray-100 flex items-center justify-between bg-slate-50/50">
                                 <div className="flex items-center gap-2">

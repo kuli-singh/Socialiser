@@ -201,6 +201,7 @@ export async function PUT(
         capacity,
         eventUrl,
         allowExternalGuests,
+        showGuestList: body.showGuestList !== undefined ? body.showGuestList : undefined,
         participations: friendIds ? {
           create: (friendIds as string[]).map((friendId: string) => ({
             friendId,
