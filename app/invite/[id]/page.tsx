@@ -536,6 +536,40 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                   <div>{instance.venue}</div>
                 </div>
               )}
+
+              {/* Participants Stats Grid */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Confirmed</span>
+                    <span className="font-semibold text-gray-900">{totalParticipants}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Capacity</span>
+                    <span className="font-semibold text-gray-900">{instance.capacity ? `Max ${instance.capacity}` : 'Unlimited'}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Invited</span>
+                    <span className="font-medium text-gray-700">{instance.participations.length}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Pending</span>
+                    <span className="font-medium text-gray-700">
+                      {instance.participations.length - (instance.participations.filter(p =>
+                        instance.publicRSVPs.some(r => r.friendId === p.friend.id)
+                      ).length)}
+                    </span>
+                  </div>
+                  {instance.capacity && (
+                    <div className="col-span-2 pt-1 mt-1 border-t border-gray-200 flex justify-between items-center bg-white px-2 py-1 rounded">
+                      <span className="text-xs text-gray-500 font-medium">Remaining Spots</span>
+                      <span className={`font-bold ${totalParticipants >= instance.capacity ? 'text-red-500' : 'text-green-600'}`}>
+                        {Math.max(0, instance.capacity - totalParticipants)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
