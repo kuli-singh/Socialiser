@@ -207,15 +207,75 @@ export default function InvitePage({ params }: { params: { id: string } }) {
 
   const { date, time } = formatDateTime(instance.datetime);
 
-  // Calculate detailed stats
-  // Calculate detailed stats including Host
-  const totalParticipants = (instance.participations?.length || 0) +
-    (instance.publicRSVPs?.filter(r => !instance.participations?.some(p => p.friend.id === r.friendId)).length || 0) +
-    (instance.hostAttending ? 1 : 0);
+  // Calculate detailed stats correctly
+  // Confirmed = Host + Public RSVPs
+  const confirmedCount = (instance.hostAttending ? 1 : 0) + (instance.publicRSVPs?.length || 0);
 
-  const capacityDisplay = instance.capacity ? `${totalParticipants} Participants / Capacity: ${instance.capacity}` : `${totalParticipants} Participants`;
-  const isFull = instance.capacity ? totalParticipants >= instance.capacity : false;
+  // Invited = Total Friend Participations
+  const invitedCount = instance.participations?.length || 0;
 
+  // Pending = Invited Friends who do NOT have a PublicRSVP with their friendId
+  const pendingCount = invitedCount - (instance.participations?.filter(p =>
+    instance.publicRSVPs?.some(r => r.friendId === p.friend.id)
+  ).length || 0);
+
+  // External = Total RSVPs that do NOT have a friendId
+  const externalCount = instance.publicRSVPs?.filter(r => !r.friendId).length || 0;
+
+  const capacityDisplay = instance.capacity ? `${confirmedCount} Participants / Capacity: ${instance.capacity}` : `${confirmedCount} Participants`;
+  const isFull = instance.capacity ? confirmedCount >= instance.capacity : false;
+
+  // ... (Lines 219-539 mostly unchanged, skipping purely for replaced block context in final render)
+
+  // ... INSIDE RETURN ...
+
+  {/* Participants Stats Grid - Adjusted for Host View */ }
+  <div className="pt-4 border-t border-gray-100">
+    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
+      <div className="flex flex-col">
+        <span className="text-xs text-gray-400 uppercase tracking-wide">Confirmed</span>
+        <span className="font-semibold text-gray-900">{confirmedCount}</span>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs text-gray-400 uppercase tracking-wide">Capacity</span>
+        <span className="font-semibold text-gray-900">{instance.capacity ? `Max ${instance.capacity}` : 'Unlimited'}</span>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs text-gray-400 uppercase tracking-wide">Invited</span>
+        <span className="font-medium text-gray-700">{invitedCount} Friends</span>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs text-gray-400 uppercase tracking-wide">Pending</span>
+        <span className="font-medium text-gray-700">
+          {pendingCount} Waiting
+        </span>
+      </div>
+
+      {/* External Guests Row */}
+      {(externalCount > 0) && (
+        <div className="col-span-2 pt-1 mt-1 border-t border-gray-200">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-500">External Guests</span>
+            <span className="font-medium text-gray-900">{externalCount} Joined</span>
+          </div>
+        </div>
+      )}
+
+      {instance.capacity && (
+        <div className="col-span-2 pt-1 mt-1 border-t border-gray-200 flex justify-between items-center bg-white px-2 py-1 rounded">
+          <span className="text-xs text-gray-500 font-medium">Remaining Spots</span>
+          <span className={`font-bold ${confirmedCount >= instance.capacity ? 'text-red-500' : 'text-green-600'}`}>
+            {Math.max(0, instance.capacity - confirmedCount)}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+              </div >
+            </CardContent >
+          </Card >
+
+  // Host card object definition
   const hostCard = (instance.hostAttending && instance.user) ? {
     id: 'host',
     name: `${instance.user.name} (Host)`,
