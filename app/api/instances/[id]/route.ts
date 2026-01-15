@@ -174,13 +174,40 @@ export async function PUT(
       }
     }
 
-    // Delete existing participations and create new ones
-    await prisma.participation.deleteMany({
-      where: {
-        activityInstanceId: params.id,
-        userId: user.id
+    // Manage participations: Upsert logic to preserve invite tokens
+    if (friendIds) {
+      const existingParticipations = await prisma.participation.findMany({
+        where: { activityInstanceId: params.id },
+        select: { friendId: true }
+      });
+
+      const existingFriendIds = existingParticipations.map(p => p.friendId);
+
+      // 1. Identify friends to remove (in existing but not in new list)
+      const friendsToRemove = existingFriendIds.filter(id => !friendIds.includes(id));
+
+      // 2. Identify friends to add (in new list but not in existing)
+      const friendsToAdd = friendIds.filter((id: string) => !existingFriendIds.includes(id));
+
+      if (friendsToRemove.length > 0) {
+        await prisma.participation.deleteMany({
+          where: {
+            activityInstanceId: params.id,
+            friendId: { in: friendsToRemove }
+          }
+        });
       }
-    });
+
+      if (friendsToAdd.length > 0) {
+        await prisma.participation.createMany({
+          data: friendsToAdd.map((friendId: string) => ({
+            activityInstanceId: params.id,
+            userId: user.id,
+            friendId: friendId
+          }))
+        });
+      }
+    }
 
     const instance = await prisma.activityInstance.update({
       where: { id: params.id },
@@ -202,12 +229,7 @@ export async function PUT(
         eventUrl,
         allowExternalGuests,
         showGuestList: body.showGuestList !== undefined ? body.showGuestList : undefined,
-        participations: friendIds ? {
-          create: (friendIds as string[]).map((friendId: string) => ({
-            friendId,
-            userId: user.id
-          }))
-        } : undefined
+        // participations handled separately above
       },
       include: {
         user: {
