@@ -475,6 +475,38 @@ export default function InvitePage({ params }: { params: { id: string } }) {
                         LINK
                       </Button>
                     )}
+
+                    {/* Unconfirm Button (Only for Confirmed Guests) */}
+                    {guest.rsvp && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-3 text-red-600 border-red-200 hover:bg-red-50"
+                        title="Unconfirm Guest (Revert to Pending)"
+                        onClick={async () => {
+                          if (!confirm(`Are you sure you want to unconfirm ${guest.name}? They will be marked as Pending.`)) return;
+
+                          try {
+                            const query = guest.type === 'friend' ? `friendId=${guest.id}` : `rsvpId=${guest.rsvp.id}`;
+                            const res = await fetch(`/api/instances/${instance.id}/rsvp?${query}`, {
+                              method: 'DELETE',
+                            });
+
+                            if (res.ok) {
+                              // Refresh stats
+                              fetchInstance();
+                            } else {
+                              alert('Failed to unconfirm guest');
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert('An error occurred');
+                          }
+                        }}
+                      >
+                        Unconfirm
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
