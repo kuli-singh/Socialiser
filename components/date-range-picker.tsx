@@ -32,11 +32,6 @@ export function DateRangePicker({
 
   const handleStartDateChange = (value: string) => {
     onStartDateChange(value);
-    
-    // Auto-set end date if it's empty or before start date
-    if (!endDate || new Date(endDate) < new Date(value)) {
-      onEndDateChange(value);
-    }
   };
 
   const handleMultiDayToggle = (enabled: boolean) => {

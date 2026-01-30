@@ -154,6 +154,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
     eventUrl: '',
     allowExternalGuests: true,
     showGuestList: true,
+    duration: '60', // Default 1 hour
   });
 
   // Initialize with initialInstance if provided
@@ -360,7 +361,30 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
   };
 
   const handleChange = (field: string, value: string | string[] | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updates = { ...prev, [field]: value };
+
+      // Handle duration/time logic
+      if (field === 'datetime' && updates.duration && updates.duration !== 'custom') {
+        const start = new Date(value as string);
+        if (!isNaN(start.getTime())) {
+          const durationMinutes = parseInt(updates.duration);
+          const end = new Date(start.getTime() + durationMinutes * 60000);
+          updates.endDate = end.toISOString().slice(0, 16);
+        }
+      }
+      else if (field === 'duration' && value !== 'custom' && updates.datetime) {
+        const start = new Date(updates.datetime);
+        if (!isNaN(start.getTime())) {
+          const durationMinutes = parseInt(value as string);
+          const end = new Date(start.getTime() + durationMinutes * 60000);
+          updates.endDate = end.toISOString().slice(0, 16);
+        }
+      }
+
+      return updates;
+    });
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -707,15 +731,47 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
               </FormField>
 
               <FormField label="Event Date & Time" required error={errors.datetime}>
-                <DateRangePicker
-                  startDate={formData.datetime}
-                  endDate={formData.endDate}
-                  isAllDay={formData.isAllDay}
-                  onStartDateChange={(date) => handleChange('datetime', date)}
-                  onEndDateChange={(date) => handleChange('endDate', date)}
-                  onIsAllDayChange={(isAllDay) => handleChange('isAllDay', isAllDay)}
-                  error={errors.datetime}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-[1fr,auto] gap-4">
+                  <div className="flex-1">
+                    <DateRangePicker
+                      startDate={formData.datetime}
+                      endDate={formData.endDate}
+                      isAllDay={formData.isAllDay}
+                      onStartDateChange={(date) => handleChange('datetime', date)}
+                      onEndDateChange={(date) => {
+                        handleChange('endDate', date);
+                        handleChange('duration', 'custom'); // Switch to custom if manually changed
+                      }}
+                      onIsAllDayChange={(isAllDay) => handleChange('isAllDay', isAllDay)}
+                      error={errors.datetime}
+                    />
+                  </div>
+
+                  {!formData.isAllDay && (
+                    <div className="w-full md:w-32">
+                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                        Duration
+                      </label>
+                      <Select
+                        value={formData.duration}
+                        onValueChange={(value) => handleChange('duration', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 mins</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="90">1.5 hours</SelectItem>
+                          <SelectItem value="120">2 hours</SelectItem>
+                          <SelectItem value="180">3 hours</SelectItem>
+                          <SelectItem value="240">4 hours</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </FormField>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
