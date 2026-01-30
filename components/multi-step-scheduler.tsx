@@ -377,6 +377,12 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
     setCurrentStep('event-details');
   };
 
+  // Helper to get local ISO string (YYYY-MM-DDTHH:mm)
+  const toLocalISOString = (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
   const handleChange = (field: string, value: string | string[] | boolean) => {
     setFormData(prev => {
       const updates = { ...prev, [field]: value };
@@ -387,7 +393,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
         if (!isNaN(start.getTime())) {
           const durationMinutes = parseInt(updates.duration);
           const end = new Date(start.getTime() + durationMinutes * 60000);
-          updates.endDate = end.toISOString().slice(0, 16);
+          updates.endDate = toLocalISOString(end);
         }
       }
       else if (field === 'duration' && value !== 'custom' && updates.datetime) {
@@ -395,7 +401,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
         if (!isNaN(start.getTime())) {
           const durationMinutes = parseInt(value as string);
           const end = new Date(start.getTime() + durationMinutes * 60000);
-          updates.endDate = end.toISOString().slice(0, 16);
+          updates.endDate = toLocalISOString(end);
         }
       }
 
