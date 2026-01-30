@@ -160,6 +160,22 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
   // Initialize with initialInstance if provided
   useEffect(() => {
     if (initialInstance) {
+      // Calculate duration
+      let duration = '60'; // Default
+      if (initialInstance.datetime && initialInstance.endDate) {
+        const start = new Date(initialInstance.datetime);
+        const end = new Date(initialInstance.endDate);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          const diffMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+          const standardDurations = [30, 60, 90, 120, 180, 240];
+          if (standardDurations.includes(diffMinutes)) {
+            duration = diffMinutes.toString();
+          } else {
+            duration = 'custom';
+          }
+        }
+      }
+
       setFormData({
         datetime: initialInstance.datetime ? initialInstance.datetime.slice(0, 16) : '',
         endDate: initialInstance.endDate ? initialInstance.endDate.slice(0, 16) : '',
@@ -182,6 +198,7 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
         eventUrl: initialInstance.eventUrl || '',
         allowExternalGuests: initialInstance.allowExternalGuests !== undefined ? initialInstance.allowExternalGuests : true,
         showGuestList: initialInstance.showGuestList !== undefined ? initialInstance.showGuestList : true,
+        duration: duration,
       });
       if (initialInstance.activity) {
         setSelectedActivity(initialInstance.activity);
