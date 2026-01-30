@@ -127,6 +127,7 @@ export async function PUT(
     const body = await request.json();
     const {
       datetime,
+      endDate,
       location,
       friendIds,
       customTitle,
@@ -154,6 +155,32 @@ export async function PUT(
           { error: 'Invalid datetime format' },
           { status: 400 }
         );
+      }
+    }
+
+    // Validate endDate if provided
+    let parsedEndDate: Date | null | undefined;
+    if (endDate !== undefined) {
+      if (endDate) {
+        parsedEndDate = new Date(endDate);
+        if (isNaN(parsedEndDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid end date format' },
+            { status: 400 }
+          );
+        }
+
+        // Ensure end date is not before start date (if start date is also being updated or exists)
+        const effectiveStart = parsedDateTime || (await prisma.activityInstance.findUnique({ where: { id: params.id }, select: { datetime: true } }))?.datetime;
+
+        if (effectiveStart && parsedEndDate < effectiveStart) {
+          return NextResponse.json(
+            { error: 'End date cannot be before start date' },
+            { status: 400 }
+          );
+        }
+      } else {
+        parsedEndDate = null;
       }
     }
 
@@ -213,6 +240,7 @@ export async function PUT(
       where: { id: params.id },
       data: {
         datetime: parsedDateTime,
+        endDate: parsedEndDate,
         location,
         customTitle,
         venue,

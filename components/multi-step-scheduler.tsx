@@ -789,7 +789,10 @@ export function MultiStepScheduler({ onBack, preselectedTemplate, aiSuggestion, 
                           <SelectItem value="120">2 hours</SelectItem>
                           <SelectItem value="180">3 hours</SelectItem>
                           <SelectItem value="240">4 hours</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
+                          {/* Only show Custom if the current value is custom, to allow switching away from it */}
+                          {formData.duration === 'custom' && (
+                            <SelectItem value="custom">Custom</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
